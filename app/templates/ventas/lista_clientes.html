@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Directorio de Clientes</h2>
+        <p class="text-muted small mb-0">Gestiona tu cartera de compradores.</p>
+    </div>
+    <a href="{{ url_for('main.nuevo_cliente') }}" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold">
+        <i class="bi bi-person-plus me-2"></i> Nuevo Cliente
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <!-- Buscador -->
+    <div class="card-header bg-white border-bottom p-3">
+        <form class="d-flex" role="search">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                <input class="form-control bg-light border-0" type="search" name="q" placeholder="Buscar por nombre o documento..." value="{{ search_query }}">
+                <button class="btn btn-dark px-4" type="submit">Buscar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-uppercase text-muted small fw-bold">Cliente</th>
+                        <th class="py-3 text-uppercase text-muted small fw-bold">Contacto</th>
+                        <th class="py-3 text-uppercase text-muted small fw-bold">Ubicación</th>
+                        <th class="text-end pe-4 py-3 text-uppercase text-muted small fw-bold">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clientes %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-dark text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                    {{ c.nombre[0] }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ c.nombre }}</div>
+                                    <small class="text-muted">{{ c.documento or 'Sin ID' }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if c.telefono %}
+                                <div class="small"><i class="bi bi-telephone me-1 text-muted"></i> {{ c.telefono }}</div>
+                            {% endif %}
+                            {% if c.email %}
+                                <div class="small text-muted"><i class="bi bi-envelope me-1"></i> {{ c.email }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">
+                            <i class="bi bi-geo-alt me-1"></i> {{ c.direccion or '-' }}
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-light border rounded-pill px-3" disabled>
+                                <i class="bi bi-pencil me-1"></i> Editar
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-people display-6 opacity-25 mb-3 d-block"></i>
+                            No hay clientes registrados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,544 @@
+﻿from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask_login import login_user, logout_user, login_required, current_user
+from sqlalchemy import or_
+from .models import (
+    Usuario, Rol, Proveedor, Insumo, UnidadMedida, 
+    PedidoCompra, DetallePedidoCompra, LoteInsumo, MovimientoInventario,
+    Especie, LoteProduccion, LaborCampo, ConsumoInsumo,
+    Cliente, Venta, DetalleVenta, Sede
+)
+from .extensions import db
+from datetime import datetime
+
+main_bp = Blueprint('main', __name__)
+
+# ==================================================
+# 1. RUTAS PÚBLICAS Y AUTENTICACIÓN
+# ==================================================
+
+@main_bp.route('/')
+def home():
+    return render_template('index.html')
+
+@main_bp.route('/registro', methods=['GET', 'POST'])
+def registro():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.home'))
+
+    if not Rol.query.first():
+        try:
+            roles_iniciales = [Rol(nombre='Administrador'), Rol(nombre='Trabajador'), Rol(nombre='Agrónomo'), Rol(nombre='Vendedor')]
+            db.session.add_all(roles_iniciales)
+            db.session.commit()
+        except: db.session.rollback()
+
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        telefono = request.form.get('telefono')
+        rol_nombre = request.form.get('rol') 
+
+        if not nombre or not email or not password:
+            flash('Por favor llena los campos obligatorios.', 'warning')
+            return render_template('registro.html')
+
+        if Usuario.query.filter_by(email=email).first():
+            flash('El correo ya está registrado.', 'warning')
+            return render_template('registro.html')
+
+        rol_obj = Rol.query.filter_by(nombre=rol_nombre).first()
+        if not rol_obj: rol_obj = Rol.query.filter_by(nombre='Trabajador').first()
+
+        try:
+            nuevo_usuario = Usuario(
+                nombre_completo=nombre, email=email, telefono=telefono,
+                rol_id=rol_obj.id if rol_obj else None, fecha_registro=datetime.utcnow()
+            )
+            nuevo_usuario.set_password(password)
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            flash('¡Cuenta creada! Por favor inicia sesión.', 'success')
+            return redirect(url_for('main.login'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al registrar: {e}', 'danger')
+
+    try: roles = Rol.query.all()
+    except: roles = []
+    return render_template('registro.html', roles=roles)
+
+@main_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated: return redirect(url_for('main.dashboard'))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        user = Usuario.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            login_user(user)
+            flash(f'Bienvenido, {user.nombre_completo}', 'success')
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Email o contraseña incorrectos.', 'danger')
+    return render_template('login.html')
+
+@main_bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('main.home'))
+
+@main_bp.route('/dashboard')
+@login_required
+def dashboard():
+    total_insumos = Insumo.query.count()
+    total_proveedores = Proveedor.query.count()
+    insumos_alerta = Insumo.query.filter(Insumo.cantidad_actual <= Insumo.stock_minimo).all()
+    pedidos_pendientes = PedidoCompra.query.filter_by(estado='Solicitado').count()
+    lotes_activos = LoteProduccion.query.filter_by(estado='En Crecimiento').count()
+    fecha_inicio_mes = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    ventas_mes = Venta.query.filter(Venta.fecha >= fecha_inicio_mes).count()
+    especies = Especie.query.all()
+    proveedores = Proveedor.query.order_by(Proveedor.razon_social).all()
+    unidades = UnidadMedida.query.all()
+    
+    if not unidades:
+        try:
+            db.session.add_all([UnidadMedida(nombre='Unidad', abreviatura='ud'), UnidadMedida(nombre='Kilogramo', abreviatura='kg')])
+            db.session.commit()
+            unidades = UnidadMedida.query.all()
+        except: pass
+
+    return render_template('dashboard.html',
+                           total_insumos=total_insumos,
+                           total_proveedores=total_proveedores,
+                           insumos_alerta=insumos_alerta,
+                           pedidos_pendientes=pedidos_pendientes,
+                           lotes_activos=lotes_activos,
+                           ventas_mes=ventas_mes,
+                           especies=especies,
+                           proveedores=proveedores,
+                           unidades=unidades)
+
+
+# ==================================================
+# 2. GESTIÓN DE TERCEROS (PROVEEDORES)
+# ==================================================
+
+@main_bp.route('/proveedores')
+@login_required
+def lista_proveedores():
+    query_str = request.args.get('q', '').strip()
+    es_ajax = request.args.get('ajax') == '1'
+    query = Proveedor.query
+    if query_str:
+        query = query.filter(or_(
+            Proveedor.razon_social.ilike(f'%{query_str}%'),
+            Proveedor.nit_rut.ilike(f'%{query_str}%'),
+            Proveedor.contacto_nombre.ilike(f'%{query_str}%')
+        ))
+    proveedores = query.order_by(Proveedor.razon_social).all()
+    if es_ajax:
+        return render_template('parciales/items_proveedores.html', proveedores=proveedores)
+    return render_template('lista_proveedores.html', proveedores=proveedores, search_query=query_str)
+
+@main_bp.route('/proveedor/nuevo', methods=['GET', 'POST'])
+@main_bp.route('/proveedor/editar/<int:proveedor_id>', methods=['GET', 'POST'])
+@login_required
+def nuevo_proveedor(proveedor_id=None):
+    proveedor = None
+    if proveedor_id:
+        proveedor = Proveedor.query.get_or_404(proveedor_id)
+
+    if request.method == 'POST':
+        razon_social = request.form.get('razon_social')
+        nit_rut = request.form.get('nit_rut') or None 
+        contacto = request.form.get('contacto_nombre')
+        telefono = request.form.get('telefono')
+        email = request.form.get('email')
+        direccion = request.form.get('direccion')
+
+        if not razon_social:
+            flash('La Razón Social es obligatoria.', 'warning')
+            return render_template('nuevo_proveedor.html', proveedor=proveedor)
+        
+        try:
+            if proveedor:
+                proveedor.razon_social = razon_social
+                proveedor.nit_rut = nit_rut
+                proveedor.contacto_nombre = contacto
+                proveedor.telefono = nickname_field = telefono
+                proveedor.email = email
+                proveedor.direccion = direccion
+                flash('Proveedor actualizado exitosamente.', 'success')
+            else:
+                nuevo = Proveedor(
+                    razon_social=razon_social, nit_rut=nit_rut, contacto_nombre=nickname_field if 'nickname_field' in locals() else contacto,
+                    telefono=telefono, email=email, direccion=direccion
+                )
+                db.session.add(nuevo)
+                flash('Proveedor registrado exitosamente.', 'success')
+            
+            db.session.commit()
+            return redirect(url_for('main.lista_proveedores'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al guardar: {e}', 'danger')
+            return render_template('nuevo_proveedor.html', proveedor=proveedor)
+
+    return render_template('nuevo_proveedor.html', proveedor=proveedor)
+
+@main_bp.route('/proveedor/eliminar/<int:proveedor_id>', methods=['POST'])
+@login_required
+def eliminar_proveedor(proveedor_id):
+    proveedor = Proveedor.query.get_or_404(proveedor_id)
+    try:
+        db.session.delete(proveedor)
+        db.session.commit()
+        flash('Proveedor eliminado.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar: {e}', 'danger')
+    return redirect(url_for('main.lista_proveedores'))
+
+
+# ==================================================
+# 3. GESTIÓN DE INVENTARIOS (INSUMOS)
+# ==================================================
+
+@main_bp.route('/insumos')
+@login_required
+def lista_insumos():
+    query_str = request.args.get('q', '').strip()
+    mostrar_alertas = request.args.get('alertas') == '1'
+    query = Insumo.query
+    if query_str:
+        query = query.filter(or_(
+            Insumo.nombre.ilike(f'%{query_str}%'),
+            Insumo.tipo.ilike(f'%{query_str}%')
+        ))
+    if mostrar_alertas:
+        query = query.filter(Insumo.cantidad_actual <= Insumo.stock_minimo)
+    insumos = query.all()
+    return render_template('lista_insumos.html', insumos=insumos, search_query=query_str)
+
+@main_bp.route('/insumo/nuevo', methods=['GET', 'POST'])
+@main_bp.route('/insumo/editar/<int:insumo_id>', methods=['GET', 'POST'])
+@login_required
+def nuevo_insumo(insumo_id=None):
+    if not UnidadMedida.query.first():
+        try:
+            unidades = [UnidadMedida(nombre='Kilogramo', abreviatura='kg'), UnidadMedida(nombre='Litro', abreviatura='L')]
+            db.session.add_all(unidades)
+            db.session.commit()
+        except: db.session.rollback()
+
+    unidades = UnidadMedida.query.all()
+    insumo = Insumo.query.get_or_404(insumo_id) if insumo_id else None
+
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        if not nombre:
+            flash('El nombre es obligatorio.', 'warning')
+            return render_template('nuevo_insumo.html', unidades=unidades, insumo=insumo)
+        try:
+            if insumo:
+                insumo.nombre = nombre
+                insumo.tipo = request.form.get('tipo')
+                insumo.unidad_medida_id = int(request.form.get('unidad_id'))
+                insumo.stock_minimo = float(request.form.get('stock_minimo', 0))
+                flash('Insumo actualizado.', 'success')
+            else:
+                nuevo = Insumo(
+                    nombre=nombre, tipo=request.form.get('tipo'),
+                    unidad_medida_id=int(request.form.get('unidad_id')),
+                    stock_minimo=float(request.form.get('stock_minimo', 0)),
+                    cantidad_actual=0.0, costo_promedio=0.0
+                )
+                db.session.add(nuevo)
+                flash('Insumo creado.', 'success')
+            db.session.commit()
+            return redirect(url_for('main.lista_insumos'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al guardar: {e}', 'danger')
+    return render_template('nuevo_insumo.html', unidades=unidades, insumo=insumo)
+
+
+# ==================================================
+# 4. GESTIÓN DE COMPRAS Y RECEPCIÓN
+# ==================================================
+
+@main_bp.route('/compras')
+@login_required
+def lista_pedidos():
+    pedidos = PedidoCompra.query.order_by(PedidoCompra.fecha_solicitud.desc()).all()
+    proveedores = Proveedor.query.order_by(Proveedor.razon_social).all()
+    return render_template('lista_pedidos.html', pedidos=pedidos, proveedores=proveedores)
+
+@main_bp.route('/compra/nueva', methods=['GET', 'POST'])
+@login_required
+def nuevo_pedido():
+    proveedores = Proveedor.query.all()
+    if request.method == 'POST':
+        try:
+            num_orden = f"OC-{int(datetime.now().timestamp())}"
+            pedido = PedidoCompra(
+                numero_orden=num_orden, 
+                proveedor_id=int(request.form.get('proveedor_id')), 
+                fecha_solicitud=datetime.strptime(request.form.get('fecha_solicitud'), '%Y-%m-%d').date(), 
+                estado='Solicitado'
+            )
+            db.session.add(pedido)
+            db.session.commit()
+            return redirect(url_for('main.ver_pedido', pedido_id=pedido.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {e}', 'danger')
+    return render_template('nuevo_pedido.html', proveedores=proveedores)
+
+@main_bp.route('/compra/<int:pedido_id>')
+@login_required
+def ver_pedido(pedido_id):
+    pedido = PedidoCompra.query.get_or_404(pedido_id)
+    insumos = Insumo.query.order_by(Insumo.nombre).all()
+    return render_template('ver_pedido.html', pedido=pedido, insumos=insumos)
+
+@main_bp.route('/compra/<int:pedido_id>/procesar_recepcion', methods=['POST'])
+@login_required
+def procesar_recepcion(pedido_id):
+    pedido = PedidoCompra.query.get_or_404(pedido_id)
+    try:
+        pedido.estado = 'Recibido'
+        pedido.fecha_recepcion = datetime.utcnow().date()
+        for detalle in pedido.detalles:
+            cant_real = float(request.form.get(f"recibido_{detalle.id}", 0))
+            detalle.cantidad_recibida = cant_real
+            if cant_real > 0:
+                detalle.insumo.cantidad_actual += cant_real
+                lote = LoteInsumo(insumo_id=detalle.insumo_id, pedido_id=pedido.id, cantidad_actual=cant_real, costo_unitario=detalle.precio_unitario)
+                db.session.add(lote)
+        db.session.commit()
+        flash('Recepción completada.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {e}', 'danger')
+    return redirect(url_for('main.ver_pedido', pedido_id=pedido_id))
+
+
+# ==================================================
+# 5. MÓDULO DE PRODUCCIÓN (MULTISEDE Y SECTORES)
+# ==================================================
+
+@main_bp.route('/produccion/especies')
+@login_required
+def lista_especies():
+    especies = Especie.query.all()
+    return render_template('produccion/lista_especies.html', especies=especies)
+
+@main_bp.route('/produccion/especie/nueva', methods=['GET', 'POST'])
+@login_required
+def nueva_especie():
+    if request.method == 'POST':
+        try:
+            nueva = Especie(
+                nombre_comun=request.form.get('nombre_comun'),
+                nombre_cientifico=request.form.get('nombre_cientifico'),
+                dias_ciclo_estimado=int(request.form.get('dias_ciclo') or 0),
+                detalles_cuidado=request.form.get('detalles_cuidado')
+            )
+            db.session.add(nueva)
+            db.session.commit()
+            flash('Especie registrada.', 'success')
+            return redirect(url_for('main.lista_especies'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {e}', 'danger')
+    return render_template('produccion/nueva_especie.html')
+
+@main_bp.route('/siembras')
+@login_required
+def lista_siembras():
+    return redirect(url_for('main.lista_lotes'))
+
+@main_bp.route('/siembra/nueva', methods=['GET', 'POST'])
+@login_required
+def nuevo_lote(): # Endpoint renombrado para coincidir con templates y evitar BuildError
+    sedes = Sede.query.order_by(Sede.nombre).all()
+    especies = Especie.query.order_by(Especie.nombre_comun).all()
+    
+    if request.method == 'POST':
+        try:
+            sede_id = request.form.get('sede_id')
+            especie_id = request.form.get('especie_id')
+            # CAMBIO SOLICITADO: Capturamos la ubicación real del formulario (Sector 1, etc.)
+            sector_seleccionado = request.form.get('ubicacion')
+            
+            if not sede_id or not especie_id or not sector_seleccionado:
+                flash('Por favor selecciona Sede, Sector y Especie.', 'warning')
+                return render_template('nueva_siembra.html', sedes=sedes, especies=especies, siembra=None)
+            
+            codigo = f"SMB-{int(datetime.now().timestamp())}"
+            cantidad = int(request.form.get('cantidad'))
+            
+            nuevo_lote_obj = LoteProduccion(
+                codigo_lote=codigo,
+                especie_id=int(especie_id),
+                sede_id=int(sede_id),
+                cantidad_sembrada=cantidad,
+                cantidad_actual=cantidad,
+                fecha_siembra=datetime.strptime(request.form.get('fecha_siembra'), '%Y-%m-%d').date(),
+                ubicacion=sector_seleccionado, # Ahora guarda el sector correctamente
+                estado='En Crecimiento',
+                costo_total=0.0
+            )
+            
+            db.session.add(nuevo_lote_obj)
+            db.session.commit()
+            flash('Siembra registrada con éxito.', 'success')
+            return redirect(url_for('main.lista_siembras'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al registrar siembra: {e}', 'danger')
+            
+    return render_template('nueva_siembra.html', sedes=sedes, especies=especies, siembra=None)
+
+@main_bp.route('/produccion/lotes')
+@login_required
+def lista_lotes():
+    query_str = request.args.get('q', '').strip()
+    estado_filtro = request.args.get('estado')
+    sede_filtro = request.args.get('sede')
+    sedes = Sede.query.order_by(Sede.nombre).all()
+    
+    query = LoteProduccion.query.join(Especie).outerjoin(Sede)
+    if query_str:
+        query = query.filter(or_(LoteProduccion.codigo_lote.ilike(f'%{query_str}%'), Especie.nombre_comun.ilike(f'%{query_str}%')))
+    
+    kpi_total = query.count()
+    kpi_activos = query.filter(LoteProduccion.estado == 'En Crecimiento').count()
+    kpi_finalizados = query.filter(LoteProduccion.estado != 'En Crecimiento').count()
+    
+    if estado_filtro: query = query.filter(LoteProduccion.estado == estado_filtro)
+    if sede_filtro and sede_filtro.isdigit(): query = query.filter(LoteProduccion.sede_id == int(sede_filtro))
+    
+    lotes = query.order_by(LoteProduccion.fecha_siembra.desc()).all()
+    return render_template('produccion/lista_lotes.html', lotes=lotes, sedes=sedes, today=datetime.utcnow().date(),
+                           kpi_total=kpi_total, kpi_activos=kpi_activos, kpi_finalizados=kpi_finalizados)
+
+@main_bp.route('/produccion/lote/<int:lote_id>')
+@login_required
+def ver_lote(lote_id):
+    lote = LoteProduccion.query.get_or_404(lote_id)
+    insumos = Insumo.query.order_by(Insumo.nombre).all()
+    return render_template('produccion/ver_lote.html', lote=lote, insumos=insumos)
+
+
+# ==================================================
+# 6. MÓDULO DE VENTAS Y CLIENTES
+# ==================================================
+
+@main_bp.route('/clientes')
+@login_required
+def lista_clientes():
+    q = request.args.get('q', '').strip()
+    query = Cliente.query
+    if q: query = query.filter(or_(Cliente.nombre.ilike(f'%{q}%'), Cliente.documento.ilike(f'%{q}%')))
+    return render_template('ventas/lista_clientes.html', clientes=query.all(), search_query=q)
+
+@main_bp.route('/cliente/nuevo', methods=['GET', 'POST'])
+@login_required
+def nuevo_cliente():
+    if request.method == 'POST':
+        try:
+            c = Cliente(nombre=request.form.get('nombre'), documento=request.form.get('documento'))
+            db.session.add(c)
+            db.session.commit()
+            flash('Cliente registrado.', 'success')
+            return redirect(url_for('main.lista_clientes'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error: {e}', 'danger')
+    return render_template('ventas/nuevo_cliente.html')
+
+@main_bp.route('/ventas')
+@login_required
+def lista_ventas():
+    return render_template('ventas/lista_ventas.html', ventas=Venta.query.order_by(Venta.fecha.desc()).all())
+
+@main_bp.route('/venta/nueva', methods=['GET', 'POST'])
+@login_required
+def nueva_venta():
+    cliente = Cliente.query.filter_by(nombre='Cliente Mostrador').first()
+    if not cliente:
+        cliente = Cliente(nombre='Cliente Mostrador', documento='222222222')
+        db.session.add(cliente)
+        db.session.commit()
+    try:
+        v = Venta(numero_factura=f"FAC-{int(datetime.now().timestamp())}", cliente_id=cliente.id, usuario_id=current_user.id, estado='Borrador')
+        db.session.add(v)
+        db.session.commit()
+        return redirect(url_for('main.ver_venta', venta_id=v.id))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al iniciar venta: {e}', 'danger')
+        return redirect(url_for('main.lista_ventas'))
+
+@main_bp.route('/venta/<int:venta_id>')
+@login_required
+def ver_venta(venta_id):
+    venta = Venta.query.get_or_404(venta_id)
+    lotes = LoteProduccion.query.filter(LoteProduccion.cantidad_actual > 0).all()
+    clientes = Cliente.query.all()
+    return render_template('ventas/ver_venta.html', venta=venta, lotes=lotes, clientes=clientes)
+
+
+# ==================================================
+# 7. CONFIGURACIÓN (SEDES)
+# ==================================================
+
+@main_bp.route('/configuracion/sedes')
+@login_required
+def lista_sedes():
+    sedes = Sede.query.order_by(Sede.nombre).all()
+    for s in sedes:
+        s.lotes_activos = LoteProduccion.query.filter_by(sede_id=s.id, estado='En Crecimiento').count()
+    return render_template('lista_sedes.html', sedes=sedes)
+
+@main_bp.route('/configuracion/sede/nueva', methods=['GET', 'POST'])
+@main_bp.route('/configuracion/sede/editar/<int:sede_id>', methods=['GET', 'POST'])
+@login_required
+def nueva_sede(sede_id=None):
+    sede = Sede.query.get_or_404(sede_id) if sede_id else None
+    if request.method == 'POST':
+        nombre = request.form.get('nombre')
+        if not nombre:
+            flash('El nombre es obligatorio.', 'warning')
+            return render_template('nueva_sede.html', sede=sede)
+        try:
+            if sede:
+                sede.nombre = nombre
+                sede.tipo = request.form.get('tipo')
+                sede.ubicacion_geo = request.form.get('ubicacion_geo')
+            else:
+                db.session.add(Sede(nombre=nombre, tipo=request.form.get('tipo'), ubicacion_geo=request.form.get('ubicacion_geo')))
+            db.session.commit()
+            return redirect(url_for('main.lista_sedes'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al guardar sede: {e}', 'danger')
+    return render_template('nueva_sede.html', sede=sede)
+
+@main_bp.route('/configuracion/sede/eliminar/<int:sede_id>', methods=['POST'])
+@login_required
+def eliminar_sede(sede_id):
+    sede = Sede.query.get_or_404(sede_id)
+    if LoteProduccion.query.filter_by(sede_id=sede.id).count() > 0:
+        flash('No se puede eliminar una sede con lotes asociados.', 'warning')
+    else:
+        db.session.delete(sede)
+        db.session.commit()
+        flash('Sede eliminada.', 'success')
+    return redirect(url_for('main.lista_sedes'))

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-primary bg-gradient text-white p-4 border-0">
+                    <h4 class="fw-bold mb-0">
+                        <i class="bi bi-building-add me-2"></i> {{ 'Editar Sede' if sede else 'Nueva Sede' }}
+                    </h4>
+                    <p class="mb-0 opacity-75 small">Configura las ubicaciones de tu negocio.</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form method="POST">
+                        
+                        <!-- Nombre -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Nombre del Lugar</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-tag"></i></span>
+                                <input type="text" name="nombre" class="form-control bg-light border-start-0 ps-0" 
+                                       placeholder="Ej: Finca La Esperanza, Vivero Norte..." 
+                                       value="{{ sede.nombre if sede else '' }}" required autofocus>
+                            </div>
+                        </div>
+
+                        <!-- Tipo -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Tipo de Instalación</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="tipo" id="tipoFinca" value="Finca" 
+                                           {{ 'checked' if not sede or sede.tipo == 'Finca' else '' }}>
+                                    <label class="btn btn-outline-success w-100 py-3 rounded-3" for="tipoFinca">
+                                        <i class="bi bi-house-door-fill d-block fs-4 mb-1"></i>
+                                        Finca / Campo
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="tipo" id="tipoVivero" value="Vivero"
+                                           {{ 'checked' if sede and sede.tipo == 'Vivero' else '' }}>
+                                    <label class="btn btn-outline-primary w-100 py-3 rounded-3" for="tipoVivero">
+                                        <i class="bi bi-flower1 d-block fs-4 mb-1"></i>
+                                        Vivero / Invernadero
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ubicación -->
+                        <div class="mb-5">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Ubicación Geográfica</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" name="ubicacion_geo" class="form-control bg-light border-start-0 ps-0" 
+                                       placeholder="Ej: Vereda El Salado, Km 5..." 
+                                       value="{{ sede.ubicacion_geo if sede and sede.ubicacion_geo else '' }}">
+                            </div>
+                            <div class="form-text">Dirección física o coordenadas GPS para referencia.</div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="bi bi-check-lg me-2"></i> {{ 'Guardar Cambios' if sede else 'Registrar Sede' }}
+                            </button>
+                            <a href="{{ url_for('main.lista_sedes') }}" class="btn btn-light rounded-pill fw-bold text-muted">
+                                Cancelar
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

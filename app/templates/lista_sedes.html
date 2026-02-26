@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Estilos de Tarjeta Sede */
+    .sede-card {
+        border: 1px solid #f0f2f5;
+        border-radius: 1.2rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        background: white;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .sede-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+        border-color: transparent;
+    }
+    
+    /* Encabezado de la tarjeta */
+    .sede-header {
+        padding: 1.5rem;
+        background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+        border-bottom: 1px solid #f0f2f5;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    /* Iconos dinámicos */
+    .sede-icon {
+        width: 50px; height: 50px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+    }
+    .type-finca { background: rgba(25, 135, 84, 0.1); color: #198754; }   /* Verde para Finca */
+    .type-vivero { background: rgba(13, 110, 253, 0.1); color: #0d6efd; } /* Azul para Vivero */
+    
+    /* Cuerpo de la tarjeta */
+    .sede-body { padding: 1.5rem; flex-grow: 1; }
+    
+    /* Filas de estadísticas */
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .stat-label { color: #6c757d; }
+    .stat-val { font-weight: 700; color: #212529; }
+    
+    /* Pie de página con acciones */
+    .sede-footer {
+        padding: 1rem 1.5rem;
+        background: #fff;
+        border-top: 1px solid #f0f2f5;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    
+    /* Estado vacío (Botón gigante para crear) */
+    .empty-state-dashed {
+        border: 2px dashed #dee2e6;
+        border-radius: 1.2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        color: #adb5bd;
+        transition: all 0.2s;
+        height: 100%;
+        min-height: 250px;
+        text-decoration: none;
+    }
+    .empty-state-dashed:hover {
+        border-color: #198754;
+        background-color: rgba(25, 135, 84, 0.02);
+        color: #198754;
+    }
+</style>
+
+<div class="container py-4" style="max-width: 1200px;">
+    
+    <!-- Encabezado de Página -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Mis Sedes</h2>
+            <p class="text-muted small mb-0">Administra tus Fincas, Viveros y puntos de producción.</p>
+        </div>
+        <a href="{{ url_for('main.nueva_sede') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-lg me-2"></i> Registrar Sede
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Tarjeta "Crear Nueva" (Siempre visible al inicio) -->
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ url_for('main.nueva_sede') }}" class="empty-state-dashed">
+                <div class="display-4 mb-3"><i class="bi bi-plus-circle"></i></div>
+                <h5 class="fw-bold">Registrar Nueva Sede</h5>
+                <p class="small text-center mb-0">Agrega una nueva finca o vivero para gestionar sus lotes.</p>
+            </a>
+        </div>
+
+        <!-- Loop de Sedes Existentes -->
+        {% for sede in sedes %}
+        <div class="col-md-6 col-lg-4">
+            <div class="sede-card">
+                <!-- Header con Icono y Nombre -->
+                <div class="sede-header">
+                    <div class="sede-icon {{ 'type-finca' if sede.tipo == 'Finca' else 'type-vivero' }}">
+                        <i class="bi {{ 'bi-house-door-fill' if sede.tipo == 'Finca' else 'bi-flower1' }}"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">{{ sede.nombre }}</h5>
+                        <span class="badge bg-light text-secondary border">{{ sede.tipo }}</span>
+                    </div>
+                </div>
+                
+                <!-- Cuerpo con Info y Stats -->
+                <div class="sede-body">
+                    <div class="d-flex align-items-start mb-3">
+                        <i class="bi bi-geo-alt text-muted me-2 mt-1"></i>
+                        <p class="small text-muted mb-0 lh-sm">
+                            {{ sede.ubicacion_geo if sede.ubicacion_geo else 'Sin ubicación registrada' }}
+                        </p>
+                    </div>
+                    
+                    <hr class="my-3 opacity-10">
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Lotes Totales</span>
+                        <span class="stat-val">{{ sede.total_lotes }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">En Producción</span>
+                        <span class="stat-val text-success">{{ sede.lotes_activos }}</span>
+                    </div>
+                </div>
+
+                <!-- Footer con Botones -->
+                <div class="sede-footer">
+                    <a href="{{ url_for('main.nueva_sede', sede_id=sede.id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        Editar
+                    </a>
+                    
+                    <!-- Solo permitir eliminar si NO tiene lotes asociados -->
+                    {% if sede.total_lotes == 0 %}
+                    <form action="{{ url_for('main.eliminar_sede', sede_id=sede.id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas eliminar esta sede? Esta acción no se puede deshacer.');" style="display:inline;">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" title="Eliminar Sede">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 opacity-50" disabled title="No se puede eliminar sedes con lotes activos. Elimina los lotes primero.">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

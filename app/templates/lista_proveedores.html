@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* --- ESTILOS GENERALES (Consistentes con Lotes) --- */
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Estilos Modernos */
+    .search-card {
+        border: none;
+        border-radius: 1rem;
+        /* Fondo con efecto "Vidrio esmerilado" */
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        /* EFECTO PEGAMENTO (STICKY) */
+        position: sticky;
+        position: -webkit-sticky; /* Safari */
+        top: 20px; /* Se detiene a 20px del borde superior */
+        z-index: 100; /* Asegura que quede por encima de la tabla */
+        margin-bottom: 2rem;
+    }
+
+    .search-input {
+        border: none;
+        background: #f8f9fa;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+    }
+
+        .search-input:focus {
+            background: white;
+            box-shadow: inset 0 0 0 2px #0d6efd;
+        }
+
+    .content-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .table-modern thead th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+        color: #6c757d;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        padding: 1rem;
+    }
+
+    .table-modern tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .table-modern tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-modern tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    /* Animación suave para los items que entran */
+    .fade-in-item {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Loader del buscador */
+    .search-loader {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #0d6efd;
+        display: none;
+    }
+</style>
+
+<div class="dashboard-container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Proveedores</h2>
+            <p class="text-muted small mb-0">Directorio de aliados comerciales.</p>
+        </div>
+        <a href="{{ url_for('main.nuevo_proveedor') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-person-plus-fill me-2"></i> Nuevo Proveedor
+        </a>
+    </div>
+
+    <!-- BARRA DE BÚSQUEDA FLOTANTE (STICKY) -->
+    <div class="search-card p-3 mb-4">
+        <div class="d-flex gap-3 align-items-center">
+            <div class="flex-grow-1 position-relative">
+                <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
+                <input type="text"
+                       id="dynamicSearch"
+                       class="form-control search-input ps-5"
+                       placeholder="Buscar empresa, NIT o contacto..."
+                       value="{{ search_query if search_query else '' }}"
+                       autocomplete="off">
+                <!-- Spinner de carga -->
+                <div class="spinner-border spinner-border-sm search-loader" id="searchLoader" role="status"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card bg-white">
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Empresa / Razón Social</th>
+                        <th>Identificación (NIT)</th>
+                        <th>Contacto Principal</th>
+                        <th>Teléfono</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <!-- El cuerpo de la tabla se llena inicialmente con el partial y se actualiza via AJAX -->
+                <tbody id="proveedoresTableBody">
+                    {% include 'parciales/items_proveedores.html' %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- SCRIPT DE BÚSQUEDA DINÁMICA (AJAX) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('dynamicSearch');
+        const tableBody = document.getElementById('proveedoresTableBody');
+        const searchLoader = document.getElementById('searchLoader');
+        let timeout = null;
+
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+
+            // Mostrar loader
+            searchLoader.style.display = 'block';
+
+            // Debounce: Esperar 300ms antes de enviar la petición al servidor
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                // Hacemos la petición al mismo endpoint pero con el parámetro ajax=1
+                fetch(`{{ url_for('main.lista_proveedores') }}?q=${encodeURIComponent(query)}&ajax=1`)
+                    .then(response => response.text())
+                    .then(html => {
+                        // Reemplazar el cuerpo de la tabla con el HTML recibido (items_proveedores.html)
+                        tableBody.innerHTML = html;
+                        searchLoader.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error en búsqueda:', error);
+                        searchLoader.style.display = 'none';
+                    });
+            }, 300);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% if lotes %}
+    {% for lote in lotes %}
+
+    {% set dias_transcurridos = (today - lote.fecha_siembra).days %}
+    {% set total_dias = lote.especie.dias_ciclo_estimado %}
+    {% if total_dias and total_dias > 0 %}
+        {% set porcentaje = (dias_transcurridos / total_dias * 100) | int %}
+    {% else %}
+        {% set porcentaje = 0 %}
+    {% endif %}
+    {% if porcentaje > 100 %}{% set visual_pct = 100 %}{% else %}{% set visual_pct = porcentaje %}{% endif %}
+
+<div class="col-12 col-md-6 col-lg-4" style="animation: fadeIn 0.4s ease-out forwards; opacity: 0;">
+    <a href="{{ url_for('main.ver_lote', lote_id=lote.id) }}" class="text-decoration-none text-dark h-100 d-block">
+
+        <div class="lote-card">
+            <div class="img-zoom-wrapper">
+                {% if lote.especie.imagen_url %}
+                <img src="{{ url_for('static', filename=lote.especie.imagen_url) }}" alt="{{ lote.especie.nombre_comun }}">
+                {% else %}
+                <div class="w-100 h-100 d-flex align-items-center justify-content-center"
+                     style="background: linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);">
+                    <i class="bi bi-flower1 text-success opacity-50" style="font-size: 4rem;"></i>
+                </div>
+                {% endif %}
+
+                <div class="img-overlay"></div>
+
+                <div class="position-absolute top-0 start-0 p-3 z-2">
+                    <span class="badge bg-light text-dark fw-bold shadow-sm">{{ lote.codigo_lote }}</span>
+                </div>
+
+                <div class="position-absolute top-0 end-0 p-3 z-2">
+                    {% if lote.estado == 'Disponible' %}
+                    <span class="badge bg-success shadow-sm">Disponible</span>
+                    {% elif lote.estado == 'En Crecimiento' %}
+                    <span class="badge bg-primary shadow-sm">En Crecimiento</span>
+                    {% else %}
+                    <span class="badge bg-secondary shadow-sm">{{ lote.estado }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="p-4 d-flex flex-column justify-content-between flex-grow-1">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-0 text-truncate">{{ lote.especie.nombre_comun }}</h5>
+                            <small class="text-muted">{{ lote.especie.nombre_cientifico }}</small>
+                        </div>
+                        {% if lote.proposito == 'Produccion Fruto' %}
+                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25" style="font-size: 0.6rem;"><i class="bi bi-tree-fill me-1"></i>FINCA</span>
+                        {% else %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.6rem;"><i class="bi bi-shop me-1"></i>VIVERO</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex align-items-center mt-3 small fw-medium text-secondary">
+                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                        <span class="text-truncate">{{ lote.sede.nombre }} &bull; {{ lote.ubicacion }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-end mb-1 small fw-bold">
+                        <span class="fs-5 text-dark">{{ lote.cantidad_actual }}</span>
+                        <span class="{{ 'text-success' if porcentaje < 80 else 'text-danger' }}">{{ dias_transcurridos }} días</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.7rem;">
+                        <span>PLANTAS</span>
+                        <span>PROGRESO {{ porcentaje }}%</span>
+                    </div>
+                    <div class="progress" style="height: 6px; border-radius: 3px;">
+                        <div class="progress-bar {{ 'bg-success' if porcentaje < 80 else 'bg-danger' }}"
+                             role="progressbar" style="width: {{ visual_pct }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </a>
+</div>
+    {% endfor %}
+
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+{% else %}
+<div class="col-12 text-center py-5">
+    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+        <i class="bi bi-search text-muted fs-1 opacity-50"></i>
+    </div>
+    <h4 class="fw-bold text-dark">No se encontraron cultivos</h4>
+    <p class="text-muted">Intenta cambiar los filtros de búsqueda.</p>
+</div>
+{% endif %}

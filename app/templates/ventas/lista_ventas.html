@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Estilos para las tarjetas de resumen */
+    .stat-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s;
+        background: white;
+        overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Estilos para la tabla */
+    .table-modern {
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+    .table-modern tbody tr {
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: all 0.2s;
+    }
+    .table-modern tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    .table-modern td {
+        border: none;
+        vertical-align: middle;
+        padding: 1rem 1.5rem;
+    }
+    .table-modern td:first-child { border-radius: 0.75rem 0 0 0.75rem; }
+    .table-modern td:last-child { border-radius: 0 0.75rem 0.75rem 0; }
+
+    /* Badges de Estado */
+    .badge-estado {
+        padding: 0.5em 1em;
+        font-weight: 600;
+        border-radius: 2rem;
+        letter-spacing: 0.5px;
+    }
+    .badge-borrador { background-color: #e9ecef; color: #495057; }
+    .badge-finalizada { background-color: #d1e7dd; color: #0f5132; }
+    .badge-anulada { background-color: #f8d7da; color: #842029; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Gestión de Ventas</h2>
+        <p class="text-muted small mb-0">Historial de facturación y salidas de producto.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('main.lista_clientes') }}" class="btn btn-outline-dark rounded-pill px-3 me-2">
+            <i class="bi bi-people me-2"></i> Clientes
+        </a>
+        <a href="{{ url_for('main.nueva_venta') }}" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-receipt me-2"></i> Nueva Venta
+        </a>
+    </div>
+</div>
+
+<!-- RESUMEN DE VENTAS (KPIs) -->
+<div class="row g-4 mb-4">
+    <!-- Total Facturado (Ejemplo simple sumando todo lo visible) -->
+    <div class="col-md-6 col-xl-4">
+        <div class="stat-card shadow-sm h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="icon-box bg-success bg-opacity-10 text-success me-3">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted text-uppercase fw-bold small mb-1">Total Ventas (Global)</h6>
+                    <h3 class="fw-bold mb-0 text-dark">
+                        {% set ns = namespace(total=0) %}
+                        {% for v in ventas %}
+                            {% if v.estado == 'Finalizada' %}
+                                {% set ns.total = ns.total + v.total %}
+                            {% endif %}
+                        {% endfor %}
+                        ${{ "{:,.0f}".format(ns.total) }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cantidad de Ventas -->
+    <div class="col-md-6 col-xl-4">
+        <div class="stat-card shadow-sm h-100">
+            <div class="card-body p-4 d-flex align-items-center">
+                <div class="icon-box bg-primary bg-opacity-10 text-primary me-3">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted text-uppercase fw-bold small mb-1">Facturas Emitidas</h6>
+                    <h3 class="fw-bold mb-0 text-dark">{{ ventas|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LISTA DE VENTAS -->
+{% if ventas %}
+<div class="table-responsive">
+    <table class="table table-modern align-middle">
+        <thead>
+            <tr>
+                <th class="ps-4 text-uppercase text-muted small fw-bold">Factura</th>
+                <th class="text-uppercase text-muted small fw-bold">Cliente</th>
+                <th class="text-uppercase text-muted small fw-bold">Fecha</th>
+                <th class="text-uppercase text-muted small fw-bold">Estado</th>
+                <th class="text-end text-uppercase text-muted small fw-bold">Total</th>
+                <th class="text-end pe-4 text-uppercase text-muted small fw-bold">Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in ventas %}
+            <tr>
+                <td class="ps-4">
+                    <div class="fw-bold text-dark">{{ venta.numero_factura }}</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">ID: {{ venta.id }}</small>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light rounded-circle p-2 me-2 text-secondary">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">{{ venta.cliente.nombre }}</div>
+                            <small class="text-muted">{{ venta.cliente.documento or 'Sin Doc.' }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="text-dark">{{ venta.fecha.strftime('%Y-%m-%d') }}</div>
+                    <small class="text-muted">{{ venta.fecha.strftime('%H:%M') }}</small>
+                </td>
+                <td>
+                    {% if venta.estado == 'Finalizada' %}
+                        <span class="badge badge-estado badge-finalizada"><i class="bi bi-check-circle me-1"></i> Finalizada</span>
+                    {% elif venta.estado == 'Anulada' %}
+                        <span class="badge badge-estado badge-anulada"><i class="bi bi-x-circle me-1"></i> Anulada</span>
+                    {% else %}
+                        <span class="badge badge-estado badge-borrador"><i class="bi bi-pencil me-1"></i> Borrador</span>
+                    {% endif %}
+                </td>
+                <td class="text-end fw-bold fs-5 text-dark">
+                    ${{ "{:,.0f}".format(venta.total) }}
+                </td>
+                <td class="text-end pe-4">
+                    <a href="{{ url_for('main.ver_venta', venta_id=venta.id) }}" class="btn btn-light rounded-pill border shadow-sm btn-sm px-3">
+                        Ver Detalle <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5 bg-white rounded-4 shadow-sm">
+    <div class="mb-3 opacity-25 text-muted">
+        <i class="bi bi-receipt display-1"></i>
+    </div>
+    <h4 class="fw-bold text-dark">No hay ventas registradas</h4>
+    <p class="text-muted">Comienza a registrar las salidas de producto para ver tu historial aquí.</p>
+    <a href="{{ url_for('main.nueva_venta') }}" class="btn btn-primary rounded-pill px-4 mt-2">
+        Crear Primera Venta
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

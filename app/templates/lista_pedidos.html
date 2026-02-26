@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Barra de Herramientas */
+    .filter-toolbar {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        border: 1px solid #f0f2f5;
+    }
+    .form-select-modern {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        background-color: #f8f9fa;
+    }
+    .form-select-modern:focus {
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    .status-badge {
+        padding: 0.5em 0.8em;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    .badge-solicitado { background-color: #fff3cd; color: #856404; }
+    .badge-recibido { background-color: #d1e7dd; color: #0f5132; }
+    .badge-cancelado { background-color: #f8d7da; color: #842029; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-0">Compras</h2>
+        <p class="text-muted small mb-0">Gestión de órdenes y recepción de mercancía.</p>
+    </div>
+    <a href="{{ url_for('main.nuevo_pedido') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <i class="bi bi-cart-plus me-2"></i> Nueva Compra
+    </a>
+</div>
+
+<!-- BARRA DE FILTROS TIPO TOOLBAR -->
+<div class="filter-toolbar mb-4">
+    <form method="GET" action="{{ url_for('main.lista_pedidos') }}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-uppercase text-muted mb-1">Proveedor</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start"><i class="bi bi-shop text-muted"></i></span>
+                    <select name="proveedor_id" class="form-select form-select-modern border-start-0 ps-2">
+                        <option value="">Todos los proveedores</option>
+                        {% for p in proveedores %}
+                            <option value="{{ p.id }}" {% if request.args.get('proveedor_id') == p.id|string %}selected{% endif %}>
+                                {{ p.razon_social }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-uppercase text-muted mb-1">Estado</label>
+                <select name="estado" class="form-select form-select-modern">
+                    <option value="">Cualquiera</option>
+                    <option value="Solicitado" {% if request.args.get('estado') == 'Solicitado' %}selected{% endif %}>Solicitado</option>
+                    <option value="Recibido" {% if request.args.get('estado') == 'Recibido' %}selected{% endif %}>Recibido</option>
+                    <option value="Cancelado" {% if request.args.get('estado') == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-uppercase text-muted mb-1">Rango de Fechas</label>
+                <div class="input-group">
+                    <input type="date" name="fecha_inicio" class="form-control form-select-modern" value="{{ request.args.get('fecha_inicio') }}">
+                    <span class="input-group-text bg-light border-start-0 border-end-0 text-muted">a</span>
+                    <input type="date" name="fecha_fin" class="form-control form-select-modern" value="{{ request.args.get('fecha_fin') }}">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill">Filtrar</button>
+                    {% if request.args %}
+                        <a href="{{ url_for('main.lista_pedidos') }}" class="btn btn-light border w-100 rounded-pill" title="Limpiar filtros">
+                            <i class="bi bi-eraser"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- TABLA DE RESULTADOS -->
+<div class="card border-0 shadow-sm overflow-hidden rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-uppercase small fw-bold text-muted">Orden</th>
+                        <th class="py-3 text-uppercase small fw-bold text-muted">Proveedor</th>
+                        <th class="py-3 text-uppercase small fw-bold text-muted">Fecha Solicitud</th>
+                        <th class="py-3 text-uppercase small fw-bold text-muted text-center">Estado</th>
+                        <th class="py-3 text-uppercase small fw-bold text-muted text-end">Total Est.</th>
+                        <th class="pe-4 py-3 text-end text-uppercase small fw-bold text-muted">Detalles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pedidos %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-primary">#{{ p.numero_orden }}</div>
+                        </td>
+                        <td class="fw-bold text-dark">{{ p.proveedor.razon_social }}</td>
+                        <td class="text-muted"><i class="bi bi-calendar3 me-1 small"></i> {{ p.fecha_solicitud }}</td>
+                        <td class="text-center">
+                            {% if p.estado == 'Solicitado' %}
+                                <span class="status-badge badge-solicitado">En Proceso</span>
+                            {% elif p.estado == 'Recibido' %}
+                                <span class="status-badge badge-recibido">Completado</span>
+                            {% else %}
+                                <span class="status-badge badge-cancelado">{{ p.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-bold text-dark">${{ "{:,.2f}".format(p.total_estimado) }}</td>
+                        <td class="text-end pe-4">
+                            <a href="{{ url_for('main.ver_pedido', pedido_id=p.id) }}" class="btn btn-sm btn-light border rounded-pill px-3">
+                                Ver <i class="bi bi-chevron-right ms-1 small"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted opacity-50">
+                                <i class="bi bi-cart-x display-4 mb-3 d-block"></i>
+                                No se encontraron pedidos con estos criterios.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% for especie in especies %}
+<div class="col-md-6 col-lg-4 fade-in-item">
+    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-card">
+        
+        <!-- Imagen de Cabecera -->
+        <div class="position-relative" style="height: 180px; overflow: hidden; background-color: #f8f9fa;">
+            {% if especie.imagen_url %}
+                <img src="{{ url_for('static', filename=especie.imagen_url) }}" class="w-100 h-100 object-fit-cover" alt="{{ especie.nombre_comun }}">
+            {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100 bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-flower2 display-1 opacity-50"></i>
+                </div>
+            {% endif %}
+            
+            <!-- Badge Ciclo -->
+            <span class="badge bg-white text-dark shadow-sm position-absolute bottom-0 start-0 m-3 rounded-pill">
+                <i class="bi bi-clock me-1"></i> {{ especie.dias_ciclo_estimado }} días
+            </span>
+            
+            <!-- Menú Flotante -->
+            <div class="dropdown position-absolute top-0 end-0 m-3">
+                <button class="btn btn-light btn-sm rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-3">
+                    <li>
+                        <button class="dropdown-item small py-2" data-bs-toggle="modal" data-bs-target="#editEspecieModal{{ especie.id }}">
+                            <i class="bi bi-pencil me-2 text-primary"></i> Editar Ficha
+                        </button>
+                    </li>
+                    <li>
+                        <form action="{{ url_for('main.eliminar_especie', especie_id=especie.id) }}" method="POST">
+                            <button type="submit" class="dropdown-item small text-danger py-2" onclick="return confirm('¿Estás seguro de eliminar esta especie?')">
+                                <i class="bi bi-trash me-2"></i> Eliminar
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-1">{{ especie.nombre_comun }}</h5>
+            <p class="text-muted small fst-italic mb-3">{{ especie.nombre_cientifico }}</p>
+            
+            <div class="border-top pt-3">
+                <small class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 0.65rem;">Resumen de Cuidados</small>
+                <p class="text-muted small mb-0 text-truncate-3" style="line-height: 1.5;">
+                    {{ especie.detalles_cuidado or 'Sin información técnica registrada.' }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE EDICIÓN (Incluido en el loop para tener el ID correcto) -->
+<div class="modal fade" id="editEspecieModal{{ especie.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Editar: {{ especie.nombre_comun }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('main.editar_ficha_especie', especie_id=especie.id) }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-4 text-center">
+                        <label class="form-label small fw-bold text-muted d-block text-start mb-2">Actualizar Imagen</label>
+                        <input type="file" name="imagen_editar" class="form-control form-control-sm mb-2" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Días Estimados de Ciclo</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-range"></i></span>
+                            <input type="number" name="dias_ciclo" class="form-control bg-light border-0" value="{{ especie.dias_ciclo_estimado }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Ficha Técnica / Cuidados</label>
+                        <textarea name="detalles_cuidado" class="form-control bg-light border-0" rows="6">{{ especie.detalles_cuidado }}</textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold shadow-sm">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="col-12 text-center py-5">
+    <div class="text-muted opacity-50 mb-3"><i class="bi bi-flower1 display-1"></i></div>
+    <h4>No se encontraron especies</h4>
+    <p class="text-muted">Intenta con otro término de búsqueda.</p>
+</div>
+{% endfor %}

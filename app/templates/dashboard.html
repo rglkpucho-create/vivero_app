@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    /* Estilos para las tarjetas de KPI */
+    .kpi-card {
+        border: none;
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    /* Icono de fondo gigante y sutil */
+    .kpi-icon-bg {
+        position: absolute;
+        right: -10px;
+        bottom: -10px;
+        font-size: 5rem;
+        opacity: 0.15;
+        transform: rotate(-15deg);
+        pointer-events: none;
+    }
+
+    /* Tablas más limpias */
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+
+    /* Accesos rápidos */
+    .quick-btn {
+        text-align: left;
+        padding: 1rem;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 1rem;
+        transition: all 0.2s;
+        background: var(--bs-card-bg);
+    }
+
+        .quick-btn:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(5, 150, 105, 0.05);
+            transform: translateX(5px);
+        }
+
+    /* Modo oscuro específico */
+    [data-bs-theme="dark"] .quick-btn:hover {
+        background-color: rgba(255,255,255,0.05);
+    }
+</style>
+
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-dark">Panel de Control</h2>
+            <p class="text-muted mb-0">Resumen operativo del vivero.</p>
+        </div>
+        <div class="d-none d-md-block">
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                <i class="bi bi-calendar-event me-2"></i>{{ datetime.now().strftime('%d/%m/%Y') }}
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Plantas en Crecimiento</h6>
+                    <h2 class="display-5 fw-bold mb-0">{{ "{:,.0f}".format(total_plantas_crecimiento).replace(',', '.') }}</h2>
+                    <p class="mb-0 opacity-75 small mt-2">En {{ lotes_activos_count }} lotes activos</p>
+                    <i class="bi bi-flower1 kpi-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #ffc107 0%, #ffdb4d 100%); color: #5c4206 !important;">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Alertas de Insumos</h6>
+                    <h2 class="display-5 fw-bold mb-0">{{ insumos_alerta|length }}</h2>
+                    <p class="mb-0 opacity-75 small mt-2">Ítems bajo stock mínimo</p>
+                    <i class="bi bi-exclamation-triangle-fill kpi-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Pedidos a Proveedores</h6>
+                    <h2 class="display-5 fw-bold mb-0">{{ pedidos_pendientes }}</h2>
+                    <p class="mb-0 opacity-75 small mt-2">Órdenes por recibir</p>
+                    <i class="bi bi-truck kpi-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #0dcaf0 0%, #3dd5f3 100%);">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Ventas (Mes Actual)</h6>
+                    <h2 class="display-5 fw-bold mb-0">{{ ventas_mes }}</h2>
+                    <p class="mb-0 opacity-75 small mt-2">Facturas emitidas</p>
+                    <i class="bi bi-receipt kpi-icon-bg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-speedometer2 me-2 text-success"></i>Progreso de Cultivos</h5>
+                        <p class="text-muted small mb-0">Lotes activos ordenados por antigüedad.</p>
+                    </div>
+                    <a href="{{ url_for('main.lista_lotes') }}" class="btn btn-sm btn-outline-success rounded-pill fw-bold">Ver Tablero Completo</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light small text-uppercase text-muted">
+                                <tr>
+                                    <th class="ps-4">Lote / Especie</th>
+                                    <th class="text-center">Población</th>
+                                    <th>Ciclo de Vida (Estimado)</th>
+                                    <th class="text-end pe-4">Gestión</th>
+                                </tr>
+                            </thead>
+                            <tbody class="border-top-0">
+                                {% for item in lotes_progreso %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-flower1"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark small">{{ item.lote_obj.codigo_lote }}</div>
+                                                <div class="small text-muted">{{ item.lote_obj.especie.nombre_comun }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center fw-bold text-dark">{{ item.lote_obj.cantidad_actual }}</td>
+                                    <td class="w-25">
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span>Día {{ item.dias_transcurridos }}</span>
+                                            <span class="fw-bold text-{{ item.color_estado }}">{{ item.progreso_pct }}%</span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar bg-{{ item.color_estado }}" role="progressbar" style="width: {{ item.progreso_pct }}%"></div>
+                                        </div>
+                                        <div class="small text-muted mt-1" style="font-size: 0.7rem;">Meta: {{ item.lote_obj.especie.dias_ciclo_estimado }} días</div>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <a href="{{ url_for('main.ver_lote', lote_id=item.lote_obj.id) }}" class="btn btn-sm btn-light fw-bold text-primary rounded-pill px-3">
+                                            Detalles
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        No hay cultivos activos en este momento.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3 text-dark">Accesos Rápidos</h6>
+                    <div class="d-flex flex-column gap-3">
+                        <a href="{{ url_for('main.nuevo_lote') }}" class="quick-btn text-decoration-none text-dark d-flex align-items-center">
+                            <div class="bg-success text-white rounded-circle p-2 me-3"><i class="bi bi-flower3"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Registrar Siembra</h6>
+                                <small class="text-muted">Nuevo lote</small>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('main.nuevo_pedido') }}" class="quick-btn text-decoration-none text-dark d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle p-2 me-3"><i class="bi bi-cart-plus"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Nueva Compra</h6>
+                                <small class="text-muted">Solicitar insumos</small>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('main.nueva_venta') }}" class="quick-btn text-decoration-none text-dark d-flex align-items-center">
+                            <div class="bg-info text-white rounded-circle p-2 me-3"><i class="bi bi-receipt"></i></div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Registrar Venta</h6>
+                                <small class="text-muted">Facturación</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-dark text-white">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-uppercase opacity-75 small mb-3">Resumen del Sistema</h6>
+
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span><i class="bi bi-box-seam me-2"></i>Refs. Insumos</span>
+                        <span class="fw-bold">{{ total_insumos }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                        <span><i class="bi bi-flower2 me-2"></i>Especies Base</span>
+                        <span class="fw-bold">{{ total_especies }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <span><i class="bi bi-people me-2"></i>Proveedores</span>
+                        <span class="fw-bold">{{ proveedores|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if insumos_alerta %}
+    <div class="card border-0 shadow-sm rounded-4 mt-4 border-start border-5 border-danger overflow-hidden">
+        <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between">
+            <h5 class="fw-bold text-danger mb-0"><i class="bi bi-bell-fill me-2"></i>Insumos Críticos</h5>
+            <a href="{{ url_for('main.nuevo_pedido') }}" class="btn btn-sm btn-danger rounded-pill px-3">Solicitar Todo</a>
+        </div>
+        <div class="card-body px-0 pb-2">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="text-uppercase small text-muted">
+                        <tr>
+                            <th class="ps-4">Insumo</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-center">Mínimo</th>
+                            <th class="text-end pe-4">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ins in insumos_alerta %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-danger bg-opacity-10 text-danger rounded p-1 me-2"><i class="bi bi-box"></i></div>
+                                    <span class="fw-bold text-dark">{{ ins.nombre }}</span>
+                                </div>
+                            </td>
+                            <td class="text-center fw-bold text-danger">{{ ins.cantidad_actual }}</td>
+                            <td class="text-center text-muted small">{{ ins.stock_minimo }}</td>
+                            <td class="text-end pe-4">
+                                <a href="#" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size: 0.75rem;">Reabastecer</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    /* 1. FONDO GENERAL */
+    .page-container {
+        background-color: var(--bs-body-bg);
+    }
+
+    /* 2. TARJETA CULTIVO */
+    .lote-card {
+        background-color: var(--bs-card-bg, white);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+        .lote-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+    /* 3. IMAGEN CON ZOOM */
+    .img-zoom-wrapper {
+        height: 220px; /* Alto fijo igual que animales */
+        position: relative;
+        overflow: hidden;
+        background-color: #e2e8f0;
+    }
+
+        .img-zoom-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+    .lote-card:hover .img-zoom-wrapper img {
+        transform: scale(1.10);
+    }
+
+    .img-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    /* Badges */
+    .badge-float {
+        position: absolute;
+        top: 15px;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .badge-left {
+        left: 15px;
+        background: rgba(255,255,255,0.95);
+        color: #1e293b;
+        font-weight: 800;
+        border-radius: 30px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
+    }
+
+    .badge-right {
+        right: 15px;
+    }
+
+    /* 4. BUSCADOR DE ALTO CONTRASTE (Copiado exacto de Animales) */
+    .input-contrast {
+        background-color: #f1f5f9 !important; /* Gris claro forzado */
+        border: 2px solid #cbd5e1 !important; /* Borde gris visible */
+        color: #334155;
+        font-weight: 500;
+    }
+
+        .input-contrast:focus {
+            background-color: #fff !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+        }
+
+    .input-group-text-contrast {
+        background-color: #e2e8f0 !important;
+        border: 2px solid #cbd5e1 !important;
+        border-right: none !important;
+        color: #64748b;
+    }
+
+    /* 5. MODO OSCURO */
+    [data-bs-theme="dark"] .lote-card {
+        background-color: #1e293b;
+        border-color: #334155;
+    }
+
+    [data-bs-theme="dark"] .img-zoom-wrapper {
+        background-color: #334155;
+    }
+
+    [data-bs-theme="dark"] .input-contrast {
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: white;
+    }
+
+    [data-bs-theme="dark"] .input-group-text-contrast {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #94a3b8;
+    }
+</style>
+
+<div class="container py-5">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
+        <div>
+            <h1 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Cultivos en Producción</h1>
+            <p class="text-muted mb-0">Gestiona tus lotes de siembra y seguimiento.</p>
+        </div>
+        <a href="{{ url_for('main.nuevo_lote') }}" class="btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold"
+           style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
+            <i class="bi bi-plus-lg me-2"></i>Nueva Siembra
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-5 rounded-4 overflow-hidden">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-center">
+
+                <div class="col-lg-5">
+                    <div class="input-group">
+                        <span class="input-group-text input-group-text-contrast rounded-start-pill ps-3"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control input-contrast border-start-0 rounded-end-pill py-2" placeholder="Buscar especie, código..." autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <select class="form-select input-contrast rounded-pill py-2" id="filtroSede" onchange="filtrarLotes()">
+                        <option value="" selected>📍 Todas las Sedes</option>
+                        {% for s in sedes %}
+                        <option value="{{ s.id }}">{{ s.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-3">
+                    <select class="form-select input-contrast rounded-pill py-2" id="filtroProposito" onchange="filtrarLotes()">
+                        <option value="" selected>🎯 Todo (Vivero y Finca)</option>
+                        <option value="Venta Plantula">🏪 Vivero (Venta)</option>
+                        <option value="Produccion Fruto">🌳 Cultivo (Finca)</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-1 text-center">
+                    <div id="loadingIndicator" class="spinner-border spinner-border-sm text-success" role="status" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4" id="contenedorLotes">
+        {% include 'parciales/items_lotes.html' %}
+    </div>
+
+</div>
+
+<script>
+    let timeoutId;
+    const searchInput = document.getElementById('searchInput');
+    const filtroSede = document.getElementById('filtroSede');
+    const filtroProposito = document.getElementById('filtroProposito');
+    const contenedorLotes = document.getElementById('contenedorLotes');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+
+    function filtrarLotes() {
+        loadingIndicator.style.display = 'inline-block';
+        contenedorLotes.style.opacity = '0.5';
+
+        const query = searchInput.value;
+        const sedeId = filtroSede.value;
+        const proposito = filtroProposito.value;
+
+        fetch(`{{ url_for('main.lista_lotes') }}?q=${query}&sede_id=${sedeId}&proposito=${proposito}&ajax=1`)
+            .then(response => response.text())
+            .then(html => {
+                contenedorLotes.innerHTML = html;
+                contenedorLotes.style.opacity = '1';
+                loadingIndicator.style.display = 'none';
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                loadingIndicator.style.display = 'none';
+                contenedorLotes.style.opacity = '1';
+            });
+    }
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(filtrarLotes, 300);
+    });
+</script>
+{% endblock %}

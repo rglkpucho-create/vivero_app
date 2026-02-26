@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+    /* Estilos específicos para el POS */
+    .dropdown-sugerencias { z-index: 9999 !important; }
+    .input-ghost { background: transparent; border: 1px solid transparent; transition: all 0.2s; }
+    .input-ghost:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .input-ghost:focus { background: white; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); outline: none; }
+    .fade-enter { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div class="min-h-screen bg-slate-50/50 pb-32 font-sans text-slate-800">
+
+    <!-- 1. ENCABEZADO STICKY (Efecto Vidrio) -->
+    <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-3 gap-4">
+                
+                <!-- Info Venta -->
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <div class="relative group">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000"></div>
+                        <div class="relative bg-slate-900 text-white p-2.5 rounded-xl shadow-sm">
+                            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-xl font-bold text-slate-800 tracking-tight">Venta <span class="font-mono text-blue-600">#{{ venta.numero_factura }}</span></h1>
+                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border
+                                {% if venta.estado == 'Borrador' %}bg-amber-50 text-amber-700 border-amber-200
+                                {% else %}bg-emerald-50 text-emerald-700 border-emerald-200{% endif %}">
+                                {{ venta.estado }}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-slate-500 mt-0.5 font-medium">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i> {{ venta.cliente.nombre }}
+                            </span>
+                            <span class="text-slate-300">|</span>
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i> {{ venta.fecha.strftime('%Y-%m-%d') }}
+                            </span>
+                            {% if venta.estado == 'Borrador' %}
+                            <button class="text-blue-600 hover:text-blue-800 transition-colors ml-2 bg-blue-50 p-1 rounded hover:bg-blue-100" onclick="toggleEditHeader()" title="Cambiar Cliente">
+                                <i data-lucide="user-cog" class="w-3.5 h-3.5"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Totalizador -->
+                <div class="flex items-center gap-6 w-full md:w-auto justify-end border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6">
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Total a Pagar</p>
+                        <p class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 font-mono tracking-tight tabular-nums">
+                            ${{ "{:,.0f}".format(venta.total) }}
+                        </p>
+                    </div>
+                    {% if venta.estado == 'Borrador' and venta.detalles %}
+                    <form action="{{ url_for('main.finalizar_venta', venta_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Finalizar venta? Se descontará del inventario.');">
+                        <button type="submit" class="group relative inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-white transition-all duration-200 bg-emerald-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-200/50 active:scale-95">
+                            <span>Cobrar</span>
+                            <i data-lucide="banknote" class="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Panel Cambio Cliente (Oculto) -->
+            <div class="hidden pb-4 border-t border-slate-100 transition-all duration-300" id="editHeader">
+                <form action="{{ url_for('main.cambiar_cliente_venta', venta_id=venta.id) }}" method="POST" class="flex flex-col md:flex-row gap-4 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200 items-end shadow-inner">
+                    <div class="flex-grow w-full">
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cliente</label>
+                        <select name="cliente_id" class="w-full text-sm p-2.5 rounded-lg border-slate-300 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                            {% for c in clientes %}
+                            <option value="{{ c.id }}" {% if c.id == venta.cliente_id %}selected{% endif %}>{{ c.nombre }} ({{ c.documento }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button type="submit" class="bg-blue-600 text-white border border-transparent px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 w-full md:w-auto shadow-sm">Guardar</button>
+                        <a href="{{ url_for('main.nuevo_cliente') }}" class="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-50 w-full md:w-auto text-center flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-3 h-3"></i> Nuevo
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. ÁREA DE TRABAJO -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+        
+        <!-- BARRA DE POS (SOLO EN BORRADOR) -->
+        {% if venta.estado == 'Borrador' %}
+        <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-1.5 relative z-50 fade-enter">
+            
+            <form action="{{ url_for('main.agregar_item_venta', venta_id=venta.id) }}" method="POST" id="formPos" autocomplete="off">
+                <div class="flex flex-col md:flex-row gap-2 items-center">
+                    
+                    <!-- BUSCADOR UNIFICADO INTELIGENTE -->
+                    <div class="relative flex-grow w-full group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors" id="searchIcon">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </div>
+                        <input type="text" id="buscador_unificado" name="busqueda" 
+                               class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-transparent rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-base font-bold transition-all shadow-inner focus:shadow-none"
+                               placeholder="Buscar mercancía o cosecha..." autofocus>
+                        
+                        <!-- Campos Ocultos Dinámicos -->
+                        <input type="hidden" name="insumo_id" id="insumo_id_seleccionado">
+                        <input type="hidden" name="lote_id" id="lote_id_seleccionado">
+                        
+                        <!-- Lista Sugerencias -->
+                        <div id="sugerencias_lista" class="dropdown-sugerencias absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden hidden max-h-[400px] overflow-y-auto"></div>
+                    </div>
+
+                    <!-- MARGEN % -->
+                    <div class="w-full md:w-20 relative group" title="Margen de Ganancia Sugerido">
+                        <span class="absolute top-1 left-2 text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10 group-focus-within:text-blue-500">% Gan.</span>
+                        <input type="number" id="inputMargen" value="30" min="0" step="1"
+                               class="block w-full pt-5 pb-1.5 px-2 bg-slate-50 border-transparent rounded-xl text-slate-600 text-center font-bold text-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner focus:shadow-none">
+                    </div>
+
+                    <!-- Precio (Calculado) -->
+                    <div class="w-full md:w-36 relative group">
+                        <span class="absolute top-1 left-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10 group-focus-within:text-blue-500">Precio ($)</span>
+                        <input type="number" id="precio_input" name="precio_unitario" step="0.01" placeholder="0.00" required
+                               class="block w-full pt-5 pb-1.5 px-3 bg-slate-50 border-transparent rounded-xl text-slate-900 text-right font-bold text-lg font-mono focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner focus:shadow-none">
+                    </div>
+
+                    <!-- Cantidad -->
+                    <div class="w-full md:w-24 relative group">
+                        <span class="absolute top-1 left-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10 group-focus-within:text-blue-500">Cant.</span>
+                        <input type="number" id="inputCantidad" name="cantidad" value="1" min="0.1" step="0.1" required
+                               class="block w-full pt-5 pb-1.5 px-3 bg-slate-50 border-transparent rounded-xl text-slate-900 text-center font-bold text-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner focus:shadow-none">
+                    </div>
+
+                    <!-- Botón Agregar -->
+                    <button type="submit" class="w-full md:w-auto h-[58px] px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg shadow-slate-300/50 transition-all flex items-center justify-center gap-2 active:scale-95 group">
+                        <span class="hidden md:inline">Agregar</span>
+                        <i data-lucide="plus" class="w-6 h-6 group-hover:rotate-90 transition-transform"></i>
+                    </button>
+                </div>
+                
+                <!-- Opciones Extra -->
+                <div class="mt-2 px-2 flex items-center gap-4">
+                    <label class="inline-flex items-center cursor-pointer group">
+                        <input type="checkbox" name="es_caja" id="checkCaja" class="form-checkbox h-4 w-4 text-blue-500 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-offset-0">
+                        <span class="ml-2 text-xs font-bold text-slate-500 group-hover:text-blue-600 transition-colors uppercase tracking-wide select-none">Venta por Caja</span>
+                    </label>
+                    <div id="divUnidadesCaja" class="hidden animate-fade-in-right flex items-center gap-2 bg-slate-100 rounded-lg px-2 py-1 border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase">Unds:</span>
+                        <input type="number" name="unidades_por_caja" value="1" class="w-12 bg-transparent border-0 border-b border-slate-300 p-0 text-center text-xs font-bold focus:ring-0 focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- TABLA DE ITEMS (CARRITO) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative z-0 fade-enter" style="animation-delay: 0.1s;">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-bold">
+                        <tr>
+                            <th class="px-6 py-4">Descripción</th>
+                            <th class="px-6 py-4 text-center w-32">Cant.</th>
+                            <th class="px-6 py-4 text-right w-40">Precio Unit.</th>
+                            <th class="px-6 py-4 text-right w-40">Subtotal</th>
+                            {% if venta.estado == 'Borrador' %}
+                            <th class="px-4 py-4 w-12"></th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        {% for detalle in venta.detalles %}
+                        <tr class="hover:bg-slate-50 transition-colors group">
+                            <td class="px-6 py-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="mt-1 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 
+                                        {% if detalle.lote_origen %}bg-green-50 text-green-600 border border-green-100{% else %}bg-blue-50 text-blue-600 border border-blue-100{% endif %}">
+                                        <i data-lucide="{{ 'wheat' if detalle.lote_origen else 'package' }}" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-sm group-hover:text-blue-700 transition-colors">
+                                            <!-- CORRECCIÓN AQUÍ: Usamos detalle.lote_origen para acceder a los datos del lote -->
+                                            {% if detalle.lote_origen %}{{ detalle.lote_origen.especie.nombre_comun }}{% else %}{{ detalle.insumo.nombre }}{% endif %}
+                                        </p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            {% if detalle.lote_origen %}
+                                                <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Lote: {{ detalle.lote_origen.codigo_lote }}</span>
+                                            {% else %}
+                                                <span class="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ detalle.insumo.codigo or 'S/C' }}</span>
+                                            {% endif %}
+                                            
+                                            {% if detalle.ganancia %}
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border 
+                                                {% if detalle.ganancia > 0 %}text-emerald-600 bg-emerald-50 border-emerald-100{% else %}text-red-500 bg-red-50 border-red-100{% endif %}">
+                                                {{ 'Ganancia' if detalle.ganancia > 0 else 'Pérdida' }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td class="px-6 py-4 text-center">
+                                {% if venta.estado == 'Borrador' %}
+                                <form action="{{ url_for('main.actualizar_item_venta', detalle_id=detalle.id) }}" method="POST">
+                                    <input type="number" name="cantidad" value="{{ detalle.cantidad }}" 
+                                           class="w-full text-center font-bold text-sm text-slate-700 input-ghost py-1 rounded" 
+                                           min="0.1" step="0.1" onchange="this.form.submit()">
+                                </form>
+                                {% else %}
+                                    <span class="font-bold text-slate-700 text-sm">{{ detalle.cantidad }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="px-6 py-4 text-right">
+                                <span class="font-mono text-sm text-slate-600">${{ "{:,.0f}".format(detalle.precio_venta_unitario) }}</span>
+                            </td>
+                            
+                            <td class="px-6 py-4 text-right">
+                                <span class="font-bold text-slate-900 text-sm font-mono tracking-tight">${{ "{:,.0f}".format(detalle.subtotal) }}</span>
+                            </td>
+                            
+                            {% if venta.estado == 'Borrador' %}
+                            <td class="px-4 py-4 text-right">
+                                <form action="{{ url_for('main.eliminar_item_venta', detalle_id=detalle.id) }}" method="POST"> 
+                                    <button type="submit" class="text-slate-300 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100" title="Eliminar">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-24 text-center text-slate-400">
+                                <i data-lucide="shopping-bag" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+                                <p class="font-medium text-slate-500">Carrito vacío.</p>
+                                <p class="text-xs text-slate-400 mt-1">Busca productos arriba para comenzar.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-slate-50/50 border-t border-slate-200">
+                        <tr>
+                            <td colspan="{{ '3' if venta.estado != 'Borrador' else '3' }}" class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Total</td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="text-2xl font-black text-slate-800 font-mono tracking-tighter">${{ "{:,.0f}".format(venta.total) }}</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Botones Finales -->
+        <div class="flex justify-between items-center pt-2 mb-8">
+            <a href="{{ url_for('main.lista_ventas') }}" class="text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center gap-2 px-4 py-2 hover:bg-white rounded-lg transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a Ventas
+            </a>
+            
+            {% if venta.estado == 'Borrador' %}
+            <form action="{{ url_for('main.cancelar_venta_ruta', pedido_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Anular venta?');"> 
+                <button type="submit" class="text-red-500 hover:text-red-700 font-bold text-xs uppercase tracking-wider px-4 py-2 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2">
+                    <i data-lucide="trash" class="w-3.5 h-3.5"></i> Anular Venta
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    function toggleEditHeader() {
+        document.getElementById('editHeader').classList.toggle('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputBuscador = document.getElementById('buscador_unificado');
+        const searchIcon = document.getElementById('searchIcon');
+        const inputInsumoId = document.getElementById('insumo_id_seleccionado');
+        const inputLoteId = document.getElementById('lote_id_seleccionado');
+        const inputPrecio = document.getElementById('precio_input');
+        const inputCantidad = document.getElementById('inputCantidad');
+        const inputMargen = document.getElementById('inputMargen');
+        const listaSugerencias = document.getElementById('sugerencias_lista');
+        const formPos = document.getElementById('formPos');
+        const checkCaja = document.getElementById('checkCaja');
+        const divUnidadesCaja = document.getElementById('divUnidadesCaja');
+        const inputUnidadesCaja = divUnidadesCaja.querySelector('input');
+        
+        let selectedIndex = -1;
+
+        if(!inputBuscador) return;
+
+        checkCaja.addEventListener('change', function() {
+            if(this.checked) {
+                divUnidadesCaja.classList.remove('hidden');
+                inputUnidadesCaja.focus();
+            } else {
+                divUnidadesCaja.classList.add('hidden');
+            }
+        });
+
+        // Foco inicial
+        inputBuscador.focus();
+
+        let timeoutId;
+        inputBuscador.addEventListener('input', function() {
+            const query = this.value;
+            inputInsumoId.value = ''; inputLoteId.value = ''; selectedIndex = -1;
+            clearTimeout(timeoutId);
+            if (query.length < 1) { listaSugerencias.classList.add('hidden'); return; }
+
+            searchIcon.innerHTML = '<div class="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>';
+
+            timeoutId = setTimeout(() => {
+                fetch(`{{ url_for('main.buscar_items_venta_api') }}?q=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerencias.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach((item, index) => {
+                                const div = document.createElement('div');
+                                div.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors border-b border-slate-50 last:border-0 group';
+                                
+                                let badgeClass = item.type === 'lote' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700';
+                                let typeLabel = item.type === 'lote' ? 'Cosecha' : 'Bodega';
+                                
+                                div.innerHTML = `
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-sm group-hover:text-blue-700">${item.nombre}</div>
+                                        <div class="text-[10px] text-slate-400 font-mono flex gap-2">
+                                            <span>${item.codigo || '---'}</span>
+                                            <span class="${badgeClass} px-1 rounded text-[9px] font-bold uppercase">${typeLabel}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded text-slate-500 group-hover:bg-white">Disp: ${item.stock}</span>
+                                        ${item.costo > 0 ? `<div class="text-xs text-emerald-600 font-mono mt-1 font-bold" title="Costo Unitario">$${Math.round(item.costo)}</div>` : ''}
+                                    </div>
+                                `;
+                                div.addEventListener('click', () => seleccionarItem(item));
+                                listaSugerencias.appendChild(div);
+                            });
+                            listaSugerencias.classList.remove('hidden');
+                        } else {
+                            listaSugerencias.classList.add('hidden');
+                        }
+                    })
+                    .catch(console.error)
+                    .finally(() => {
+                        searchIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search w-5 h-5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
+                    });
+            }, 150);
+        });
+
+        function seleccionarItem(item) {
+            inputBuscador.value = item.nombre;
+            if(item.type === 'lote') { inputLoteId.value = item.id; inputInsumoId.value = ""; } 
+            else { inputInsumoId.value = item.id; inputLoteId.value = ""; }
+
+            // LÓGICA DE PRECIO AUTOMÁTICO
+            if (item.costo > 0) {
+                const margen = parseFloat(inputMargen.value) || 0;
+                const precioSugerido = item.costo * (1 + (margen / 100));
+                inputPrecio.value = Math.round(precioSugerido);
+            } else {
+                inputPrecio.value = ""; 
+            }
+
+            listaSugerencias.classList.add('hidden');
+            
+            // AUTO-SUBMIT SI HAY PRECIO
+            if(inputPrecio.value > 0) {
+                formPos.submit();
+            } else {
+                inputPrecio.focus(); 
+            }
+        }
+        
+        // Navegación (Teclado)
+        inputBuscador.addEventListener('keydown', function(e) {
+            const items = listaSugerencias.children;
+            if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex + 1, items.length - 1); updateSelection(items); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, -1); updateSelection(items); }
+            else if (e.key === 'Enter') { if (selectedIndex > -1 && items[selectedIndex]) { e.preventDefault(); items[selectedIndex].click(); } }
+            else if (e.key === 'Escape') { listaSugerencias.classList.add('hidden'); }
+        });
+
+        function updateSelection(items) {
+            Array.from(items).forEach((item, index) => {
+                if (index === selectedIndex) item.className = 'px-4 py-3 bg-blue-600 text-white cursor-pointer flex justify-between items-center transition-colors';
+                else item.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors border-b border-slate-50 last:border-0 group';
+            });
+        }
+        
+        document.addEventListener('click', function(e) {
+            if (e.target !== inputBuscador && e.target !== listaSugerencias) {
+                listaSugerencias.classList.add('hidden');
+            }
+        });
+    });
+</script>
+{% endblock %}

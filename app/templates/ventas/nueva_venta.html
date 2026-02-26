@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<div class="max-w-5xl mx-auto py-8 px-4 font-sans text-slate-800">
+
+    <!-- ENCABEZADO: Título y Total -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-200">
+                    <i data-lucide="receipt" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Venta {{ venta.numero_factura }}</h1>
+                    <p class="text-slate-500 font-medium">{{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <div class="text-right">
+                <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Total a Pagar</span>
+                <span class="block text-4xl font-black text-emerald-600">${{ "{:,.0f}".format(venta.total) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETA DEL CLIENTE (Selección Directa) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="font-bold text-slate-700 flex items-center gap-2 text-sm uppercase tracking-wide">
+                <i data-lucide="user" class="w-4 h-4"></i> Datos del Cliente
+            </h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold
+                {% if venta.estado == 'Finalizada' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                {% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
+                {{ venta.estado }}
+            </span>
+        </div>
+
+        <div class="p-6">
+            {% if venta.estado == 'Borrador' %}
+            <!-- Formulario de Cambio Rápido -->
+            <form action="{{ url_for('main.cambiar_cliente_venta', venta_id=venta.id) }}" method="POST">
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <div class="relative w-full md:w-1/2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Cliente</label>
+                        <div class="relative">
+                            <select name="cliente_id" onchange="this.form.submit()"
+                                    class="w-full appearance-none pl-10 pr-8 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-700 font-bold shadow-sm cursor-pointer transition-all hover:border-blue-300">
+                                {% for c in clientes %}
+                                <option value="{{ c.id }}" {% if c.id= =venta.cliente_id %}selected{% endif %}>
+                                    {{ c.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500">
+                                <i data-lucide="users" class="w-5 h-5"></i>
+                            </div>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-1/2">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Información</label>
+                        <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm text-slate-600">
+                            <i data-lucide="info" class="w-4 h-4 text-slate-400"></i>
+                            <span>{{ venta.cliente.documento or 'Sin documento' }} - {{ venta.cliente.direccion or 'Sin dirección' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {% else %}
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                    <i data-lucide="user-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold text-slate-800">{{ venta.cliente.nombre }}</h4>
+                    <p class="text-slate-500">{{ venta.cliente.documento }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- LISTA DE PRODUCTOS -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100 text-xs uppercase text-slate-500 font-bold">
+                        <th class="px-6 py-4">Concepto</th>
+                        <th class="px-6 py-4 text-right">Cant.</th>
+                        <th class="px-6 py-4 text-right">Precio Unit.</th>
+                        <th class="px-6 py-4 text-right">Subtotal</th>
+                        <th class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for detalle in venta.detalles %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            {% if detalle.lote %}
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-green-100 text-green-700 rounded-lg"><i data-lucide="wheat" class="w-5 h-5"></i></div>
+                                <div>
+                                    <p class="font-bold text-slate-800">{{ detalle.lote.especie.nombre_comun }}</p>
+                                    <p class="text-xs text-slate-500">Lote: {{ detalle.lote.codigo_lote }}</p>
+                                </div>
+                            </div>
+                            {% elif detalle.insumo %}
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-blue-100 text-blue-700 rounded-lg"><i data-lucide="package" class="w-5 h-5"></i></div>
+                                <div>
+                                    <p class="font-bold text-slate-800">{{ detalle.insumo.nombre }}</p>
+                                    <p class="text-xs text-slate-500">SKU: {{ detalle.insumo.codigo }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right font-medium text-slate-600">{{ detalle.cantidad }}</td>
+                        <td class="px-6 py-4 text-right text-slate-600">${{ "{:,.0f}".format(detalle.precio_venta_unitario) }}</td>
+                        <td class="px-6 py-4 text-right font-bold text-slate-800">${{ "{:,.0f}".format(detalle.subtotal) }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <!-- Aquí podrías agregar botón de eliminar -->
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                            <i data-lucide="shopping-cart" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                            <p>No hay productos en la factura aún.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- AGREGAR PRODUCTO (Solo Borrador) -->
+    {% if venta.estado == 'Borrador' %}
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-inner" x-data="{ tab: 'cosecha' }">
+        <!-- x-data para AlpineJS si lo usas, sino script abajo -->
+        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i> Agregar Ítem
+        </h3>
+
+        <!-- Pestañas -->
+        <div class="flex gap-2 mb-6">
+            <button type="button" onclick="toggleTipo('cosecha')" id="btnCosecha"
+                    class="flex-1 py-3 px-4 rounded-xl border-2 border-green-600 bg-green-600 text-white font-bold transition-all shadow-md flex justify-center items-center gap-2">
+                <i data-lucide="wheat" class="w-5 h-5"></i> Vender Cosecha
+            </button>
+            <button type="button" onclick="toggleTipo('insumo')" id="btnInsumo"
+                    class="flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold hover:border-blue-300 hover:text-blue-600 transition-all flex justify-center items-center gap-2">
+                <i data-lucide="package" class="w-5 h-5"></i> Vender Insumo
+            </button>
+        </div>
+
+        <form action="{{ url_for('main.agregar_item_venta', venta_id=venta.id) }}" method="POST">
+            <!-- INPUT OCULTO PARA TIPO -->
+            <input type="hidden" name="tipo_item" id="inputTipoItem" value="cosecha">
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+
+                <!-- SELECTORES DINÁMICOS -->
+                <div class="md:col-span-5">
+                    <!-- Selector Cosecha -->
+                    <div id="divCosecha">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Lote / Cultivo</label>
+                        <select name="lote_id" id="selectLote" class="w-full p-3 rounded-xl border border-slate-300 focus:border-green-500 focus:ring-green-500">
+                            <option value="">Seleccionar Lote...</option>
+                            {% for lote in lotes %}
+                            <option value="{{ lote.id }}">
+                                {{ lote.codigo_lote }} - {{ lote.especie.nombre_comun }} (Disp: {{ lote.cantidad_actual }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- Selector Insumo -->
+                    <div id="divInsumo" class="hidden">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Producto / Insumo</label>
+                        <select name="insumo_id" id="selectInsumo" class="w-full p-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">Seleccionar Producto...</option>
+                            {% for insumo in insumos %}
+                            <option value="{{ insumo.id }}">
+                                {{ insumo.nombre }} (Stock: {{ insumo.cantidad_actual }} {{ insumo.unidad.abreviatura }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- CANTIDAD Y PRECIO -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cantidad</label>
+                    <input type="number" name="cantidad" step="0.01" required
+                           class="w-full p-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-blue-500 font-bold" placeholder="0">
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Precio Unit. ($)</label>
+                    <input type="number" name="precio_unitario" step="0.01" required
+                           class="w-full p-3 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-blue-500 font-bold" placeholder="0.00">
+                </div>
+
+                <!-- BOTÓN AGREGAR -->
+                <div class="md:col-span-2">
+                    <button type="submit" class="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg flex justify-center items-center">
+                        <i data-lucide="plus" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CHECKBOX CAJA (Solo visible en Insumos) -->
+            <div id="opcionesCaja" class="hidden mt-4 bg-blue-50 p-3 rounded-lg border border-blue-100 animate-fade-in-down">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="es_caja" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                    <span class="text-sm font-medium text-blue-800">Es Venta por Caja/Bulto</span>
+                </label>
+                <div class="mt-2 pl-6 flex items-center gap-2">
+                    <label class="text-xs text-blue-600">Unidades por caja:</label>
+                    <input type="number" name="unidades_por_caja" value="13" class="w-20 text-xs p-1 border border-blue-300 rounded">
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- BOTÓN FINALIZAR -->
+    <div class="mt-8 flex justify-end">
+        <form action="{{ url_for('main.finalizar_venta', venta_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Finalizar venta? Se descontará inventario y generará la factura oficial.');">
+            <button type="submit" class="bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-emerald-700 shadow-xl shadow-emerald-200 flex items-center gap-3 transition-transform hover:-translate-y-1">
+                <span>Cobrar y Finalizar</span>
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Lógica de Pestañas -->
+<script>
+    lucide.createIcons();
+
+    function toggleTipo(tipo) {
+        const btnCosecha = document.getElementById('btnCosecha');
+        const btnInsumo = document.getElementById('btnInsumo');
+        const divCosecha = document.getElementById('divCosecha');
+        const divInsumo = document.getElementById('divInsumo');
+        const opcionesCaja = document.getElementById('opcionesCaja');
+        const selectLote = document.getElementById('selectLote');
+        const selectInsumo = document.getElementById('selectInsumo');
+
+        if (tipo === 'cosecha') {
+            // Estilos Botones
+            btnCosecha.className = "flex-1 py-3 px-4 rounded-xl border-2 border-green-600 bg-green-600 text-white font-bold transition-all shadow-md flex justify-center items-center gap-2";
+            btnInsumo.className = "flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold hover:border-blue-300 hover:text-blue-600 transition-all flex justify-center items-center gap-2";
+
+            // Visibilidad
+            divCosecha.classList.remove('hidden');
+            divInsumo.classList.add('hidden');
+            opcionesCaja.classList.add('hidden');
+
+            // Limpiar valores
+            selectInsumo.value = "";
+        } else {
+            // Estilos Botones
+            btnInsumo.className = "flex-1 py-3 px-4 rounded-xl border-2 border-blue-600 bg-blue-600 text-white font-bold transition-all shadow-md flex justify-center items-center gap-2";
+            btnCosecha.className = "flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 bg-white text-slate-500 font-bold hover:border-green-300 hover:text-green-600 transition-all flex justify-center items-center gap-2";
+
+            // Visibilidad
+            divInsumo.classList.remove('hidden');
+            divCosecha.classList.add('hidden');
+            opcionesCaja.classList.remove('hidden'); // Mostrar opción de caja para insumos
+
+            // Limpiar valores
+            selectLote.value = "";
+        }
+    }
+</script>
+{% endblock %}

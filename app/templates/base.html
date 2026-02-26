@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSistem | Gestión Agropecuaria</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* COLORES */
+            --light-bg: #f1f5f9;
+            --dark-bg: #0f172a;
+            --light-card: #ffffff;
+            --dark-card: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: #334155;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* NAVBAR ROBUSTO */
+        .navbar-custom {
+            background: #064e3b !important;
+            background: linear-gradient(180deg, #065f46 0%, #064e3b 100%) !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            padding: 0.5rem 1rem;
+            min-height: 70px;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-size: 1.4rem;
+            color: white !important;
+        }
+
+        /* Enlaces del Menú */
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.85) !important;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.6rem 1.2rem !important;
+            border-radius: 8px;
+            margin: 0 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .navbar-nav .nav-link:hover, .navbar-nav .nav-link.show {
+                background-color: rgba(255,255,255,0.15);
+                color: white !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+
+        /* Dropdowns */
+        .dropdown-menu {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 0.5rem;
+            margin-top: 10px !important;
+            animation: slideUp 0.2s ease-out;
+            min-width: 220px;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+        }
+
+        /* MODO OSCURO */
+        [data-bs-theme="dark"] body {
+            background-color: var(--dark-bg) !important;
+            color: #e2e8f0;
+        }
+
+        [data-bs-theme="dark"] .card, [data-bs-theme="dark"] .lote-card, [data-bs-theme="dark"] .animal-card, [data-bs-theme="dark"] .kpi-card {
+            background-color: var(--dark-card) !important;
+            border-color: #334155 !important;
+            color: #e2e8f0;
+        }
+
+        [data-bs-theme="dark"] .text-dark {
+            color: #f1f5f9 !important;
+        }
+
+        [data-bs-theme="dark"] .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        [data-bs-theme="dark"] .bg-light {
+            background-color: #334155 !important;
+        }
+
+        [data-bs-theme="dark"] .dropdown-menu {
+            background-color: var(--dark-card);
+            border: 1px solid #334155;
+        }
+
+        [data-bs-theme="dark"] .dropdown-item {
+            color: #cbd5e1;
+        }
+
+            [data-bs-theme="dark"] .dropdown-item:hover {
+                background-color: #334155;
+                color: white;
+            }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container-fluid px-4">
+
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.dashboard') }}">
+                <div class="bg-white text-success rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;">
+                    <i class="bi bi-tree-fill" style="font-size: 1.2rem; color: #064e3b;"></i>
+                </div>
+                <span class="d-none d-md-inline">EcoSistem</span>
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                {% if current_user.is_authenticated %}
+                <ul class="navbar-nav mx-auto align-items-center">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                            <i class="bi bi-house-door-fill"></i> Inicio
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.lista_lotes') }}">
+                            <i class="bi bi-flower1"></i> Producción
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.lista_animales') }}">
+                            <i class="bi bi-piggy-bank-fill"></i> Animales
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-box-seam-fill"></i> Inventario
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_insumos') }}"><i class="bi bi-box-seam text-warning"></i>Insumos</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_proveedores') }}"><i class="bi bi-truck text-info"></i>Proveedores</a></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_sedes') }}"><i class="bi bi-geo-alt text-danger"></i>Sedes</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-currency-exchange"></i> Transacciones
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_pedidos') }}"><i class="bi bi-cart-plus text-primary"></i>Compras</a></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_ventas') }}"><i class="bi bi-cash-coin text-success"></i>Ventas</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_clientes') }}"><i class="bi bi-people text-info"></i>Clientes</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                {% if current_user.is_authenticated %}
+                <button class="btn btn-link text-white p-0 opacity-75 hover-opacity-100" onclick="toggleTheme()" title="Cambiar Tema">
+                    <i class="bi bi-moon-stars-fill fs-5" id="themeIcon"></i>
+                </button>
+
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                        <div class="bg-white text-success rounded-circle fw-bold d-flex align-items-center justify-content-center me-2 border border-2 border-success border-opacity-25" style="width: 38px; height: 38px;">
+                            {{ current_user.nombre_completo[0].upper() }}
+                        </div>
+                        <span class="d-none d-lg-inline fw-bold small">{{ current_user.nombre_completo.split()[0] }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end mt-2">
+                        <li><span class="dropdown-item-text small text-muted">Rol: <strong>{{ current_user.rol.nombre }}</strong></span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger fw-bold" href="{{ url_for('main.logout') }}">Cerrar Sesión</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a class="btn btn-outline-light rounded-pill px-4 fw-bold" href="{{ url_for('main.login') }}">Acceder</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm rounded-3 border-0" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="pb-5">{% block content %}{% endblock %}</div>
+
+    <footer class="text-center py-4 text-muted small mt-auto border-top" style="background-color: rgba(0,0,0,0.02);">
+        <p class="mb-0 fw-bold">&copy; {{ datetime.now().year }} EcoSistem v4.0</p>
+        <p class="mb-0 opacity-75">Gestión Inteligente para el Campo</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>if (typeof lucide !== 'undefined') { lucide.createIcons(); }</script>
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        updateIcon(savedTheme);
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateIcon(newTheme);
+        }
+        function updateIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) { icon.className = theme === 'dark' ? 'bi bi-sun-fill fs-5' : 'bi bi-moon-stars-fill fs-5'; }
+        }
+    </script>
+</body>
+</html>

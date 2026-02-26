@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Encabezado y Buscador -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">Catálogo de Especies</h2>
+            <p class="text-muted small mb-0">Gestiona las fichas técnicas y cultivos disponibles.</p>
+        </div>
+
+        <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0 justify-content-end">
+            <!-- Barra de Búsqueda -->
+            <div class="position-relative" style="min-width: 280px;">
+                <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
+                <input type="text" id="searchEspecies" class="form-control border-0 bg-white shadow-sm ps-5 rounded-pill"
+                       placeholder="Buscar cultivo..." value="{{ request.args.get('q', '') }}">
+                <!-- Spinner loader (oculto por defecto) -->
+                <div class="spinner-border spinner-border-sm text-primary position-absolute" id="searchLoader"
+                     role="status" style="right: 15px; top: 30%; display: none;"></div>
+            </div>
+
+            <a href="{{ url_for('main.nueva_especie') }}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center">
+                <i class="bi bi-plus-lg me-2"></i> <span class="d-none d-sm-inline">Nueva</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenedor del Grid (Se actualiza vía AJAX) -->
+    <!-- Aquí se incluye el parcial inicialmente, luego JS reemplaza su contenido -->
+    <div class="row g-4" id="especiesGridContainer">
+        {% include 'parciales/items_especies.html' %}
+    </div>
+
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+            z-index: 10;
+        }
+
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Animación de entrada suave para los items filtrados */
+    .fade-in-item {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- SCRIPT DE BÚSQUEDA DINÁMICA -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchEspecies');
+        const gridContainer = document.getElementById('especiesGridContainer');
+        const searchLoader = document.getElementById('searchLoader');
+        let timeout = null;
+
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+
+            // Mostrar loader visual
+            searchLoader.style.display = 'block';
+
+            // Debounce: Esperar 300ms antes de enviar la petición para no saturar con cada tecla
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                // Construimos la URL con el parámetro de búsqueda y la bandera ajax=1
+                const url = `{{ url_for('main.lista_especies') }}?q=${encodeURIComponent(query)}&ajax=1`;
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Error en la red');
+                        return response.text();
+                    })
+                    .then(html => {
+                        // Reemplazamos el contenido del grid con el HTML parcial recibido
+                        gridContainer.innerHTML = html;
+                        searchLoader.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error en búsqueda:', error);
+                        searchLoader.style.display = 'none';
+                    });
+            }, 300);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\app",
+    "\\app\\static",
+    "\\app\\static\\uploads",
+    "\\app\\templates",
+    "\\app\\templates\\parciales",
+    "\\app\\templates\\pecuario",
+    "\\app\\templates\\produccion",
+    "\\app\\templates\\ventas"
+  ],
+  "SelectedNode": "\\run.py",
+  "PreviewInSolutionExplorer": false
+}

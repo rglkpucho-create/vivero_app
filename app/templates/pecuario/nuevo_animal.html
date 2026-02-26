@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-9">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            
+            <div class="card-header text-white p-4 border-0" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                        <i class="bi bi-egg-fried fs-3 text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1">{{ 'Editar Animal' if animal else 'Registrar Nuevo Animal' }}</h4>
+                        <p class="mb-0 opacity-75">Completa la ficha técnica del semoviente y su ubicación.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-5">
+                <form method="POST" enctype="multipart/form-data">
+                    
+                    <h6 class="text-uppercase text-muted fw-bold small mb-3 border-bottom pb-2">
+                        <i class="bi bi-geo-alt-fill me-1 text-success"></i> Localización
+                    </h6>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Sede / Finca <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-house-door text-success"></i></span>
+                                <select name="sede_id" class="form-select form-select-lg bg-light border-0" required>
+                                    <option value="" disabled {{ 'selected' if not animal }}>Selecciona la sede...</option>
+                                    {% if sedes %}
+                                        {% for sede in sedes %}
+                                        <option value="{{ sede.id }}" {{ 'selected' if animal and animal.sede_id == sede.id }}>
+                                            {{ sede.nombre }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Infraestructura / Sector <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-shop text-success"></i></span>
+                                <select name="ubicacion" class="form-select form-select-lg bg-light border-0" required>
+                                    <option value="" disabled {{ 'selected' if not animal }}>¿Dónde se encuentra?</option>
+                                    
+                                    <optgroup label="🏠 Corrales">
+                                        {% for i in range(1, 6) %}
+                                        <option value="Corral {{ i }}" {{ 'selected' if animal and animal.ubicacion == 'Corral '~i }}>Corral {{ i }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+
+                                    <optgroup label="🏭 Galpones (Avícolas)">
+                                        {% for i in range(1, 6) %}
+                                        <option value="Galpón {{ i }}" {{ 'selected' if animal and animal.ubicacion == 'Galpón '~i }}>Galpón {{ i }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+
+                                    <optgroup label="🐷 Marraneras">
+                                        {% for i in range(1, 6) %}
+                                        <option value="Marranera {{ i }}" {{ 'selected' if animal and animal.ubicacion == 'Marranera '~i }}>Marranera {{ i }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+
+                                    <optgroup label="🌿 Potreros (Pastoreo)">
+                                        {% for i in range(1, 6) %}
+                                        <option value="Potrero {{ i }}" {{ 'selected' if animal and animal.ubicacion == 'Potrero '~i }}>Potrero {{ i }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    
+                                    <option value="Cuarentena" {{ 'selected' if animal and animal.ubicacion == 'Cuarentena' }}>⚠️ Zona de Cuarentena</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted fw-bold small mb-3 border-bottom pb-2 mt-5">
+                        <i class="bi bi-tag-fill me-1 text-success"></i> Identificación del Animal
+                    </h6>
+
+                    <div class="row g-4 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Nombre / Alias <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control form-control-lg bg-light border-0" 
+                                   placeholder="Ej: La Lola" value="{{ animal.nombre if animal else '' }}" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Código / Arete</label>
+                            <input type="text" name="codigo" class="form-control form-control-lg bg-light border-0" 
+                                   placeholder="Ej: BOV-001" value="{{ animal.codigo if animal else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted">Especie <span class="text-danger">*</span></label>
+                            <select name="especie" class="form-select form-select-lg bg-light border-0" required>
+                                <option value="" disabled {{ 'selected' if not animal }}>Tipo...</option>
+                                <option value="Bovino" {{ 'selected' if animal and animal.especie == 'Bovino' }}>🐮 Bovino (Vaca)</option>
+                                <option value="Porcino" {{ 'selected' if animal and animal.especie == 'Porcino' }}>🐷 Porcino (Cerdo)</option>
+                                <option value="Avícola" {{ 'selected' if animal and animal.especie == 'Avícola' }}>🐔 Avícola (Gallina/Pollo)</option>
+                                <option value="Caprino" {{ 'selected' if animal and animal.especie == 'Caprino' }}>🐐 Caprino (Cabra)</option>
+                                <option value="Equino" {{ 'selected' if animal and animal.especie == 'Equino' }}>🐴 Equino (Caballo)</option>
+                                <option value="Piscícola" {{ 'selected' if animal and animal.especie == 'Piscícola' }}>🐟 Piscícola (Pez)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted">Raza</label>
+                            <input type="text" name="raza" class="form-control form-control-lg bg-light border-0" 
+                                   placeholder="Ej: Holstein" value="{{ animal.raza if animal else '' }}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small text-muted">Género <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="genero" id="macho" value="Macho" autocomplete="off" required 
+                                       {{ 'checked' if animal and animal.genero == 'Macho' }}>
+                                <label class="btn btn-outline-primary flex-fill fw-bold py-2" for="macho">
+                                    <i class="bi bi-gender-male"></i> Macho
+                                </label>
+
+                                <input type="radio" class="btn-check" name="genero" id="hembra" value="Hembra" autocomplete="off" 
+                                       {{ 'checked' if animal and animal.genero == 'Hembra' }}>
+                                <label class="btn btn-outline-danger flex-fill fw-bold py-2" for="hembra">
+                                    <i class="bi bi-gender-female"></i> Hembra
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted fw-bold small mb-3 border-bottom pb-2 mt-5">
+                        <i class="bi bi-graph-up-arrow me-1 text-success"></i> Detalles Productivos
+                    </h6>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Propósito</label>
+                            <select name="proposito" class="form-select form-select-lg bg-light border-0">
+                                <option value="Producción Leche" {{ 'selected' if animal and animal.proposito == 'Producción Leche' }}>🥛 Producción Leche</option>
+                                <option value="Producción Carne" {{ 'selected' if animal and animal.proposito == 'Producción Carne' }}>🥩 Producción Carne</option>
+                                <option value="Doble Propósito" {{ 'selected' if animal and animal.proposito == 'Doble Propósito' }}>🔄 Doble Propósito</option>
+                                <option value="Cría / Reproducción" {{ 'selected' if animal and animal.proposito == 'Cría / Reproducción' }}>❤️ Cría / Reproducción</option>
+                                <option value="Trabajo" {{ 'selected' if animal and animal.proposito == 'Trabajo' }}>🚜 Trabajo</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">Fecha Nacimiento (Aprox)</label>
+                            <input type="date" name="fecha_nacimiento" class="form-control form-control-lg bg-light border-0" 
+                                   value="{{ animal.fecha_nacimiento if animal else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">Foto del Animal</label>
+                        <input type="file" name="foto" class="form-control form-control-lg bg-light border-0" accept="image/*">
+                        <div class="form-text">Sube una foto clara para identificarlo en el catálogo.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-5 pt-3 border-top">
+                        <a href="{{ url_for('main.lista_animales') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold border-0">
+                            <i class="bi bi-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg rounded-pill px-5 fw-bold shadow-sm" 
+                                style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); border:none;">
+                            <i class="bi bi-save me-2"></i> {{ 'Guardar Cambios' if animal else 'Registrar Animal' }}
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

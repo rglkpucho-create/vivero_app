@@ -1,0 +1,199 @@
+﻿"""
+Módulo de vistas (rutas) de la aplicación.
+
+Este módulo define el blueprint `main_bp` con las rutas principales de la
+aplicación: autenticación, gestión de proveedores, inventarios, compras,
+producción, ventas y módulo pecuario.
+
+Incluye helpers reutilizables para:
+- guardar archivos (imágenes) en disco
+- recalcular costo promedio de insumos
+- consumir stock con política FIFO
+
+Notas:
+- Las rutas usan `login_required` para proteger accesos.
+- Las operaciones sobre la base de datos usan `db.session` y manejan commit/rollback.
+- Mantener validaciones de entrada en los formularios para evitar errores.
+"""
+
+import os
+from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask_login import login_user, logout_user, login_required, current_user
+from sqlalchemy import or_, func
+from .models import (
+    Usuario, Rol, Proveedor, Insumo, UnidadMedida, 
+    PedidoCompra, DetallePedidoCompra, LoteInsumo, MovimientoInventario,
+    Especie, LoteProduccion, LaborCampo, ConsumoInsumo,
+    Cliente, Venta, DetalleVenta, Sede,
+    LoteAnimal, ProduccionAnimal, ConsumoAnimal, EventoSanitario
+)
+from .extensions import db
+from datetime import datetime
+
+main_bp = Blueprint('main', __name__)
+
+# ==================================================
+# CONFIGURACIÓN GLOBAL Y HELPERS
+# ==================================================
+
+# 1. Inyección de variables globales (para datetime en Jinja)
+@main_bp.context_processor
+def inject_globals():
+    """
+    Inyecta variables globales en el contexto de Jinja2.
+    Actualmente expone `datetime` para poder usarlo en las plantillas.
+    """
+    return dict(datetime=datetime)
+
+# 2. Helper: Guardar Imágenes
+def guardar_imagen(archivo, carpeta):
+    """
+    Guarda un archivo subido (imagen) en `static/uploads/<carpeta>` y
+    devuelve la ruta relativa para almacenar en la base de datos.
+
+    Parámetros:
+    - archivo: objeto FileStorage de Flask (request.files['...'])
+    - carpeta: subcarpeta dentro de `static/uploads` donde se guardará
+
+    Retorna:
+    - ruta relativa (str) o None si no se pasó archivo.
+    """
+    if not archivo:
+        return None
+    
+    filename = secure_filename(archivo.filename)
+    # Nombre único: timestamp + nombre original para evitar duplicados
+    nombre_unico = f"{int(datetime.now().timestamp())}_{filename}"    
+    
+    # Ruta absoluta en el servidor
+    path_folder = os.path.join(current_app.root_path, 'static', 'uploads', carpeta)
+    os.makedirs(path_folder, exist_ok=True) # Crea la carpeta si no existe
+    
+    archivo.save(os.path.join(path_folder, nombre_unico))
+    
+    # Retorna la ruta relativa para guardar en BD
+    return f"uploads/{carpeta}/{nombre_unico}"
+
+# 3. Helper: Recalcular Costo Promedio
+def recalcular_costo_promedio(insumo):
+    """
+    Recalcula y actualiza el `costo_promedio` de un `Insumo` a partir de los
+    lotes activos (cada lote tiene `cantidad_actual` y `costo_unitario`).
+
+    No hace commit; solo añade el objeto a la sesión para que el llamador
+    pueda controlar la transacción.
+    """
+    lotes_activos = LoteInsumo.query.filter(
+        LoteInsumo.insumo_id == insumo.id, 
+        LoteInsumo.cantidad_actual > 0
+    ).all()
+    
+    cantidad_total = sum(l.cantidad_actual for l in lotes_activos)
+    valor_total = sum(l.cantidad_actual * l.costo_unitario for l in lotes_activos)
+    
+    if cantidad_total > 0:
+        insumo.costo_promedio = valor_total / cantidad_total
+    
+    db.session.add(insumo)
+
+# 4. Helper: Lógica FIFO (First In, First Out)
+def consumir_stock_fifo(insumo, cantidad_necesaria):
+    """
+    Consume stock de un insumo aplicando la política FIFO sobre los lotes.
+
+    - Resta `cantidad_necesaria` de `LoteInsumo` más antiguos hasta cubrirla.
+    - Actualiza `lote.cantidad_actual` y `insumo.cantidad_actual` en memoria.
+    - Recalcula el costo promedio tras el consumo.
+
+    Retorna una tupla: (costo_total_salida, costo_unitario_salida)
+
+    Lanza Exception si no hay stock suficiente.
+    """
+    if insumo.cantidad_actual < cantidad_necesaria:
+        raise Exception(f"Stock insuficiente de {insumo.nombre}. Disponible: {insumo.cantidad_actual}")
+
+    lotes = LoteInsumo.query.filter(
+        LoteInsumo.insumo_id == insumo.id, 
+        LoteInsumo.cantidad_actual > 0
+    ).order_by(LoteInsumo.fecha_compra.asc(), LoteInsumo.id.asc()).all()
+
+    cantidad_pendiente = cantidad_necesaria
+    costo_total_salida = 0.0
+
+    for lote in lotes:
+        if cantidad_pendiente <= 0:
+            break
+        
+        tomar = min(lote.cantidad_actual, cantidad_pendiente)
+        lote.cantidad_actual -= tomar
+        costo_total_salida += (tomar * lote.costo_unitario)
+        cantidad_pendiente -= tomar
+
+    insumo.cantidad_actual -= cantidad_necesaria
+    recalcular_costo_promedio(insumo)
+    
+    costo_unitario_salida = costo_total_salida / cantidad_necesaria if cantidad_necesaria > 0 else 0
+    return costo_total_salida, costo_unitario_salida
+
+
+# ==================================================
+# 1. AUTENTICACIÓN Y DASHBOARD
+# ==================================================
+
+@main_bp.route('/')
+def home():
+    """Página de inicio pública."""
+    return render_template('index.html')
+
+@main_bp.route('/registro', methods=['GET', 'POST'])
+def registro():
+    """
+    Registro de usuarios.
+
+    - GET: muestra el formulario.
+    - POST: valida y crea el usuario; asigna rol por defecto.
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for('main.home'))
+    
+    # Crear roles básicos si no existen
+    if not Rol.query.first():
+        try:
+            db.session.add_all([Rol(nombre='Admin'), Rol(nombre='User')])
+            db.session.commit()
+        except:
+            db.session.rollback()
+            
+    if request.method == 'POST':
+        try:
+            u = Usuario(
+                nombre_completo=request.form.get('nombre'),
+                email=request.form.get('email'),
+                rol_id=1
+            )
+            u.set_password(request.form.get('password'))
+            db.session.add(u)
+            db.session.commit()
+            flash('Registrado correctamente.', 'success')
+            return redirect(url_for('main.login'))
+        except:
+            db.session.rollback()
+            flash('Error en el registro.', 'danger')
+            
+    return render_template('registro.html')
+
+@main_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """
+    Inicio de sesión.
+
+    - Validación por email/contraseña.
+    - Usa `login_user` de Flask-Login para crear la sesión.
+    """
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+        
+    if request.method == 'POST':
+        u = Usuario.query.filter_by(email=request.form.get('email')).first()
+        if u and u.check_password(request.form.get('password')):

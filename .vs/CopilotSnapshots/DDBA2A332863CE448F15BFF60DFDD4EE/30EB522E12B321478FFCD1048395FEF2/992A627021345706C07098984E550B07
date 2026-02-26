@@ -1,0 +1,29 @@
+﻿"""
+Punto de entrada para ejecutar la aplicación Flask.
+
+Este archivo:
+- Importa la fábrica de la aplicación `create_app` desde el paquete `app`.
+- Crea una instancia de la aplicación usando la configuración indicada.
+- Arranca el servidor de desarrollo cuando se ejecuta como script principal.
+
+Uso:
+    python run.py
+
+Notas:
+- Actualmente arranca el servidor de desarrollo con `debug=True`. No usar `debug=True` en producción.
+- Para producción, usar un servidor WSGI (gunicorn, uWSGI) y `create_app('production')`.
+"""
+
+from app import create_app
+import os
+
+# Selecciona la configuración desde una variable de entorno si está definida,
+# por defecto usa 'development'.
+config_name = os.getenv('FLASK_CONFIG', 'development')
+
+# Crea la aplicación usando la fábrica
+app = create_app(config_name)
+
+if __name__ == '__main__':
+    # Ejecuta el servidor de desarrollo. Desactivar `debug` en entornos productivos.
+    app.run(debug=True, port=5000)

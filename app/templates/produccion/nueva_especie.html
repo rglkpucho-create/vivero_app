@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-success text-white p-4 border-0">
+                <h4 class="fw-bold mb-1"><i class="bi bi-flower2 me-2"></i> Registrar Especie</h4>
+                <p class="mb-0 opacity-75">Agrega un nuevo cultivo y su foto al catálogo.</p>
+            </div>
+            <div class="card-body p-5">
+
+                <!-- IMPORTANTE: enctype="multipart/form-data" es OBLIGATORIO para subir archivos -->
+                <form method="POST" enctype="multipart/form-data">
+
+                    <!-- SECCIÓN DE CARGA DE IMAGEN -->
+                    <div class="mb-4 text-center">
+                        <label class="d-block mb-2 fw-bold text-muted small text-uppercase">Imagen del Cultivo</label>
+
+                        <!-- Contenedor con borde discontinuo para la imagen -->
+                        <div class="image-upload-wrapper border rounded-3 bg-light d-flex align-items-center justify-content-center position-relative"
+                             style="height: 180px; cursor: pointer; border-style: dashed !important; border-width: 2px;">
+
+                            <!-- Mensaje (se oculta al seleccionar imagen) -->
+                            <div class="text-center text-muted" id="uploadPlaceholder">
+                                <i class="bi bi-cloud-arrow-up fs-1"></i>
+                                <p class="small mb-0 mt-2 fw-bold">Toca aquí para subir una foto</p>
+                                <p class="small mb-0 opacity-50" style="font-size: 0.7rem;">(Opcional)</p>
+                            </div>
+
+                            <!-- Vista previa de la imagen (inicialmente oculta) -->
+                            <img id="imagePreview" src="#" alt="Vista previa" class="d-none w-100 h-100 object-fit-cover rounded-3">
+
+                            <!-- Input file real (invisible pero cubre toda el área) -->
+                            <input type="file" name="imagen" id="imagenInput"
+                                   class="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                                   accept="image/*"
+                                   onchange="previewImage(this)"
+                                   style="cursor: pointer;">
+                        </div>
+                    </div>
+
+                    <!-- CAMPOS DE TEXTO -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Nombre Común</label>
+                            <input type="text" name="nombre_comun" class="form-control bg-light border-0" placeholder="Ej: Tomate Chonto" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Nombre Científico</label>
+                            <input type="text" name="nombre_cientifico" class="form-control bg-light border-0 fst-italic" placeholder="Solanum lycopersicum">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small">Ciclo Estimado (Días)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-range"></i></span>
+                                <input type="number" name="dias_ciclo" class="form-control bg-light border-0" placeholder="Ej: 90">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small">Ficha Técnica / Cuidados</label>
+                            <textarea name="detalles_cuidado" class="form-control bg-light border-0" rows="4" placeholder="- Riego: Frecuente&#10;- Sol: Directo..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- BOTONES -->
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-success rounded-pill fw-bold py-2 shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i> Guardar Especie
+                        </button>
+                        <a href="{{ url_for('main.lista_especies') }}" class="btn btn-link text-muted mt-2 text-decoration-none">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT PARA VISTA PREVIA DE IMAGEN -->
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                // Asignar la imagen al tag <img> y mostrarlo
+                var preview = document.getElementById('imagePreview');
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+
+                // Ocultar el placeholder de texto
+                document.getElementById('uploadPlaceholder').classList.add('d-none');
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

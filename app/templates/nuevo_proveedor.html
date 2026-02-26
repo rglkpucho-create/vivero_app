@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header {% if proveedor %}bg-warning text-dark{% else %}bg-primary text-white{% endif %}">
+                <h4 class="mb-0">{% if proveedor %}Editar Proveedor{% else %}Registrar Proveedor{% endif %}</h4>
+            </div>
+            <div class="card-body p-4">
+                <!-- Acción explicita para evitar confusiones de ruta -->
+                <form method="POST" action="{{ url_for('main.nuevo_proveedor', proveedor_id=proveedor.id) if proveedor else url_for('main.nuevo_proveedor') }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Razón Social *</label>
+                            <!-- Prioridad: 1. Datos del formulario (error previo) 2. Datos de base de datos (edición) 3. Vacío -->
+                            <input type="text" name="razon_social" class="form-control"
+                                   value="{{ request.form.get('razon_social') or (proveedor.razon_social if proveedor else '') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">NIT / RUT</label>
+                            <input type="text" name="nit_rut" class="form-control"
+                                   value="{{ request.form.get('nit_rut') or (proveedor.nit_rut if proveedor else '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre Contacto</label>
+                            <input type="text" name="contacto_nombre" class="form-control"
+                                   value="{{ request.form.get('contacto_nombre') or (proveedor.contacto_nombre if proveedor else '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control"
+                                   value="{{ request.form.get('telefono') or (proveedor.telefono if proveedor else '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control"
+                                   value="{{ request.form.get('email') or (proveedor.email if proveedor else '') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" name="direccion" class="form-control"
+                                   value="{{ request.form.get('direccion') or (proveedor.direccion if proveedor else '') }}">
+                        </div>
+
+                        <div class="col-12 mt-4 d-flex justify-content-between align-items-center">
+                            {% if proveedor %}
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModalInForm">
+                                Eliminar
+                            </button>
+                            {% else %}
+                            <div></div>
+                            {% endif %}
+
+                            <div>
+                                <a href="{{ url_for('main.lista_proveedores') }}" class="btn btn-secondary me-2">Cancelar</a>
+                                <button type="submit" class="btn btn-primary">
+                                    {% if proveedor %}Actualizar{% else %}Guardar{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar en Formulario -->
+{% if proveedor %}
+<div class="modal fade" id="deleteModalInForm" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Eliminar a <strong>{{ proveedor.razon_social }}</strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{{ url_for('main.eliminar_proveedor', proveedor_id=proveedor.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

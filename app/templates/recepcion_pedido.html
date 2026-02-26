@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow border-success">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="bi bi-clipboard-check"></i> Recepción de Mercancía</h4>
+                    <span class="badge bg-light text-success fs-6">Orden: {{ pedido.numero_orden }}</span>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        Por favor verifica físicamente la mercancía. Si la cantidad recibida es menor a la solicitada, edita el campo "Cant. Real".
+                    </div>
+
+                    <form action="{{ url_for('main.procesar_recepcion', pedido_id=pedido.id) }}" method="POST">
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Insumo</th>
+                                        <th class="text-center" style="width: 150px;">Cant. Solicitada</th>
+                                        <th class="text-center" style="width: 180px;">Cant. Real (Recibida)</th>
+                                        <th class="text-center">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for d in pedido.detalles %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ d.insumo.nombre }}</strong>
+                                            <br>
+                                            <small class="text-muted">Costo Unit: ${{ "{:,.2f}".format(d.precio_unitario) }}</small>
+                                        </td>
+                                        <td class="text-center fs-5 text-muted">
+                                            {{ d.cantidad_solicitada }}
+                                        </td>
+                                        <td>
+                                            <!-- CAMPO EDITABLE: Por defecto trae lo solicitado -->
+                                            <input type="number" step="0.01" 
+                                                   name="recibido_{{ d.id }}" 
+                                                   class="form-control text-center fw-bold fs-5 border-success" 
+                                                   value="{{ d.cantidad_solicitada }}" required>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">Pendiente</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('main.ver_pedido', pedido_id=pedido.id) }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Volver al Pedido (Sin Guardar)
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('¿Estás seguro? Esto ingresará los productos al inventario.');">
+                                <i class="bi bi-check-lg"></i> FINALIZAR INGRESO A BODEGA
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

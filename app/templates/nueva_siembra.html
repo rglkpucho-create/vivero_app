@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{# --- CSS PARA FORZAR EL MODO OSCURO EN ESTE FORMULARIO --- #}
+<style>
+    /* Detecta si Bootstrap está en modo oscuro y aplica estos estilos */
+    [data-bs-theme="dark"] .card {
+        background-color: #212529 !important; /* Fondo oscuro para la tarjeta */
+        color: #fff !important; /* Texto blanco */
+    }
+
+    /* Fuerza los inputs, selects y los iconos a ser oscuros, ignorando 'bg-light' */
+    [data-bs-theme="dark"] .form-control,
+    [data-bs-theme="dark"] .form-select,
+    [data-bs-theme="dark"] .input-group-text,
+    [data-bs-theme="dark"] .bg-light {
+        background-color: #343a40 !important; /* Gris oscuro para las cajas */
+        border-color: #495057 !important; /* Bordes sutiles */
+        color: #e9ecef !important; /* Texto claro dentro de las cajas */
+    }
+
+    /* Asegura que los textos secundarios se lean bien */
+    [data-bs-theme="dark"] .text-muted {
+        color: #adb5bd !important;
+    }
+
+    /* Cambia la flechita de los selectores a blanco para que se vea */
+    [data-bs-theme="dark"] .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e9ecef' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    }
+</style>
+{# --------------------------------------------------------- #}
+
+
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+            <div class="card-header text-white p-4 border-0" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-25 rounded-circle p-3 me-3">
+                        <i class="bi bi-sprout fs-3 text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-1">{{ 'Editar Siembra' if siembra else 'Iniciar Nueva Siembra' }}</h4>
+                        <p class="mb-0 opacity-75">Define la sede, el sector específico y la especie a cultivar.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-5">
+                <form method="POST">
+
+                    <h6 class="text-uppercase text-muted fw-bold small mb-3 border-bottom pb-2">Localización del Cultivo</h6>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Sede / Finca</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-house-door text-muted"></i></span>
+                                <select name="sede_id" class="form-select form-select-lg bg-light border-0" required>
+                                    <option value="" disabled {{ 'selected' if not siembra }}>Selecciona la sede...</option>
+                                    {% for sede in sedes %}
+                                    <option value="{{ sede.id }}" {{ 'selected' if siembra and siembra.sede_id == sede.id }}>
+                                        {{ '🏡' if sede.tipo == 'Finca' else '🌿' }} {{ sede.nombre }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Sector Específico</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-geo-alt-fill text-muted"></i></span>
+                                <select name="ubicacion" class="form-select form-select-lg bg-light border-0" required>
+                                    <option value="" disabled {{ 'selected' if not siembra }}>Selecciona el sector...</option>
+                                    {% for i in range(1, 11) %}
+                                    {% set sector = "Sector " ~ i %}
+                                    <option value="{{ sector }}" {{ 'selected' if siembra and siembra.ubicacion == sector }}>
+                                        {{ sector }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="text-uppercase text-muted fw-bold small mb-3 border-bottom pb-2 mt-4">Información del Cultivo</h6>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-bold">Especie a Sembrar</label>
+                            <a href="{{ url_for('main.nueva_especie') }}" class="small text-success text-decoration-none fw-bold">
+                                <i class="bi bi-plus-circle"></i> Nueva Especie
+                            </a>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="bi bi-tree text-muted"></i></span>
+                            <select name="especie_id" class="form-select form-select-lg bg-light border-0" required>
+                                <option value="" disabled {{ 'selected' if not siembra }}>Selecciona la especie del catálogo...</option>
+                                {% if especies is defined and especies %}
+                                {% for especie in especies %}
+                                <option value="{{ especie.id }}" {{ 'selected' if siembra and siembra.especie_id == especie.id }}>
+                                    {{ especie.nombre_comun }} ({{ especie.nombre_cientifico }})
+                                </option>
+                                {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        {% if especies is not defined or especies|length == 0 %}
+                        <div class="form-text text-danger">
+                            <i class="bi bi-exclamation-circle"></i> No hay especies disponibles. Registra una antes de continuar.
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha de Siembra</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-calendar-event text-muted"></i></span>
+                                <input type="date" name="fecha_siembra" class="form-control form-control-lg bg-light border-0"
+                                       value="{{ siembra.fecha_siembra if siembra else today_str }}" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Cantidad de Plantas</label>
+                            <div class="input-group">
+                                <input type="number" name="cantidad" class="form-control form-control-lg bg-light border-0"
+                                       placeholder="Ej: 500" min="1"
+                                       value="{{ siembra.cantidad if siembra else '' }}" required>
+                                <span class="input-group-text bg-light border-0 text-muted">unidades</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <a href="{{ url_for('main.lista_lotes') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">Cancelar</a>
+                        <button type="submit" class="btn btn-success btn-lg rounded-pill px-5 fw-bold shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i> {{ 'Actualizar' if siembra else 'Registrar Siembra' }}
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

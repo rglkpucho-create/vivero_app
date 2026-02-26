@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<div class="max-w-6xl mx-auto py-8 px-4 font-sans text-slate-800">
+
+    <!-- ENCABEZADO: Título y Total -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200">
+                    <i data-lucide="truck" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Compra #{{ pedido.numero_orden }}</h1>
+                    <p class="text-slate-500 font-medium flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-4 h-4"></i> {{ pedido.fecha_solicitud }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <div class="text-right">
+                <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Total Estimado</span>
+                <span class="block text-4xl font-black text-indigo-600">${{ "{:,.0f}".format(pedido.total_estimado) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETA DEL PROVEEDOR Y SEDE -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="font-bold text-slate-700 flex items-center gap-2 text-sm uppercase tracking-wide">
+                <i data-lucide="settings" class="w-4 h-4"></i> Configuración del Pedido
+            </h3>
+            <span class="px-3 py-1 rounded-full text-xs font-bold
+                {% if pedido.estado == 'Recibido' %}bg-emerald-100 text-emerald-800 border border-emerald-200
+                {% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
+                {{ pedido.estado }}
+            </span>
+        </div>
+
+        <div class="p-6">
+            {% if pedido.estado == 'Borrador' %}
+            <!-- Formulario de Configuración -->
+            <form action="{{ url_for('main.actualizar_datos_pedido', pedido_id=pedido.id) }}" method="POST">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    <!-- Selector Proveedor -->
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Proveedor</label>
+                        <div class="relative">
+                            <select name="proveedor_id" onchange="this.form.submit()"
+                                    class="w-full appearance-none pl-10 pr-8 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-slate-700 font-bold shadow-sm cursor-pointer transition-all hover:border-indigo-300">
+                                {% for p in proveedores %}
+                                <option value="{{ p.id }}" {% if p.id= =pedido.proveedor_id %}selected{% endif %}>
+                                    {{ p.razon_social }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-indigo-500">
+                                <i data-lucide="users" class="w-5 h-5"></i>
+                            </div>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selector Sede -->
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Sede de Destino</label>
+                        <div class="relative">
+                            <select name="sede_id" onchange="this.form.submit()"
+                                    class="w-full appearance-none pl-10 pr-8 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-slate-700 font-bold shadow-sm cursor-pointer transition-all hover:border-indigo-300">
+                                {% for s in sedes %}
+                                <option value="{{ s.id }}" {% if pedido.sede_id= =s.id %}selected{% endif %}>
+                                    {{ s.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-indigo-500">
+                                <i data-lucide="map-pin" class="w-5 h-5"></i>
+                            </div>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fecha -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Fecha Solicitud</label>
+                        <input type="date" name="fecha_solicitud" value="{{ pedido.fecha_solicitud }}" onchange="this.form.submit()"
+                               class="w-full py-3 px-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 bg-white text-slate-700 font-bold shadow-sm">
+                    </div>
+                </div>
+            </form>
+            {% else %}
+            <!-- Vista de Lectura -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-indigo-600 border border-slate-100">
+                        <i data-lucide="user-check" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Proveedor</p>
+                        <h4 class="text-lg font-bold text-slate-800">{{ pedido.proveedor.razon_social }}</h4>
+                        <p class="text-sm text-slate-500">{{ pedido.proveedor.nit_rut }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-indigo-600 border border-slate-100">
+                        <i data-lucide="map" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Destino</p>
+                        <h4 class="text-lg font-bold text-slate-800">{{ pedido.sede.nombre if pedido.sede else 'Sin Asignar' }}</h4>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- LISTA DE PRODUCTOS (TABLA) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100 text-xs uppercase text-slate-500 font-bold">
+                        <th class="px-6 py-4">Producto / Insumo</th>
+                        <th class="px-6 py-4 text-center">Cant.</th>
+                        <th class="px-6 py-4 text-right">Costo Unit.</th>
+                        <th class="px-6 py-4 text-right">Subtotal</th>
+                        <th class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for detalle in pedido.detalles %}
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-100 transition-colors">
+                                    <i data-lucide="package" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800">{{ detalle.insumo.nombre }}</p>
+                                    <p class="text-xs text-slate-500 font-mono">
+                                        SKU: {{ detalle.insumo.codigo or '---' }}
+                                        <span class="bg-slate-100 px-1 rounded ml-1">{{ detalle.insumo.unidad.abreviatura }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 text-center w-32">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('main.actualizar_item_pedido', detalle_id=detalle.id) }}" method="POST">
+                                <input type="number" name="cantidad" value="{{ detalle.cantidad_solicitada }}"
+                                       class="w-20 text-center font-bold bg-slate-50 border border-slate-200 rounded-lg py-1 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                       min="0.1" step="0.1" onchange="this.form.submit()">
+                                <input type="hidden" name="precio_unitario" value="{{ detalle.precio_unitario }}">
+                            </form>
+                            {% else %}
+                            <span class="font-bold text-slate-700">{{ detalle.cantidad_solicitada }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 text-right text-slate-600">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('main.actualizar_item_pedido', detalle_id=detalle.id) }}" method="POST">
+                                <input type="hidden" name="cantidad" value="{{ detalle.cantidad_solicitada }}">
+                                <input type="number" name="precio_unitario" value="{{ detalle.precio_unitario }}"
+                                       class="w-24 text-right bg-transparent border-0 font-medium focus:ring-0 p-0 text-slate-600"
+                                       step="0.01" onchange="this.form.submit()">
+                            </form>
+                            {% else %}
+                            ${{ "{:,.0f}".format(detalle.precio_unitario) }}
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 text-right font-bold text-slate-800">
+                            ${{ "{:,.0f}".format(detalle.cantidad_solicitada * detalle.precio_unitario) }}
+                        </td>
+
+                        <td class="px-6 py-4 text-right w-16">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('main.eliminar_item_pedido', detalle_id=detalle.id) }}" method="POST">
+                                <button type="submit" class="text-slate-400 hover:text-red-500 transition-colors p-2">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 bg-slate-50/50">
+                            <div class="flex flex-col items-center justify-center">
+                                <i data-lucide="shopping-cart" class="w-12 h-12 mb-3 opacity-20"></i>
+                                <p class="font-medium">El carrito de compra está vacío.</p>
+                                <p class="text-sm opacity-75">Usa el buscador abajo para agregar productos.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- AGREGAR PRODUCTO (SECCIÓN DE BÚSQUEDA MÁGICA) -->
+    {% if pedido.estado == 'Borrador' %}
+    <div class="bg-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden" id="areaAgregar">
+        <!-- Decoración de fondo -->
+        <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
+        <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-purple-500 rounded-full blur-3xl opacity-20"></div>
+
+        <h3 class="font-bold text-white mb-4 flex items-center gap-2 relative z-10">
+            <i data-lucide="search" class="w-5 h-5 text-indigo-400"></i> Agregar Producto
+        </h3>
+
+        <form action="{{ url_for('main.agregar_item_pedido', pedido_id=pedido.id) }}" method="POST" id="formRapido" autocomplete="off" class="relative z-10">
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+
+                <!-- BUSCADOR INTELIGENTE -->
+                <div class="md:col-span-6 relative">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Buscar (Nombre o Código)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-400">
+                            <i data-lucide="scan-barcode" class="w-6 h-6"></i>
+                        </div>
+                        <input type="text" id="buscador_insumo" name="codigo_barras"
+                               class="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg font-bold shadow-inner"
+                               placeholder="Escanear o escribir..." autofocus>
+                        <!-- ID Oculto para cuando se selecciona de la lista -->
+                        <input type="hidden" name="insumo_id" id="insumo_id_seleccionado">
+                    </div>
+
+                    <!-- Lista de Sugerencias Flotante -->
+                    <div id="sugerencias_lista" class="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-2xl overflow-hidden z-50 divide-y divide-slate-100 hidden border border-slate-200">
+                        <!-- Se llena con JS -->
+                    </div>
+                </div>
+
+                <!-- CANTIDAD -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Cantidad</label>
+                    <input type="number" id="inputCantidad" name="cantidad" value="1" min="0.1" step="0.1" required
+                           class="w-full py-4 px-4 bg-slate-800 border border-slate-700 rounded-xl text-white text-center text-lg font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-inner">
+                </div>
+
+                <!-- COSTO -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Costo ($)</label>
+                    <input type="number" id="precio_input" name="precio_unitario" step="0.01" placeholder="Auto"
+                           class="w-full py-4 px-4 bg-slate-800 border border-slate-700 rounded-xl text-white text-right text-lg font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-inner">
+                </div>
+
+                <!-- BOTÓN ENTER -->
+                <div class="md:col-span-2 pt-5 md:pt-0 h-full flex items-end">
+                    <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/50 transition-all flex justify-center items-center gap-2 transform active:scale-95">
+                        <span>ENTER</span> <i data-lucide="corner-down-left" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Checkbox Caja (Opcional, pequeño) -->
+            <div class="mt-3 flex items-center gap-4">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="es_caja" id="checkCaja" class="form-checkbox h-4 w-4 text-indigo-500 bg-slate-800 border-slate-600 rounded focus:ring-indigo-500 focus:ring-offset-slate-900">
+                    <span class="ml-2 text-sm text-slate-400 font-medium">Viene por Caja</span>
+                </label>
+                <div id="divUnidadesCaja" class="hidden transition-all duration-300">
+                    <input type="number" name="unidades_por_caja" placeholder="Unds." class="w-20 py-1 px-2 bg-slate-800 border border-slate-700 rounded text-white text-xs">
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- BOTÓN CONFIRMAR FINAL -->
+    <div class="mt-8 flex justify-end">
+        {% if pedido.detalles %}
+        <form action="{{ url_for('main.confirmar_pedido', pedido_id=pedido.id) }}" method="POST" onsubmit="return confirm('¿Confirmar pedido y enviar a estado Solicitado?');">
+            <button type="submit" class="bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-emerald-500 shadow-xl shadow-emerald-900/20 flex items-center gap-3 transition-transform hover:-translate-y-1">
+                <span>Confirmar Pedido</span>
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- SCRIPT DEL BUSCADOR MÁGICO -->
+<script>
+    lucide.createIcons();
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputBuscador = document.getElementById('buscador_insumo');
+        const inputId = document.getElementById('insumo_id_seleccionado');
+        const inputPrecio = document.getElementById('precio_input');
+        const inputCantidad = document.getElementById('inputCantidad');
+        const listaSugerencias = document.getElementById('sugerencias_lista');
+        const formRapido = document.getElementById('formRapido');
+        const checkCaja = document.getElementById('checkCaja');
+        const divCaja = document.getElementById('divUnidadesCaja');
+
+        let selectedIndex = -1;
+
+        if (!inputBuscador) return;
+
+        // Toggle Caja input
+        checkCaja.addEventListener('change', function () {
+            if (this.checked) {
+                divCaja.classList.remove('hidden');
+                divCaja.querySelector('input').focus();
+            } else {
+                divCaja.classList.add('hidden');
+            }
+        });
+
+        // Siempre foco en el buscador al cargar
+        inputBuscador.focus();
+
+        // Lógica de Búsqueda en vivo
+        let timeoutId;
+        inputBuscador.addEventListener('input', function () {
+            const query = this.value;
+            inputId.value = ''; // Limpiar ID si escribimos
+            selectedIndex = -1;
+
+            clearTimeout(timeoutId);
+
+            if (query.length < 2) {
+                listaSugerencias.classList.add('hidden');
+                return;
+            }
+
+            timeoutId = setTimeout(() => {
+                fetch(`/api/insumos/buscar?q=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerencias.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach((item, index) => {
+                                const div = document.createElement('div');
+                                div.className = 'p-3 hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition-colors';
+                                div.innerHTML = `
+                                    <div>
+                                        <div class="font-bold text-slate-800">${item.nombre}</div>
+                                        <div class="text-xs text-slate-500 font-mono">${item.codigo || ''}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">${item.unidad}</span>
+                                    </div>
+                                `;
+
+                                div.addEventListener('click', () => seleccionarItem(item));
+                                listaSugerencias.appendChild(div);
+                            });
+                            listaSugerencias.classList.remove('hidden');
+                        } else {
+                            listaSugerencias.classList.add('hidden');
+                        }
+                    });
+            }, 200);
+        });
+
+        // Navegación con Teclado
+        inputBuscador.addEventListener('keydown', function (e) {
+            const items = listaSugerencias.children;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items);
+            } else if (e.key === 'Enter') {
+                if (selectedIndex > -1 && items[selectedIndex]) {
+                    e.preventDefault();
+                    items[selectedIndex].click(); // Simula click en la sugerencia
+                }
+                // Si no hay sugerencia seleccionada, deja que el form haga submit (Caso Código de Barras)
+            } else if (e.key === 'Escape') {
+                listaSugerencias.classList.add('hidden');
+            }
+        });
+
+        function updateSelection(items) {
+            Array.from(items).forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.className = 'p-3 bg-indigo-600 text-white cursor-pointer flex justify-between items-center transition-colors';
+                    // Ajustar colores internos si es necesario
+                    const title = item.querySelector('.font-bold');
+                    const subtitle = item.querySelector('.font-mono');
+                    if (title) title.className = 'font-bold text-white';
+                    if (subtitle) subtitle.className = 'text-xs text-indigo-200 font-mono';
+                } else {
+                    item.className = 'p-3 hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition-colors';
+                    const title = item.querySelector('.font-bold');
+                    if (title) title.className = 'font-bold text-slate-800';
+                }
+            });
+        }
+
+        function seleccionarItem(item) {
+            inputBuscador.value = item.nombre;
+            inputId.value = item.id;
+            if (item.costo > 0) inputPrecio.value = item.costo;
+
+            listaSugerencias.classList.add('hidden');
+
+            // Saltar a cantidad y seleccionar
+            inputCantidad.focus();
+            inputCantidad.select();
+        }
+
+        // Cerrar al hacer click fuera
+        document.addEventListener('click', function (e) {
+            if (e.target !== inputBuscador && e.target !== listaSugerencias) {
+                listaSugerencias.classList.add('hidden');
+            }
+        });
+    });
+</script>
+{% endblock %}
