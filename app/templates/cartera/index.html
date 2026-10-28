@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Cartera & Cuentas por Cobrar | EcoSistem{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-4">
+    <!-- Encabezado -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2.5 py-1 rounded-pill fw-bold">
+                    <i class="bi bi-wallet2 me-1"></i> Cartera & Créditos
+                </span>
+                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 rounded-pill">
+                    Cuentas por Cobrar (Clientes)
+                </span>
+            </div>
+            <h2 class="h3 fw-bold text-body mb-0">Gestión de Cartera & Cuentas por Cobrar</h2>
+            <p class="text-secondary small mb-0">Control de ventas a crédito, seguimiento de vencimientos y registro de abonos parciales con recibos de caja.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('ventas.nueva_venta') }}" class="btn btn-outline-secondary rounded-pill px-3.5 fw-bold d-inline-flex align-items-center gap-2">
+                <i class="bi bi-cart-plus"></i>
+                <span>Nueva Venta a Crédito</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Métricas / KPIs -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Cartera Total Pendiente</span>
+                        <h3 class="h4 fw-bold text-warning mb-0">${{ "{:,.0f}".format(total_cartera_pendiente) }}</h3>
+                        <span class="text-secondary small">{{ clientes_deudores_count }} cliente(s) con saldo</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-hourglass-top fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Cartera Vencida (Mora)</span>
+                        <h3 class="h4 fw-bold text-danger mb-0">${{ "{:,.0f}".format(cartera_vencida) }}</h3>
+                        <span class="text-danger small fw-medium">Requiere gestión de cobro</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Cartera al Día</span>
+                        <h3 class="h4 fw-bold text-info mb-0">${{ "{:,.0f}".format(cartera_al_dia) }}</h3>
+                        <span class="text-secondary small">Vencimiento dentro del plazo</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-calendar-check-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Recaudado este Mes</span>
+                        <h3 class="h4 fw-bold text-success mb-0">${{ "{:,.0f}".format(total_recaudado_mes) }}</h3>
+                        <span class="text-success small fw-medium">Ingresos por abonos</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-cash-coin fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4" style="background: var(--bs-card-bg);">
+        <form method="GET" action="{{ url_for('cartera.index') }}" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-secondary">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="q" value="{{ q }}" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25" placeholder="Buscar por #Factura, cliente o NIT...">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <select name="estado" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25" onchange="this.form.submit()">
+                    <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Con Saldo Pendiente</option>
+                    <option value="vencida" {% if estado_filtro == 'vencida' %}selected{% endif %}>Cartera Vencida (En Mora)</option>
+                    <option value="saldada" {% if estado_filtro == 'saldada' %}selected{% endif %}>Saldadas / Pagadas</option>
+                    <option value="todas" {% if estado_filtro == 'todas' %}selected{% endif %}>Todas las Ventas a Crédito</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <select name="cliente_id" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25" onchange="this.form.submit()">
+                    <option value="">Todos los Clientes</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.id }}" {% if cliente_id == c.id %}selected{% endif %}>{{ c.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary rounded-pill px-3 w-100 fw-bold">Filtrar</button>
+                {% if q or (estado_filtro and estado_filtro != 'pendiente') or cliente_id %}
+                <a href="{{ url_for('cartera.index') }}" class="btn btn-outline-secondary rounded-pill px-2.5" title="Limpiar"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Facturas y Cartera -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4" style="background: var(--bs-card-bg);">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-body-tertiary text-secondary small text-uppercase">
+                    <tr>
+                        <th class="ps-4">No. Factura</th>
+                        <th>Cliente / Contacto</th>
+                        <th>Fecha Venta</th>
+                        <th>Vencimiento</th>
+                        <th class="text-end">Total Venta</th>
+                        <th class="text-end">Abonado</th>
+                        <th class="text-end">Saldo Pendiente</th>
+                        <th class="text-center" style="width: 14%;">Progreso Pago</th>
+                        <th class="text-center pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in ventas_cartera %}
+                    {% set saldo = v.saldo or 0.0 %}
+                    {% set total = v.total or 0.0 %}
+                    {% set abonado = v.abono or 0.0 %}
+                    {% set pct_pago = (abonado / total * 100) if total > 0 else (100 if saldo <= 0 else 0) %}
+                    {% set es_vencida = saldo > 0 and v.fecha_vencimiento and v.fecha_vencimiento < hoy %}
+                    <tr>
+                        <td class="ps-4">
+                            <a href="{{ url_for('ventas.ver_venta', venta_id=v.id) }}" class="fw-bold text-decoration-none text-info">
+                                {{ v.numero_factura }}
+                            </a>
+                            <div class="text-secondary small" style="font-size: 0.7rem;">
+                                {{ v.abonos_historial|length }} abono(s)
+                            </div>
+                        </td>
+
+                        <td>
+                            {% if v.cliente %}
+                            <a href="{{ url_for('cartera.estado_cuenta_cliente', cliente_id=v.cliente.id) }}" class="text-body fw-bold text-decoration-none hover-primary">
+                                {{ v.cliente.nombre }}
+                            </a>
+                            <div class="text-secondary small">{{ v.cliente.documento or 'Sin Doc' }} | {{ v.cliente.telefono or 'Sin Tel' }}</div>
+                            {% else %}
+                            <span class="text-secondary italic">Cliente General / Mostrador</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="small text-body">{{ v.fecha.strftime('%d/%m/%Y') }}</div>
+                        </td>
+
+                        <td>
+                            {% if v.fecha_vencimiento %}
+                                {% if es_vencida %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                        <i class="bi bi-alarm-fill me-1"></i> Vencida ({{ v.fecha_vencimiento.strftime('%d/%m/%Y') }})
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-25 text-body">
+                                        {{ v.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-secondary small">Sin fecha fija</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end fw-medium text-body">${{ "{:,.0f}".format(total) }}</td>
+                        <td class="text-end text-success fw-medium">${{ "{:,.0f}".format(abonado) }}</td>
+                        
+                        <td class="text-end">
+                            {% if saldo > 0 %}
+                            <span class="fw-bold {% if es_vencida %}text-danger{% else %}text-warning{% endif %} fs-6">
+                                ${{ "{:,.0f}".format(saldo) }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                <i class="bi bi-check-lg me-1"></i> Al día ($0)
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center px-3">
+                            <div class="progress rounded-pill" style="height: 6px; background-color: rgba(255,255,255,0.1);">
+                                <div class="progress-bar {% if saldo <= 0 %}bg-success{% elif es_vencida %}bg-danger{% else %}bg-warning{% endif %}"
+                                     role="progressbar" style="width: {{ [pct_pago, 100]|min }}%;" aria-valuenow="{{ pct_pago }}" aria-valuemin="0" aria-valuemits="100"></div>
+                            </div>
+                            <span class="text-secondary" style="font-size: 0.68rem;">{{ "{:.0f}".format(pct_pago) }}% pagado</span>
+                        </td>
+
+                        <td class="text-center pe-4">
+                            <div class="btn-group btn-group-sm">
+                                {% if saldo > 0 %}
+                                <button type="button" class="btn btn-warning text-dark fw-bold" title="Registrar Abono"
+                                        onclick="abrirModalAbono({{ v.id }}, '{{ v.numero_factura }}', '{{ v.cliente.nombre if v.cliente else 'Cliente' }}', {{ saldo }})">
+                                    <i class="bi bi-cash-stack me-1"></i> Abonar
+                                </button>
+                                {% endif %}
+
+                                {% if v.cliente and saldo > 0 %}
+                                <button type="button" class="btn btn-outline-success" title="Recordatorio por WhatsApp"
+                                        onclick="enviarWhatsAppRecordatorio({{ v.cliente.id }})">
+                                    <i class="bi bi-whatsapp"></i>
+                                </button>
+                                {% endif %}
+
+                                {% if v.cliente %}
+                                <a href="{{ url_for('cartera.estado_cuenta_cliente', cliente_id=v.cliente.id) }}" class="btn btn-outline-secondary" title="Estado de Cuenta del Cliente">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-secondary">
+                            <i class="bi bi-wallet2 fs-1 d-block mb-2 opacity-50 text-warning"></i>
+                            <h5 class="fw-bold mb-1">No hay cuentas por cobrar bajo este filtro</h5>
+                            <p class="small mb-0">Cuando realices ventas a crédito en el punto de venta, aparecerán en este tablero para su gestión y cobro.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MODAL: REGISTRAR ABONO A FACTURA A CRÉDITO                     -->
+<!-- ============================================================== -->
+<div class="modal fade" id="modalRegistrarAbono" tabindex="-1" aria-labelledby="modalAbonoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bs-card-bg);">
+            <div class="modal-header border-bottom border-secondary border-opacity-10 p-4">
+                <h5 class="modal-title fw-bold text-body d-flex align-items-center gap-2" id="modalAbonoLabel">
+                    <i class="bi bi-cash-coin text-warning"></i>
+                    <span>Registrar Abono a Cartera</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="{{ url_for('cartera.registrar_abono') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="venta_id" id="abono_venta_id">
+
+                <div class="modal-body p-4">
+                    <!-- Resumen del saldo -->
+                    <div class="p-3 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-20 mb-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-warning small fw-bold d-block" id="abono_factura_label">Factura #---</span>
+                            <span class="text-body small" id="abono_cliente_label">Cliente: ---</span>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-secondary small d-block">Saldo Pendiente</span>
+                            <span class="h5 fw-bold text-warning mb-0" id="abono_saldo_label">$0</span>
+                        </div>
+                    </div>
+
+                    <!-- Input Monto -->
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Valor del Abono ($ COP)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-warning">$</span>
+                            <input type="number" name="monto" id="abono_monto_input" step="any" min="1" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25 py-2.5 fs-5 fw-bold" required>
+                            <button type="button" class="btn btn-outline-warning" onclick="saldarTotal()">Saldar Todo</button>
+                        </div>
+                    </div>
+
+                    <!-- Medio de Pago -->
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Medio de Pago</label>
+                        <select name="metodo_pago" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25">
+                            <option value="Efectivo" selected>💵 Efectivo (Registra en Caja)</option>
+                            <option value="Transferencia">📲 Transferencia (Bancolombia, Nequi, Daviplata)</option>
+                            <option value="Tarjeta / Datáfono">💳 Tarjeta / Datáfono</option>
+                            <option value="Cheque">📜 Cheque</option>
+                        </select>
+                        {% if caja_activa %}
+                        <div class="form-text text-success small mt-1">
+                            <i class="bi bi-safe2-fill me-1"></i> Caja abierta #{{ caja_activa.id }}: los pagos en efectivo ingresarán automáticamente a la caja del día.
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Notas / Observaciones -->
+                    <div class="mb-2">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Comprobante / Notas (Opcional)</label>
+                        <input type="text" name="notas" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25" placeholder="Ej: No. de transferencia bancaria, recibo provisional...">
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top border-secondary border-opacity-10 p-3 bg-body-tertiary">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4">
+                        <i class="bi bi-check-circle-fill me-1"></i> Registrar y Emitir Recibo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let saldoActualMax = 0;
+
+function abrirModalAbono(ventaId, numFactura, nombreCli, saldo) {
+    saldoActualMax = saldo;
+    document.getElementById('abono_venta_id').value = ventaId;
+    document.getElementById('abono_factura_label').textContent = `Factura #${numFactura}`;
+    document.getElementById('abono_cliente_label').textContent = `Cliente: ${nombreCli}`;
+    document.getElementById('abono_saldo_label').textContent = `$${Math.round(saldo).toLocaleString()}`;
+    
+    const inputMonto = document.getElementById('abono_monto_input');
+    inputMonto.value = saldo;
+    inputMonto.max = saldo;
+
+    const modal = new bootstrap.Modal(document.getElementById('modalRegistrarAbono'));
+    modal.show();
+}
+
+function saldarTotal() {
+    document.getElementById('abono_monto_input').value = saldoActualMax;
+}
+
+function enviarWhatsAppRecordatorio(clienteId) {
+    fetch(`/cartera/cliente/${clienteId}/whatsapp-cobro`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.whatsapp_url) {
+                window.open(data.whatsapp_url, '_blank');
+            } else {
+                alert('No se pudo generar el enlace de recordatorio.');
+            }
+        })
+        .catch(err => console.error(err));
+}
+</script>
+{% endblock %}

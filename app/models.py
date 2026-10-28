@@ -325,6 +325,10 @@ class Usuario(UserMixin, db.Model):
         if not self.rol: return False
         return self.rol.nivel <= nivel_requerido
 
+    @property
+    def nombre(self):
+        return self.nombre_completo
+
     def __repr__(self):
         return f'<Usuario {self.email}>'
 
@@ -553,6 +557,10 @@ class LoteProduccion(db.Model):
     
     labores = db.relationship('LaborCampo', backref='lote', lazy=True)
     ventas_realizadas = db.relationship('DetalleVenta', backref='lote_origen', lazy=True)
+
+    @property
+    def costo_unitario(self):
+        return (self.costo_total / self.cantidad_actual) if (self.cantidad_actual and self.cantidad_actual > 0) else 0.0
 
 class LaborCampo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1027,3 +1035,111 @@ class TestimonioWeb(db.Model):
     
     def __repr__(self):
         return f'<TestimonioWeb #{self.id} {self.nombre_cliente} ({self.calificacion}★)>'
+
+
+# ==================================================
+# 12. MÓDULO DE COTIZACIONES / PROFORMAS (PRESUPUESTOS)
+# ==================================================
+
+class Cotizacion(db.Model):
+    """
+    Presupuesto o propuesta económica formal entregada a un cliente.
+    Permite conversión directa a Venta POS / Factura en 1 clic.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'), nullable=False, index=True)
+    empresa = db.relationship('Empresa')
+    sede_id = db.Column(db.Integer, db.ForeignKey('sede.id'), nullable=True)
+    sede = db.relationship('Sede')
+    
+    numero_cotizacion = db.Column(db.String(50), nullable=False, index=True)
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=True)
+    cliente = db.relationship('Cliente', backref=db.backref('cotizaciones', lazy=True))
+    
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario = db.relationship('Usuario')
+    
+    fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    fecha_vencimiento = db.Column(db.Date, nullable=True)
+    estado = db.Column(db.String(20), default='Borrador', index=True) # 'Borrador', 'Enviada', 'Aprobada', 'Rechazada', 'Convertida'
+    
+    subtotal = db.Column(db.Float, default=0.0)
+    descuento = db.Column(db.Float, default=0.0)
+    impuestos = db.Column(db.Float, default=0.0)
+    total = db.Column(db.Float, default=0.0)
+    
+    observaciones = db.Column(db.Text, nullable=True)
+    condiciones_comerciales = db.Column(db.Text, nullable=True)
+    
+    # Enlace a la venta cuando se convierte
+    venta_id = db.Column(db.Integer, db.ForeignKey('venta.id'), nullable=True)
+    venta_asociada = db.relationship('Venta', foreign_keys=[venta_id], backref=db.backref('cotizacion_origen', uselist=False))
+    
+    detalles = db.relationship('DetalleCotizacion', backref='cotizacion', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Cotizacion #{self.numero_cotizacion} - Total: ${self.total:,.0f}>'
+
+
+class DetalleCotizacion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cotizacion_id = db.Column(db.Integer, db.ForeignKey('cotizacion.id'), nullable=False)
+    
+    lote_id = db.Column(db.Integer, db.ForeignKey('lote_produccion.id'), nullable=True)
+    lote = db.relationship('LoteProduccion')
+    
+    insumo_id = db.Column(db.Integer, db.ForeignKey('insumo.id'), nullable=True)
+    insumo = db.relationship('Insumo')
+    
+    animal_id = db.Column(db.Integer, db.ForeignKey('lote_animal.id'), nullable=True)
+    animal = db.relationship('LoteAnimal')
+    
+    descripcion = db.Column(db.String(255), nullable=False)
+    cantidad = db.Column(db.Float, default=1.0)
+    precio_unitario = db.Column(db.Float, default=0.0)
+    descuento_pct = db.Column(db.Float, default=0.0)
+    iva_pct = db.Column(db.Float, default=0.0)
+    subtotal = db.Column(db.Float, default=0.0)
+
+    @property
+    def empresa_id(self):
+        return self.cotizacion.empresa_id if self.cotizacion else None
+
+
+# ==================================================
+# 13. MÓDULO DE CARTERA: ABONOS Y CUENTAS POR COBRAR
+# ==================================================
+
+class AbonoVenta(db.Model):
+    """
+    Registro histórico de pagos y abonos parciales realizados por un cliente
+    a una factura o venta a crédito.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'), nullable=False, index=True)
+    empresa = db.relationship('Empresa')
+    
+    venta_id = db.Column(db.Integer, db.ForeignKey('venta.id'), nullable=False, index=True)
+    venta = db.relationship('Venta', foreign_keys=[venta_id], backref=db.backref('abonos_historial', lazy=True, cascade='all, delete-orphan'))
+    
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=True, index=True)
+    cliente = db.relationship('Cliente', backref=db.backref('abonos', lazy=True))
+    
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario = db.relationship('Usuario')
+    
+    caja_turno_id = db.Column(db.Integer, db.ForeignKey('caja_turno.id'), nullable=True)
+    caja_turno = db.relationship('CajaTurno')
+    
+    numero_recibo = db.Column(db.String(50), nullable=False, index=True)
+    fecha = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    
+    monto = db.Column(db.Float, nullable=False, default=0.0)
+    metodo_pago = db.Column(db.String(50), default='Efectivo') # 'Efectivo', 'Transferencia', 'Tarjeta', etc.
+    saldo_anterior = db.Column(db.Float, default=0.0)
+    saldo_nuevo = db.Column(db.Float, default=0.0)
+    
+    notas = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f'<Abono #{self.numero_recibo} - Venta #{self.venta_id} - ${self.monto:,.0f}>'

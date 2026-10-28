@@ -9,7 +9,7 @@ from sqlalchemy import or_
 from ..models import (
     Cliente, Venta, DetalleVenta, LoteProduccion, Especie,
     Insumo, MovimientoInventario, LoteAnimal, RazaAnimal,
-    CajaTurno, MovimientoCaja
+    CajaTurno, MovimientoCaja, AbonoVenta
 )
 from ..extensions import db
 from .helpers import consumir_stock_fifo, safe_float, safe_int, solo_admin, registrar_auditoria, filtrar_por_empresa, asignar_empresa, get_or_404_empresa
@@ -523,6 +523,26 @@ def finalizar_venta(venta_id):
             venta.caja_turno_id = caja_activa.id
 
         venta.estado = 'Finalizada'
+
+        # Registrar abono inicial en el historial de cartera si aplica
+        if tipo_venta == 'Credito' and (venta.abono or 0) > 0:
+            eid = venta.empresa_id
+            consecutivo = AbonoVenta.query.filter_by(empresa_id=eid).count() + 1
+            recibo_inicial = AbonoVenta(
+                numero_recibo=f"RC-{consecutivo:04d}",
+                venta_id=venta.id,
+                cliente_id=venta.cliente_id,
+                usuario_id=current_user.id,
+                caja_turno_id=caja_activa.id if (caja_activa and data.get('metodo_pago_abono', 'Efectivo').lower() == 'efectivo') else None,
+                monto=venta.abono,
+                metodo_pago=data.get('metodo_pago_abono', 'Efectivo'),
+                saldo_anterior=venta.total,
+                saldo_nuevo=venta.saldo,
+                notas="Abono inicial al momento de la venta a crédito"
+            )
+            asignar_empresa(recibo_inicial)
+            db.session.add(recibo_inicial)
+
         db.session.commit()
         
         if is_ajax:

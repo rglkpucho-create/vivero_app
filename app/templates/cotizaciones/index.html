@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% block title %}Cotizaciones & Presupuestos | EcoSistem{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-4">
+    <!-- Encabezado con acción principal -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1 rounded-pill fw-bold">
+                    <i class="bi bi-file-earmark-text-fill me-1"></i> Presupuestos & Ofertas
+                </span>
+                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 rounded-pill">
+                    Comercial B2B / Proyectos
+                </span>
+            </div>
+            <h2 class="h3 fw-bold text-body mb-0">Cotizaciones & Proformas</h2>
+            <p class="text-secondary small mb-0">Emite propuestas comerciales formales a clientes y conviértelas en venta con un solo clic.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('cotizaciones.nueva_cotizacion') }}" class="btn btn-primary rounded-pill px-4 fw-bold d-inline-flex align-items-center gap-2 shadow-sm">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>Nueva Cotización</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas KPI -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Total Presupuestado</span>
+                        <h3 class="h4 fw-bold text-body mb-0">${{ "{:,.0f}".format(total_cotizado) }}</h3>
+                        <span class="text-info small fw-medium">Histórico acumulado</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-cash-stack fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">En Negociación</span>
+                        <h3 class="h4 fw-bold text-warning mb-0">{{ activas_count }}</h3>
+                        <span class="text-secondary small">Borrador / Enviadas</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-hourglass-split fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Aprobadas / Vendidas</span>
+                        <h3 class="h4 fw-bold text-success mb-0">{{ aprobadas_count }}</h3>
+                        <span class="text-success small fw-medium">{{ convertidas_count }} convertidas a factura</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-check-circle-fill fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background: var(--bs-card-bg);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Tasa de Conversión</span>
+                        <h3 class="h4 fw-bold text-info mb-0">{{ "{:.1f}".format(tasa_conversion) }}%</h3>
+                        <span class="text-secondary small">Éxito de cotización a venta</span>
+                    </div>
+                    <div class="rounded-4 p-3 bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-graph-up-arrow fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4" style="background: var(--bs-card-bg);">
+        <form method="GET" action="{{ url_for('cotizaciones.index') }}" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-secondary">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="q" value="{{ q }}" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25" placeholder="Buscar por #COT, cliente o NIT...">
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <select name="estado" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25" onchange="this.form.submit()">
+                    <option value="Todas" {% if estado_filtro == 'Todas' or not estado_filtro %}selected{% endif %}>Todos los Estados</option>
+                    <option value="Borrador" {% if estado_filtro == 'Borrador' %}selected{% endif %}>Borrador</option>
+                    <option value="Enviada" {% if estado_filtro == 'Enviada' %}selected{% endif %}>Enviada</option>
+                    <option value="Aprobada" {% if estado_filtro == 'Aprobada' %}selected{% endif %}>Aprobada</option>
+                    <option value="Convertida" {% if estado_filtro == 'Convertida' %}selected{% endif %}>Convertida a Venta</option>
+                    <option value="Rechazada" {% if estado_filtro == 'Rechazada' %}selected{% endif %}>Rechazada</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <select name="cliente_id" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25" onchange="this.form.submit()">
+                    <option value="">Todos los Clientes</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.id }}" {% if cliente_id == c.id %}selected{% endif %}>{{ c.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary rounded-pill px-3 w-100 fw-bold">Filtrar</button>
+                {% if q or estado_filtro or cliente_id %}
+                <a href="{{ url_for('cotizaciones.index') }}" class="btn btn-outline-secondary rounded-pill px-2.5" title="Limpiar"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Cotizaciones -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bs-card-bg);">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-body-tertiary text-secondary small text-uppercase">
+                    <tr>
+                        <th class="ps-4">No. Cotización</th>
+                        <th>Fecha Emisión</th>
+                        <th>Cliente / Contacto</th>
+                        <th>Validez</th>
+                        <th class="text-end">Total Presupuestado</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cot in cotizaciones %}
+                    <tr>
+                        <td class="ps-4">
+                            <a href="{{ url_for('cotizaciones.ver_cotizacion', cotizacion_id=cot.id) }}" class="fw-bold text-decoration-none text-info">
+                                {{ cot.numero_cotizacion }}
+                            </a>
+                            {% if cot.venta_id %}
+                            <br><span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.68rem;">
+                                <i class="bi bi-link-45deg"></i> Factura #{{ cot.venta_asociada.numero_factura if cot.venta_asociada else cot.venta_id }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small text-body">{{ cot.fecha_creacion.strftime('%d/%m/%Y') }}</div>
+                            <div class="text-secondary" style="font-size: 0.72rem;">{{ cot.fecha_creacion.strftime('%H:%M') }}</div>
+                        </td>
+                        <td>
+                            {% if cot.cliente %}
+                            <div class="fw-bold text-body">{{ cot.cliente.nombre }}</div>
+                            <div class="text-secondary small">{{ cot.cliente.documento or 'Sin Doc' }} | {{ cot.cliente.telefono or 'Sin Tel' }}</div>
+                            {% else %}
+                            <span class="text-secondary italic">Cliente General / Mostrador</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if cot.fecha_vencimiento %}
+                                {% set hoy = datetime.now().date() %}
+                                {% if cot.fecha_vencimiento < hoy %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                    Venció {{ cot.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary bg-opacity-25 text-body">
+                                    Hasta {{ cot.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-secondary small">15 días</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <span class="fw-bold fs-6 text-body">${{ "{:,.0f}".format(cot.total) }}</span>
+                            <div class="text-secondary" style="font-size: 0.72rem;">{{ cot.detalles|length }} producto(s)</div>
+                        </td>
+                        <td class="text-center">
+                            {% if cot.estado == 'Convertida' %}
+                            <span class="badge bg-success rounded-pill px-2.5 py-1.5"><i class="bi bi-check-all me-1"></i> Convertida</span>
+                            {% elif cot.estado == 'Aprobada' %}
+                            <span class="badge bg-info text-dark rounded-pill px-2.5 py-1.5"><i class="bi bi-hand-thumbs-up-fill me-1"></i> Aprobada</span>
+                            {% elif cot.estado == 'Enviada' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1.5"><i class="bi bi-send-fill me-1"></i> Enviada</span>
+                            {% elif cot.estado == 'Rechazada' %}
+                            <span class="badge bg-danger rounded-pill px-2.5 py-1.5"><i class="bi bi-x-circle me-1"></i> Rechazada</span>
+                            {% else %}
+                            <span class="badge bg-secondary rounded-pill px-2.5 py-1.5">Borrador</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('cotizaciones.ver_cotizacion', cotizacion_id=cot.id) }}" class="btn btn-outline-secondary" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('cotizaciones.descargar_pdf', cotizacion_id=cot.id) }}" target="_blank" class="btn btn-outline-info" title="Descargar PDF">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                                {% if cot.estado != 'Convertida' and cot.detalles %}
+                                <form action="{{ url_for('cotizaciones.convertir_en_venta', cotizacion_id=cot.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Deseas convertir esta cotización en una venta oficial?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-success" title="Convertir a Venta POS">
+                                        <i class="bi bi-cart-plus-fill"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-secondary">
+                            <i class="bi bi-file-earmark-x fs-1 d-block mb-2 opacity-50"></i>
+                            <h5 class="fw-bold mb-1">No se encontraron cotizaciones</h5>
+                            <p class="small mb-3">Genera una nueva cotización formal para presentar tus productos y plantas a clientes.</p>
+                            <a href="{{ url_for('cotizaciones.nueva_cotizacion') }}" class="btn btn-primary rounded-pill px-4 btn-sm fw-bold">
+                                Crear Primera Cotización
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

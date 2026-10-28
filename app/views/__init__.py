@@ -28,6 +28,8 @@ from .superadmin import superadmin_bp
 from .tienda import tienda_bp
 from .mano_obra import mano_obra_bp
 from .reportes import reportes_bp
+from .cotizaciones import cotizaciones_bp
+from .cartera import cartera_bp
 
 # Blueprint principal para compatibilidad
 main_bp = Blueprint('main', __name__)
@@ -103,3 +105,5 @@ def register_blueprints(app):
     app.register_blueprint(tienda_bp)
     app.register_blueprint(mano_obra_bp)
     app.register_blueprint(reportes_bp)
+    app.register_blueprint(cotizaciones_bp)
+    app.register_blueprint(cartera_bp)

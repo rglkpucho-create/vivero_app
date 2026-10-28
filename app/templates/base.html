@@ -116,9 +116,11 @@
 
                     {% set trans_routes = ['compras.lista_pedidos', 'compras.nuevo_pedido', 'compras.ver_pedido',
                     'ventas.lista_ventas', 'ventas.nueva_venta', 'ventas.ver_venta', 'ventas.lista_clientes',
-                    'ventas.nuevo_cliente', 'ventas.control_caja', 'ventas.historial_cajas', 'ventas.comprobante_caja'] %}
+                    'ventas.nuevo_cliente', 'ventas.control_caja', 'ventas.historial_cajas', 'ventas.comprobante_caja',
+                    'cotizaciones.index', 'cotizaciones.nueva_cotizacion', 'cotizaciones.ver_cotizacion',
+                    'cartera.index', 'cartera.estado_cuenta_cliente'] %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.endpoint in trans_routes %}active{% endif %}"
+                        <a class="nav-link dropdown-toggle {% if (request.endpoint in trans_routes) or (request.endpoint and (request.endpoint.startswith('cotizaciones.') or request.endpoint.startswith('cartera.'))) %}active{% endif %}"
                             href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-currency-exchange"></i> Transacciones
                         </a>
@@ -128,7 +130,16 @@
                                         class="bi bi-cart-plus text-primary me-2"></i>Compras</a></li>
                             <li><a class="dropdown-item fw-bold {% if request.endpoint in ['ventas.nueva_venta', 'ventas.ver_venta'] %}active{% endif %}"
                                     href="{{ url_for('ventas.nueva_venta') }}"><i
-                                        class="bi bi-cash-coin text-success me-2"></i>Ventas</a></li>
+                                        class="bi bi-cash-coin text-success me-2"></i>Ventas (POS)</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint and request.endpoint.startswith('cotizaciones.') %}active{% endif %}"
+                                    href="{{ url_for('cotizaciones.index') }}"><i
+                                        class="bi bi-file-earmark-text-fill text-info me-2"></i>Cotizaciones / Presupuestos</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint and request.endpoint.startswith('cartera.') %}active{% endif %}"
+                                    href="{{ url_for('cartera.index') }}"><i
+                                        class="bi bi-wallet2 text-warning me-2"></i>Cartera & Cuentas por Cobrar</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item fw-bold d-flex align-items-center justify-content-between {% if request.endpoint == 'ventas.lista_pedidos_web' %}active{% endif %}"
                                     href="{{ url_for('ventas.lista_pedidos_web') }}">
                                     <span><i class="bi bi-cart-check-fill text-warning me-2"></i>Pedidos Web</span>
