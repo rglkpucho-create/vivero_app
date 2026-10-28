@@ -16,6 +16,7 @@ from .helpers import consumir_stock_fifo, safe_float, safe_int, solo_admin, regi
 from ..services.pdf_generator import generar_pdf_factura
 from ..services.facturacion_electronica import FacturacionElectronicaService
 from ..services.pasarela_pagos import PasarelaPagosService
+from ..services.notificaciones import NotificacionesService
 
 logger = logging.getLogger(__name__)
 ventas_bp = Blueprint('ventas', __name__)
@@ -569,6 +570,53 @@ def descargar_factura_pdf(venta_id):
         logger.error(f"Error generando factura PDF para venta #{venta_id}: {e}")
         flash(f"Error generando factura comercial PDF: {str(e)}", "danger")
         return redirect(url_for('ventas.ver_venta', venta_id=venta.id))
+
+
+@ventas_bp.route('/venta/<int:venta_id>/enviar-email', methods=['POST'])
+@login_required
+def enviar_factura_email_route(venta_id):
+    """Envía la factura en PDF como archivo adjunto al correo del cliente."""
+    venta = get_or_404_empresa(Venta, venta_id)
+    is_ajax = request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    data = request.get_json(silent=True) or request.form
+    email_dest = data.get('email') or (venta.cliente.email if venta.cliente else None)
+    mensaje_extra = data.get('mensaje') or None
+
+    resultado = NotificacionesService.enviar_factura_email(
+        venta=venta,
+        email_destino=email_dest,
+        mensaje_extra=mensaje_extra
+    )
+
+    if resultado['success']:
+        if is_ajax:
+            return jsonify({'success': True, 'message': resultado['message'], 'modo': resultado.get('modo')})
+        flash(resultado['message'], 'success')
+    else:
+        if is_ajax:
+            return jsonify({'success': False, 'message': resultado['message']}), 400
+        flash(resultado['message'], 'danger')
+
+    return redirect(url_for('ventas.ver_venta', venta_id=venta.id))
+
+
+@ventas_bp.route('/venta/<int:venta_id>/whatsapp-url')
+@login_required
+def obtener_whatsapp_factura(venta_id):
+    """Retorna la URL enriquecida de WhatsApp para la factura."""
+    venta = get_or_404_empresa(Venta, venta_id)
+    url_wa = NotificacionesService.generar_url_whatsapp_factura(venta)
+    return jsonify({'success': True, 'whatsapp_url': url_wa})
+
+
+@ventas_bp.route('/pedidos-web/<int:pedido_id>/notificar-whatsapp')
+@login_required
+def notificar_pedido_whatsapp(pedido_id):
+    """Retorna la URL de WhatsApp para notificar el estado actual del pedido web."""
+    pedido = get_or_404_empresa(Venta, pedido_id)
+    nuevo_estado = request.args.get('estado') or pedido.estado
+    url_wa = NotificacionesService.generar_url_whatsapp_pedido(pedido, nuevo_estado=nuevo_estado)
+    return jsonify({'success': True, 'whatsapp_url': url_wa})
 
 
 @ventas_bp.route('/venta/item/actualizar/<int:detalle_id>', methods=['POST'])

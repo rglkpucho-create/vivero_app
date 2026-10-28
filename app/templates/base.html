@@ -157,6 +157,12 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint and request.endpoint.startswith('reportes.') %}active{% endif %}"
+                                    href="{{ url_for('reportes.index_reportes') }}"><i
+                                        class="bi bi-file-earmark-excel-fill text-success me-2"></i>Reportes a Excel (.xlsx)</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item fw-bold {% if request.endpoint in ['ventas.lista_clientes', 'ventas.nuevo_cliente'] %}active{% endif %}"
                                     href="{{ url_for('ventas.lista_clientes') }}"><i
                                         class="bi bi-people text-info me-2"></i>Clientes</a></li>

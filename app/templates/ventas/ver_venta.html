@@ -648,14 +648,17 @@
                         <i class="bi bi-printer-fill fs-5"></i> Imprimir Tiquete Térmico (80mm)
                     </a>
 
-                    {% set tel = venta.cliente.telefono or '' %}
-                    {% if tel %}
-                    <a href="https://wa.me/57{{ tel|replace(' ', '')|replace('-', '') }}?text=Hola%20{{ venta.cliente.nombre }},%20te%20compartimos%20tu%20comprobante%20de%20compra%20en%20Vivero%20El%20Ed%C3%A9n%20Forestal%20Factura%20%23{{ venta.numero_factura }}%20por%20un%20total%20de%20${{ '{:,.0f}'.format(venta.total) }}.%20%C2%A1Gracias%20por%20tu%20confianza!"
+                    <a href="{{ url_for('ventas.obtener_whatsapp_factura', venta_id=venta.id) }}"
                        target="_blank"
+                       onclick="abrirWhatsAppFactura(event, {{ venta.id }})"
                        class="btn btn-outline-success rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2">
                         <i class="bi bi-whatsapp fs-5 text-success"></i> Compartir por WhatsApp al Cliente
                     </a>
-                    {% endif %}
+
+                    <button type="button" class="btn btn-outline-info rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2"
+                            data-bs-toggle="modal" data-bs-target="#modalEnviarEmailFactura">
+                        <i class="bi bi-envelope-paper-fill fs-5 text-info"></i> Enviar por Correo Electrónico (PDF)
+                    </button>
 
                     <a href="{{ url_for('ventas.nueva_venta') }}"
                        class="btn btn-primary rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2 shadow-sm">
@@ -2331,5 +2334,68 @@
             }
         });
     });
+</script>
+<!-- ============================================================== -->
+<!-- MODAL: ENVIAR FACTURA POR EMAIL CON PDF ADJUNTO                -->
+<!-- ============================================================== -->
+<div class="modal fade" id="modalEnviarEmailFactura" tabindex="-1" aria-labelledby="modalEnviarEmailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--bs-card-bg);">
+            <div class="modal-header border-bottom border-secondary border-opacity-10 p-4">
+                <h5 class="modal-title fw-bold text-body d-flex align-items-center gap-2" id="modalEnviarEmailLabel">
+                    <i class="bi bi-envelope-at-fill text-info"></i>
+                    <span>Enviar Factura por Correo Electrónico</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('ventas.enviar_factura_email_route', venta_id=venta.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="p-3 rounded-3 bg-info bg-opacity-10 border border-info border-opacity-20 mb-3 text-info small">
+                        <i class="bi bi-paperclip me-1"></i> Se generará y adjuntará automáticamente el archivo <strong>Factura_{{ venta.numero_factura }}.pdf</strong> con validez comercial y fiscal.
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email_destino_modal" class="form-label text-secondary small fw-bold text-uppercase">Correo del Cliente</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-info"><i class="bi bi-at"></i></span>
+                            <input type="email" name="email" id="email_destino_modal" 
+                                   class="form-control bg-body-tertiary text-white border-secondary border-opacity-25"
+                                   value="{{ venta.cliente.email or '' }}" placeholder="cliente@ejemplo.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="mensaje_email_modal" class="form-label text-secondary small fw-bold text-uppercase">Mensaje Adicional (Opcional)</label>
+                        <textarea name="mensaje" id="mensaje_email_modal" rows="2" 
+                                  class="form-control bg-body-tertiary text-white border-secondary border-opacity-25"
+                                  placeholder="Ej: Estimado cliente, gracias por elegirnos para su proyecto forestal..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary border-opacity-10 p-3 bg-body-tertiary">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info text-dark fw-bold rounded-pill px-4">
+                        <i class="bi bi-send-fill me-1"></i> Enviar Factura Ahora
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirWhatsAppFactura(e, ventaId) {
+        e.preventDefault();
+        fetch(`/venta/${ventaId}/whatsapp-url`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.whatsapp_url) {
+                    window.open(data.whatsapp_url, '_blank');
+                } else {
+                    alert('No se pudo generar el enlace de WhatsApp.');
+                }
+            })
+            .catch(err => console.error(err));
+    }
 </script>
 {% endblock %}
