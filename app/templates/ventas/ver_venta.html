@@ -496,7 +496,7 @@
     <!-- ============================================================== -->
     <!-- CASO A: VENTA FINALIZADA (VISTA EJECUTIVA DE FACTURA / RECIBO) -->
     <!-- ============================================================== -->
-    {% if venta.estado != 'Borrador' %}
+    {% if venta.estado not in ['Borrador', 'Pedido Web'] %}
     <div class="row g-4 align-items-start">
         <!-- Columna Izquierda: Vista Previa del Tiquete Térmico Digital -->
         <div class="col-lg-7">
