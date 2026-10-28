@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante de Pago {{ pago.comprobante_numero }} — {{ empresa.nombre }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 1.5cm;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .receipt-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 2.5rem;
+            max-width: 800px;
+            margin: 2rem auto;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .receipt-header {
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .signature-box {
+            border-top: 1px dashed #64748b;
+            padding-top: 0.75rem;
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        @media print {
+            body {
+                background: none;
+                color: #000;
+            }
+            .receipt-card {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA FLOTANTE DE IMPRESIÓN (SOLO PANTALLA) -->
+    <div class="container text-center my-3 no-print">
+        <button onclick="window.print()" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm me-2">
+            <i class="bi bi-printer-fill me-1"></i> Imprimir Recibo
+        </button>
+        <button onclick="window.close()" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+            <i class="bi bi-x-lg me-1"></i> Cerrar
+        </button>
+    </div>
+
+    <div class="receipt-card">
+        <!-- ENCABEZADO -->
+        <div class="receipt-header d-flex justify-content-between align-items-start">
+            <div>
+                <h3 class="fw-black mb-1 text-uppercase text-dark">{{ empresa.nombre }}</h3>
+                <p class="mb-0 text-muted small">
+                    {% if empresa.nit_rut %}NIT/RUT: {{ empresa.nit_rut }}<br>{% endif %}
+                    {% if empresa.direccion %}{{ empresa.direccion }}{% if empresa.ciudad %}, {{ empresa.ciudad }}{% endif %}<br>{% endif %}
+                    {% if empresa.telefono %}Tel: {{ empresa.telefono }}{% endif %}
+                </p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-dark font-monospace px-3 py-1.5 fs-6 mb-1">
+                    {{ pago.comprobante_numero }}
+                </span>
+                <div class="small text-muted mt-1">
+                    Fecha de Emisión: <strong>{{ pago.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</strong>
+                </div>
+                <div class="small text-muted">
+                    Estado: <span class="badge bg-success">{{ pago.estado|upper }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <h5 class="fw-black text-uppercase tracking-wide mb-0" style="letter-spacing: 1px;">
+                COMPROBANTE DE PAGO DE MANO DE OBRA
+            </h5>
+            <small class="text-muted">Liquidación de Jornales, Labores al Destajo o Nómina Fija</small>
+        </div>
+
+        <!-- DATOS DEL COLABORADOR -->
+        <div class="p-3 bg-light rounded-3 mb-4">
+            <div class="row g-2">
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Colaborador / Trabajador:</span>
+                    <strong class="fs-6 text-dark">{{ pago.trabajador.nombre_completo }}</strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Documento de Identidad:</span>
+                    <strong class="font-monospace text-dark">{{ pago.trabajador.documento or 'No registrado' }}</strong>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Cargo / Oficio:</span>
+                    <span>{{ pago.trabajador.cargo or 'Trabajador de Campo' }} ({{ pago.modalidad }})</span>
+                </div>
+                <div class="col-sm-6">
+                    <span class="text-muted small d-block">Fecha de la Labor:</span>
+                    <strong>{{ pago.fecha_labor.strftime('%d de %B de %Y') if pago.fecha_labor else 'N/A' }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE LIQUIDACIÓN -->
+        <table class="table table-bordered mb-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>Concepto / Labor Realizada</th>
+                    <th class="text-center" style="width: 120px;">Cantidad</th>
+                    <th class="text-end" style="width: 140px;">Tarifa Unit.</th>
+                    <th class="text-end" style="width: 150px;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>{{ pago.labor_realizada }}</strong>
+                        {% if pago.lote %}
+                        <div class="small text-muted">Vinculado a Lote: #{{ pago.lote.id }} - {{ pago.lote.especie.nombre_comun if pago.lote.especie else '' }}</div>
+                        {% endif %}
+                        {% if pago.sede %}
+                        <div class="small text-muted">Sede/Finca: {{ pago.sede.nombre }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center font-monospace">{{ "{:g}".format(pago.cantidad) }} {{ pago.unidad_medida }}</td>
+                    <td class="text-end font-monospace">${{ "{:,.0f}".format(pago.tarifa_unitaria) }}</td>
+                    <td class="text-end font-monospace">${{ "{:,.0f}".format(pago.cantidad * pago.tarifa_unitaria) }}</td>
+                </tr>
+                {% if pago.bonificaciones > 0 %}
+                <tr>
+                    <td colspan="3" class="text-end text-success">+ Bonificaciones / Extras:</td>
+                    <td class="text-end font-monospace text-success">+${{ "{:,.0f}".format(pago.bonificaciones) }}</td>
+                </tr>
+                {% endif %}
+                {% if pago.deducciones > 0 %}
+                <tr>
+                    <td colspan="3" class="text-end text-danger">- Deducciones / Anticipos:</td>
+                    <td class="text-end font-monospace text-danger">-${{ "{:,.0f}".format(pago.deducciones) }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+            <tfoot>
+                <tr class="table-light fs-5">
+                    <th colspan="3" class="text-end fw-black">TOTAL LIQUIDADO:</th>
+                    <th class="text-end font-monospace fw-black text-success">
+                        ${{ "{:,.0f}".format(pago.total_pagar) }}
+                    </th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- DETALLES DE PAGO -->
+        <div class="row g-2 mb-4 small">
+            <div class="col-6">
+                <strong>Método de Pago:</strong> {{ pago.metodo_pago }}
+            </div>
+            <div class="col-6 text-end">
+                <strong>Fecha de Pago:</strong> {{ pago.fecha_pago.strftime('%d/%m/%Y') if pago.fecha_pago else 'Pendiente' }}
+            </div>
+            {% if pago.notas %}
+            <div class="col-12 mt-2">
+                <strong>Observaciones:</strong> <em>{{ pago.notas }}</em>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- SECCIÓN DE FIRMAS -->
+        <div class="row mt-5 pt-3">
+            <div class="col-6">
+                <div class="signature-box">
+                    <strong class="d-block">{{ pago.trabajador.nombre_completo }}</strong>
+                    <span class="small text-muted">C.C. {{ pago.trabajador.documento or '____________________' }}</span><br>
+                    <small class="text-muted">Firma del Colaborador (Recibí a conformidad)</small>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="signature-box">
+                    <strong class="d-block">{{ pago.registrado_por.nombre_completo if pago.registrado_por else empresa.nombre }}</strong>
+                    <span class="small text-muted">Administración / Pagador</span><br>
+                    <small class="text-muted">Firma Autorizada</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 pt-4 text-muted extra-small border-top">
+            Documento administrativo generado por EcoSistem — Software de Gestión Agrícola y Forestal.
+        </div>
+    </div>
+
+</body>
+</html>

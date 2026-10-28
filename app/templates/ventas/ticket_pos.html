@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket #{{ venta.numero_factura }} — {{ venta.empresa.nombre if venta.empresa else 'EcoSistem' }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Courier New', Courier, monospace;
+            color: #000;
+        }
+
+        .ticket-wrapper {
+            width: 80mm;
+            max-width: 100%;
+            margin: 20px auto;
+            background: #fff;
+            padding: 15px 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 6px;
+        }
+
+        .ticket-header {
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ticket-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+
+        .ticket-meta {
+            font-size: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .ticket-table {
+            width: 100%;
+            font-size: 0.75rem;
+            border-collapse: collapse;
+        }
+
+        .ticket-table th {
+            border-bottom: 1px dashed #000;
+            padding: 4px 0;
+            text-transform: uppercase;
+        }
+
+        .ticket-table td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+
+        .ticket-totals {
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            padding: 8px 0;
+            margin: 8px 0;
+            font-size: 0.85rem;
+        }
+
+        .ticket-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 12px;
+            line-height: 1.4;
+        }
+
+        .no-print {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                margin: 0;
+                padding: 0;
+            }
+            .ticket-wrapper {
+                box-shadow: none;
+                margin: 0 auto;
+                padding: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-3">
+    <div class="no-print d-flex justify-content-center gap-2">
+        <a href="{{ url_for('ventas.ver_venta', venta_id=venta.id) }}" class="btn btn-secondary rounded-pill btn-sm px-3 fw-bold">
+            <i class="bi bi-arrow-left"></i> Volver a la Venta
+        </a>
+        <button onclick="window.print()" class="btn btn-success rounded-pill btn-sm px-4 fw-bold shadow-sm">
+            <i class="bi bi-printer-fill me-1"></i> Imprimir Tiquete
+        </button>
+        <a href="{{ url_for('ventas.nueva_venta') }}" class="btn btn-primary rounded-pill btn-sm px-3 fw-bold shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Nueva Venta (POS)
+        </a>
+    </div>
+
+    <div class="ticket-wrapper">
+        <div class="ticket-header">
+            <div class="ticket-title">{{ venta.empresa.nombre if venta.empresa else 'EcoSistem ERP' }}</div>
+            {% if venta.empresa and venta.empresa.razon_social %}
+            <div class="ticket-meta">{{ venta.empresa.razon_social }}</div>
+            {% endif %}
+            {% if venta.empresa and venta.empresa.nit_rut %}
+            <div class="ticket-meta">NIT/RUT: {{ venta.empresa.nit_rut }}</div>
+            {% endif %}
+            {% if venta.empresa and venta.empresa.direccion %}
+            <div class="ticket-meta">{{ venta.empresa.direccion }} - {{ venta.empresa.ciudad or '' }}</div>
+            {% endif %}
+            {% if venta.empresa and venta.empresa.telefono %}
+            <div class="ticket-meta">Tel: {{ venta.empresa.telefono }}</div>
+            {% endif %}
+        </div>
+
+        <div class="ticket-meta mb-2">
+            <div><strong>FACTURA:</strong> #{{ venta.numero_factura }}</div>
+            {% if venta.es_electronica %}
+            <div style="background: #e2e8f0; padding: 2px 4px; border-radius: 3px; font-weight: bold; margin: 2px 0;">
+                *** FACTURA ELECTRÓNICA (DIAN) ***
+            </div>
+            {% endif %}
+            <div><strong>FECHA:</strong> {{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</div>
+            <div><strong>ATENDIÓ:</strong> {{ venta.usuario.nombre_completo if venta.usuario else 'Cajero' }}</div>
+            <div><strong>CLIENTE:</strong> {{ venta.cliente.nombre if venta.cliente else 'Mostrador' }}</div>
+            {% if venta.cliente and venta.cliente.documento %}
+            <div><strong>DOC/NIT:</strong> {{ venta.cliente.tipo_documento or 'CC' }} {{ venta.cliente.documento }}</div>
+            {% endif %}
+            {% if venta.cliente and venta.cliente.direccion %}
+            <div><strong>DIR:</strong> {{ venta.cliente.direccion }}{% if venta.cliente.ciudad %} - {{ venta.cliente.ciudad }}{% endif %}</div>
+            {% endif %}
+            {% if venta.cliente and venta.cliente.email and venta.es_electronica %}
+            <div><strong>EMAIL FE:</strong> {{ venta.cliente.email }}</div>
+            {% endif %}
+            <div><strong>FORMA PAGO:</strong> {{ venta.metodo_pago or 'Efectivo' }}</div>
+            {% if venta.tipo_venta == 'Credito' %}
+            <div><strong>ABONO INICIAL:</strong> ${{ "{:,.0f}".format(venta.abono or 0) }}</div>
+            <div><strong>SALDO CARTERA:</strong> ${{ "{:,.0f}".format(venta.saldo or 0) }}</div>
+            {% if venta.fecha_vencimiento %}
+            <div><strong>VENCE:</strong> {{ venta.fecha_vencimiento.strftime('%d/%m/%Y') }}</div>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        <table class="ticket-table">
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Ítem</th>
+                    <th style="width: 20%; text-align: center;">Cant</th>
+                    <th style="width: 30%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in venta.detalles %}
+                <tr>
+                    <td>
+                        {% if d.lote_origen %}
+                            {{ d.lote_origen.especie.nombre_comun }}
+                            <br><span style="font-size: 0.65rem;">(Lote: {{ d.lote_origen.codigo_lote }})</span>
+                        {% elif d.animal %}
+                            🐄 {{ d.animal.nombre or d.animal.codigo }} ({{ d.animal.especie or 'Pecuario' }})
+                            <br><span style="font-size: 0.65rem;">(ID/Arete: {{ d.animal.codigo }})</span>
+                        {% elif d.insumo %}
+                            {{ d.insumo.nombre }}
+                            {% if d.insumo.codigo %}<br><span style="font-size: 0.65rem;">(Ref: {{ d.insumo.codigo }})</span>{% endif %}
+                        {% else %}
+                            Artículo
+                        {% endif %}
+                        {% if d.descuento_pct %}
+                        <span style="font-size: 0.65rem; color: #64748b;">(Desc: {{ "{:g}".format(d.descuento_pct) }}%)</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">{{ "{:g}".format(d.cantidad) }}</td>
+                    <td style="text-align: right;">${{ "{:,.0f}".format(d.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="ticket-totals">
+            <div class="d-flex justify-content-between">
+                <span>SUBTOTAL:</span>
+                <span>${{ "{:,.0f}".format(venta.subtotal or venta.total) }}</span>
+            </div>
+            {% if venta.descuento and venta.descuento > 0 %}
+            <div class="d-flex justify-content-between">
+                <span>DESCUENTO:</span>
+                <span>-${{ "{:,.0f}".format(venta.descuento) }}</span>
+            </div>
+            {% endif %}
+            {% if venta.impuestos and venta.impuestos > 0 %}
+            <div class="d-flex justify-content-between">
+                <span>IVA:</span>
+                <span>+${{ "{:,.0f}".format(venta.impuestos) }}</span>
+            </div>
+            {% endif %}
+            <div class="d-flex justify-content-between fw-bold mt-1" style="font-size: 1rem;">
+                <span>TOTAL A PAGAR:</span>
+                <span>${{ "{:,.0f}".format(venta.total) }}</span>
+            </div>
+        </div>
+
+        <div class="ticket-footer">
+            <p class="mb-1 fw-bold">¡Gracias por su compra!</p>
+            <p class="mb-2">Sembrando vida y cosechando futuro con EcoSistem.</p>
+            <div class="text-center my-2">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=FAC-{{ venta.numero_factura }}-TOTAL-{{ venta.total }}" 
+                     alt="QR Validación" style="width: 75px; height: 75px;">
+                <div style="font-size: 0.6rem; margin-top: 2px;">Comprobante de Entrega Digital</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-impresión inmediata si viene de procesar la venta (?autoprint=1)
+    window.addEventListener('load', function() {
+        if (window.location.search.includes('autoprint=1')) {
+            setTimeout(function() {
+                window.print();
+            }, 350);
+        }
+    });
+
+    // Al terminar o cancelar la impresión:
+    window.addEventListener('afterprint', function() {
+        if (window.opener) {
+            // Si se abrió en pestaña secundaria, cerrarla para volver al POS
+            window.close();
+        } else if (window.location.search.includes('autoprint=1')) {
+            // Si se cargó en la misma pestaña, redirigir automáticamente a Nueva Venta
+            window.location.href = "{{ url_for('ventas.nueva_venta') }}";
+        }
+    });
+</script>
+</body>
+</html>

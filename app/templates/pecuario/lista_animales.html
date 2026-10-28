@@ -4,12 +4,31 @@
 
 <style>
     /* 1. FONDO GENERAL */
-    .page-container { background-color: var(--bs-body-bg); }
+    .page-container {
+        background-color: var(--bs-body-bg);
+    }
 
-    /* 2. TARJETA ANIMAL */
-    .animal-card {
+    /* BÚSQUEDA FLOTANTE (STICKY) */
+    .sticky-search {
+        position: sticky;
+        top: 85px;
+        z-index: 990;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease;
+    }
+
+    [data-bs-theme="dark"] .sticky-search {
+        background: rgba(30, 41, 59, 0.85) !important;
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* 2. TARJETA (Estilo idéntico a Lotes) */
+    .lote-card {
         background-color: var(--bs-card-bg, white);
-        border: 1px solid rgba(0,0,0,0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
         border-radius: 1.5rem;
         overflow: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -17,209 +36,267 @@
         display: flex;
         flex-direction: column;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        position: relative;
     }
 
-    .animal-card:hover {
+    .lote-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         border-color: var(--primary-color);
     }
 
-    /* 3. IMAGEN (Altura fija para orden) */
-    .img-wrapper {
+    /* 3. IMAGEN CON ZOOM */
+    .img-zoom-wrapper {
         height: 220px;
         position: relative;
         overflow: hidden;
         background-color: #e2e8f0;
     }
 
-    .img-wrapper img {
+    .img-zoom-wrapper img {
         width: 100%;
         height: 100%;
         object-fit: cover;
         transition: transform 0.6s ease;
     }
 
-    .animal-card:hover .img-wrapper img { transform: scale(1.10); }
+    .lote-card:hover .img-zoom-wrapper img {
+        transform: scale(1.10);
+    }
 
     .img-overlay {
-        position: absolute; inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 60%);
         pointer-events: none;
     }
 
     /* Badges */
-    .badge-float { position: absolute; top: 15px; z-index: 10; backdrop-filter: blur(4px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .badge-left { left: 15px; background: rgba(255,255,255,0.95); color: #1e293b; font-weight: 800; border-radius: 30px; padding: 5px 12px; font-size: 0.75rem; }
-    .badge-right { right: 15px; }
+    .badge-float {
+        position: absolute;
+        top: 15px;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
-    /* 4. BUSCADOR ALTO CONTRASTE */
+    .badge-left {
+        left: 15px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #1e293b;
+        font-weight: 800;
+        border-radius: 30px;
+        padding: 5px 12px;
+        font-size: 0.75rem;
+    }
+
+    .badge-right {
+        right: 15px;
+    }
+
+    /* 4. BUSCADOR DE ALTO CONTRASTE */
     .input-contrast {
-        background-color: #f1f5f9; /* Gris claro en modo luz */
-        border: 2px solid #cbd5e1;
+        background-color: #f1f5f9 !important;
+        border: 2px solid #cbd5e1 !important;
         color: #334155;
         font-weight: 500;
     }
+
     .input-contrast:focus {
-        background-color: #fff;
-        border-color: var(--primary-color);
+        background-color: #fff !important;
+        border-color: var(--primary-color) !important;
         box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
     }
+
     .input-group-text-contrast {
-        background-color: #e2e8f0;
-        border: 2px solid #cbd5e1;
-        border-right: none;
+        background-color: #e2e8f0 !important;
+        border: 2px solid #cbd5e1 !important;
+        border-right: none !important;
         color: #64748b;
     }
-    .btn-contrast {
-        background-color: #334155; border: none; color: white;
+
+    /* 5. MODO OSCURO */
+    [data-bs-theme="dark"] .lote-card {
+        background-color: #1e293b;
+        border-color: #334155;
     }
-    .btn-contrast:hover { background-color: #1e293b; color: white; }
 
+    [data-bs-theme="dark"] .img-zoom-wrapper {
+        background-color: #334155;
+    }
 
-    /* 5. AJUSTES MODO OSCURO */
-    [data-bs-theme="dark"] .animal-card { background-color: #1e293b; border-color: #334155; }
-    [data-bs-theme="dark"] .img-wrapper { background-color: #334155; }
-    
-    /* El buscador en oscuro */
     [data-bs-theme="dark"] .input-contrast {
-        background-color: #0f172a; border-color: #334155; color: white;
+        background-color: #0f172a !important;
+        border-color: #334155 !important;
+        color: white;
     }
+
     [data-bs-theme="dark"] .input-group-text-contrast {
-        background-color: #1e293b; border-color: #334155; color: #94a3b8;
-    }
-    [data-bs-theme="dark"] .btn-contrast {
-        background-color: var(--primary-color); color: white;
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+        color: #94a3b8;
     }
 </style>
 
 <div class="container py-5">
-    
+
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
         <div>
             <h1 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Gestión Pecuaria</h1>
             <p class="text-muted mb-0">Inventario y control detallado de animales.</p>
         </div>
-        <a href="{{ url_for('main.nuevo_animal') }}" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm fw-bold" 
-           style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none;">
-            <i class="bi bi-plus-lg me-2"></i>Nuevo Animal
-        </a>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('pecuario.lista_razas_animales') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm fw-bold">
+                <i class="bi bi-journal-medical me-1"></i> Catálogo de Razas
+            </a>
+            <div class="btn-group p-1 bg-body-tertiary rounded-pill border" role="group">
+                <a href="{{ url_for('pecuario.lista_animales') }}" 
+                   class="btn btn-sm rounded-pill px-3 fw-bold {% if vista != 'informativa' %}btn-primary shadow-sm{% else %}text-muted{% endif %}">
+                    <i class="bi bi-grid-fill me-1"></i> Tarjetas
+                </a>
+                <a href="{{ url_for('pecuario.lista_animales', vista='informativa') }}" 
+                   class="btn btn-sm rounded-pill px-3 fw-bold {% if vista == 'informativa' %}btn-primary shadow-sm{% else %}text-muted{% endif %}">
+                    <i class="bi bi-info-circle-fill me-1"></i> Resumen
+                </a>
+            </div>
+            <a href="{{ url_for('pecuario.nuevo_animal') }}" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm fw-bold"
+                style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); border: none;">
+                <i class="bi bi-plus-lg me-2"></i>Nuevo Animal
+            </a>
+        </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-5 rounded-4 overflow-hidden">
-        <div class="card-body p-4"> <form class="row g-3 align-items-center" method="GET" action="{{ url_for('main.lista_animales') }}">
-                
-                <div class="col-lg-8">
+    <div class="card sticky-search shadow-sm mb-5 rounded-4 overflow-hidden">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-center">
+                <input type="hidden" id="vistaActual" value="{{ vista or 'tarjetas' }}">
+                <div class="col-lg-4">
                     <div class="input-group">
-                        <span class="input-group-text input-group-text-contrast rounded-start-pill ps-3"><i class="bi bi-search"></i></span>
-                        <input type="text" name="q" class="form-control input-contrast border-start-0 rounded-end-pill py-2" 
-                               placeholder="Buscar por nombre, código o raza..." 
-                               value="{{ request.args.get('q', '') }}" autocomplete="off">
+                        <span class="input-group-text input-group-text-contrast rounded-start-pill ps-3"><i
+                                class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput"
+                            class="form-control input-contrast border-start-0 rounded-end-pill py-2"
+                            placeholder="Buscar nombre, código o raza..." value="{{ request.args.get('q', '') }}" autocomplete="off" autofocus>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-3">
-                    <select class="form-select input-contrast rounded-pill py-2" name="sede_id">
-                        <option value="" selected>📍 Todas las Sedes</option>
+                    <select class="form-select input-contrast rounded-pill py-2" id="filtroSede">
+                        <option value="">📍 Todas las Sedes</option>
                         {% for s in sedes %}
                         <option value="{{ s.id }}" {% if request.args.get('sede_id')|int == s.id %}selected{% endif %}>{{ s.nombre }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div class="col-lg-1">
-                    <button type="submit" class="btn btn-contrast w-100 rounded-pill fw-bold py-2">Filtrar</button>
+                <div class="col-lg-3">
+                    <select class="form-select input-contrast rounded-pill py-2" id="filtroEspecie">
+                        <option value="">🐾 Todas las Especies</option>
+                        <option value="Bovino" {% if request.args.get('especie') == 'Bovino' %}selected{% endif %}>🐮 Bovino</option>
+                        <option value="Porcino" {% if request.args.get('especie') == 'Porcino' %}selected{% endif %}>🐷 Porcino</option>
+                        <option value="Avícola" {% if request.args.get('especie') == 'Avícola' %}selected{% endif %}>🐔 Avícola</option>
+                        <option value="Caprino" {% if request.args.get('especie') == 'Caprino' %}selected{% endif %}>🐐 Caprino</option>
+                    </select>
                 </div>
-            </form>
+
+                <div class="col-lg-2 text-center">
+                    <div id="loadingIndicator" class="spinner-border spinner-border-sm text-primary" role="status"
+                        style="display: none;"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        {% for animal in animales %}
-        <div class="col-12 col-md-6 col-lg-4" style="animation: fadeIn 0.5s ease-out;">
-            <a href="{{ url_for('main.ver_animal', id=animal.id) }}" class="text-decoration-none text-dark h-100 d-block">
-                
-                <div class="animal-card">
-                    <div class="img-wrapper">
-                        {% if animal.imagen_url %}
-                            <img src="{{ url_for('static', filename=animal.imagen_url) }}" alt="{{ animal.nombre }}">
-                        {% else %}
-                            <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white" 
-                                 style="background: linear-gradient(135deg, {% if loop.index is odd %}#6366f1 0%, #8b5cf6 100%{% else %}#ec4899 0%, #d946ef 100%{% endif %});">
-                                <span class="display-1 fw-bold opacity-25">
-                                    {% if animal.especie == 'Bovino' %}🐮
-                                    {% elif animal.especie == 'Porcino' %}🐷
-                                    {% elif animal.especie == 'Avícola' %}🐔
-                                    {% elif animal.especie == 'Caprino' %}🐐
-                                    {% else %}🐾{% endif %}
-                                </span>
-                            </div>
-                        {% endif %}
-                        <div class="img-overlay"></div>
-                        <div class="badge-float badge-left">{{ loop.index }}</div>
-                        <div class="badge-float badge-right">
-                            <span class="badge {{ 'bg-success' if animal.estado == 'Activo' else 'bg-secondary' }} shadow-sm px-3 py-2 rounded-pill">{{ animal.estado }}</span>
-                        </div>
-                    </div>
-
-                    <div class="p-4 flex-grow-1 d-flex flex-column justify-content-end" style="margin-top: -60px; position: relative; z-index: 2;">
-                        <h3 class="fw-bold text-white mb-0 text-shadow">{{ animal.nombre }}</h3>
-                        <p class="text-white-50 small mb-3 text-uppercase fw-bold">{{ animal.raza or 'Raza no def.' }} • {{ animal.especie }}</p>
-                        
-                        <div class="p-3 rounded-4 shadow-sm mt-2 card-info-box" style="background-color: white;">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div>
-                                    <small class="text-muted d-block" style="font-size: 0.7rem;">PROPÓSITO</small>
-                                    <div class="fw-bold text-primary">
-                                        {% if animal.proposito == 'Producción Leche' %}🥛 Leche
-                                        {% elif animal.proposito == 'Producción Carne' %}🥩 Carne
-                                        {% else %}✨ {{ animal.proposito }}{% endif %}
-                                    </div>
-                                </div>
-                                <div class="text-end">
-                                    {% if animal.genero == 'Hembra' %}
-                                        <i class="bi bi-gender-female text-danger fs-4"></i>
-                                    {% else %}
-                                        <i class="bi bi-gender-male text-primary fs-4"></i>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                                <span class="text-muted small">Ubicación</span>
-                                <span class="fw-bold small text-truncate" style="max-width: 150px;">{{ animal.sede.nombre }}</span>
-                            </div>
-                        </div>
+    {% if vista == 'informativa' %}
+    <!-- VISTA INFORMATIVA (Resumen por Sede Pecuaria) -->
+    <div class="row g-4" id="contenedorAnimales">
+        {% for sede_nombre, tipos in resumen_sedes.items() %}
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white py-3 px-4 border-0" 
+                     style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>{{ sede_nombre }}</h4>
+                        {% set total_sede = tipos.values() | sum %}
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold shadow-sm">
+                            Total: {{ total_sede }} Cabezas / Animales
+                        </span>
                     </div>
                 </div>
-            </a>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for tipo_nom, cantidad in tipos.items() %}
+                        <div class="list-group-item py-3 px-4 d-flex justify-content-between align-items-center bg-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3">
+                                    <i class="bi bi-activity"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ tipo_nom }}</h6>
+                                    <small class="text-muted">Estado: Activo en Finca</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fs-4 fw-black text-primary">{{ "{:,.0f}".format(cantidad) }}</span>
+                                <small class="text-muted ms-1 fw-bold">Cant.</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
         {% else %}
-        <div class="col-12 text-center py-5">
-            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                <i class="bi bi-search text-muted fs-1 opacity-50"></i>
+        <div class="col-12 py-5 text-center">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <i class="bi bi-info-circle display-5"></i>
             </div>
-            <h4 class="fw-bold">No se encontraron animales</h4>
-            <p class="text-muted">Intenta cambiar los filtros o registra uno nuevo.</p>
+            <h4 class="fw-bold">Sin datos para resumir</h4>
+            <p class="text-muted">No se encontraron animales activos para mostrar el resumen.</p>
         </div>
         {% endfor %}
     </div>
+    {% else %}
+    <!-- VISTA NORMAL (Tarjetas) -->
+    <div class="row g-4" id="contenedorAnimales">
+        {% include 'parciales/items_animales.html' %}
+    </div>
+    {% endif %}
 </div>
 
-<style>
-    .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    
-    /* Corrección del fondo de la info card en modo oscuro */
-    [data-bs-theme="dark"] .card-info-box {
-        background-color: rgba(30, 41, 59, 0.5) !important; /* Transparente oscuro */
-        border: 1px solid #334155;
-    }
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let timeoutId;
+        const searchInput = document.getElementById('searchInput');
+        const filtroSede = document.getElementById('filtroSede');
+        const filtroEspecie = document.getElementById('filtroEspecie');
+        const contenedor = document.getElementById('contenedorAnimales');
+        const loading = document.getElementById('loadingIndicator');
+        const vista = document.getElementById('vistaActual').value;
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-</style>
+        function filtrar() {
+            loading.style.display = 'inline-block';
+            const q = searchInput.value;
+            const sede_id = filtroSede.value;
+            const especie = filtroEspecie.value;
 
+            fetch(`{{ url_for('pecuario.lista_animales') }}?q=${encodeURIComponent(q)}&sede_id=${sede_id}&especie=${encodeURIComponent(especie)}&vista=${vista}&ajax=1`)
+                .then(r => r.text())
+                .then(html => {
+                    contenedor.innerHTML = html;
+                    loading.style.display = 'none';
+                })
+                .catch(() => { loading.style.display = 'none'; });
+        }
+
+        // Auto-submit en selects
+        filtroSede.addEventListener('change', filtrar);
+        filtroEspecie.addEventListener('change', filtrar);
+
+        // Debounce en texto
+        searchInput.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(filtrar, 300);
+        });
+    });
+</script>
 {% endblock %}

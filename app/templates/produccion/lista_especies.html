@@ -4,24 +4,27 @@
 <div class="container py-4">
 
     <!-- Encabezado y Buscador -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 sticky-search p-3 rounded-4 shadow-sm">
         <div>
-            <h2 class="fw-bold text-dark mb-0">Catálogo de Especies</h2>
+            <h2 class="fw-bold text-body mb-0">Catálogo de Especies</h2>
             <p class="text-muted small mb-0">Gestiona las fichas técnicas y cultivos disponibles.</p>
         </div>
 
         <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0 justify-content-end">
             <!-- Barra de Búsqueda -->
             <div class="position-relative" style="min-width: 280px;">
-                <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
-                <input type="text" id="searchEspecies" class="form-control border-0 bg-white shadow-sm ps-5 rounded-pill"
-                       placeholder="Buscar cultivo..." value="{{ request.args.get('q', '') }}">
+                <i class="bi bi-search position-absolute text-muted"
+                    style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
+                <input type="text" id="searchEspecies" class="form-control border-0 bg-body shadow-sm ps-5 rounded-pill"
+                    placeholder="Buscar cultivo..." value="{{ request.args.get('q', '') }}" autofocus>
                 <!-- Spinner loader (oculto por defecto) -->
                 <div class="spinner-border spinner-border-sm text-primary position-absolute" id="searchLoader"
-                     role="status" style="right: 15px; top: 30%; display: none;"></div>
+                    role="status" style="right: 15px; top: 30%; display: none;"></div>
             </div>
 
-            <a href="{{ url_for('main.nueva_especie') }}" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center">
+            <a href="{{ url_for('produccion.nueva_especie') }}"
+                class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center">
                 <i class="bi bi-plus-lg me-2"></i> <span class="d-none d-sm-inline">Nueva</span>
             </a>
         </div>
@@ -36,15 +39,33 @@
 </div>
 
 <style>
+    /* BÚSQUEDA FLOTANTE (STICKY) */
+    .sticky-search {
+        position: sticky;
+        top: 85px;
+        /* Para librar el navbar de 70px + margen */
+        z-index: 1020;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease;
+    }
+
+    [data-bs-theme="dark"] .sticky-search {
+        background: rgba(30, 41, 59, 0.85) !important;
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
     .hover-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-        .hover-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
-            z-index: 10;
-        }
+    .hover-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+        z-index: 10;
+    }
 
     .text-truncate-3 {
         display: -webkit-box;
@@ -74,13 +95,13 @@
 
 <!-- SCRIPT DE BÚSQUEDA DINÁMICA -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('searchEspecies');
         const gridContainer = document.getElementById('especiesGridContainer');
         const searchLoader = document.getElementById('searchLoader');
         let timeout = null;
 
-        searchInput.addEventListener('input', function(e) {
+        searchInput.addEventListener('input', function (e) {
             const query = e.target.value.trim();
 
             // Mostrar loader visual
@@ -90,7 +111,7 @@
             clearTimeout(timeout);
             timeout = setTimeout(() => {
                 // Construimos la URL con el parámetro de búsqueda y la bandera ajax=1
-                const url = `{{ url_for('main.lista_especies') }}?q=${encodeURIComponent(query)}&ajax=1`;
+                const url = `{{ url_for('produccion.lista_especies') }}?q=${encodeURIComponent(query)}&ajax=1`;
 
                 fetch(url)
                     .then(response => {

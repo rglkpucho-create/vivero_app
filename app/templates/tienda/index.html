@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ empresa.nombre }} — Vivero Productor y Catálogo Virtual</title>
+
+    <!-- PWA & Mobile Web App Capabilities -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ empresa.nombre }}">
+
+    <!-- Hojas de Estilo Premium & Tipografía Moderna -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary-color: {{ empresa.color_tema or '#059669' }};
+            --primary-dark: #064e3b;
+            --accent-color: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.35);
+            --dark-color: #0b1320;
+            --light-bg: #f8fafc;
+            --surface-card: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --border-subtle: rgba(226, 232, 240, 0.85);
+            --shadow-float: 0 20px 45px -15px rgba(11, 19, 32, 0.1);
+            --shadow-card: 0 4px 18px -2px rgba(15, 23, 42, 0.06);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--light-bg);
+            color: #334155;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2, h3, h4, h5, .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* 1. NAVBAR FLOTANTE GLASSMORPHISM */
+        .site-navbar {
+            background: rgba(11, 19, 32, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .site-navbar .nav-link {
+            color: #e2e8f0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.5rem 0.85rem !important;
+            transition: color 0.2s ease;
+        }
+
+        .site-navbar .nav-link:hover,
+        .site-navbar .nav-link.active {
+            color: #34d399;
+        }
+
+        /* 2. HERO SECTION DE ALTO IMPACTO */
+        .hero-section {
+            position: relative;
+            min-height: 88vh;
+            display: flex;
+            align-items: center;
+            {% if empresa.banner_url %}
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.90) 0%, rgba(11, 19, 32, 0.94) 100%), url("{{ url_for('static', filename=empresa.banner_url) }}");
+            {% else %}
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 45%, #0b1320 100%);
+            {% endif %}
+            background-size: cover;
+            background-position: center;
+            padding: 140px 0 110px;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            top: -120px;
+            right: -60px;
+            filter: blur(70px);
+            pointer-events: none;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+            bottom: -100px;
+            left: -50px;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            padding: 0.45rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* 3. BARRA DE MÉTRICAS */
+        .metrics-bar {
+            margin-top: -65px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .metric-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 1.35rem;
+            padding: 1.75rem 1.5rem;
+            box-shadow: var(--shadow-float);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            text-align: center;
+            height: 100%;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 35px -10px rgba(0, 0, 0, 0.1);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .metric-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 1rem;
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.55rem;
+            margin: 0 auto 1rem;
+        }
+
+        /* 4. TARJETAS DE SERVICIOS */
+        .service-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 1.5rem;
+            padding: 2.25rem 2rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-float);
+            border-color: rgba(16, 185, 129, 0.45);
+        }
+
+        /* 5. TARJETAS DE MUESTRA DE PRODUCTO */
+        .showcase-product-card {
+            border: 1px solid var(--border-subtle);
+            border-radius: 1.35rem;
+            background-color: #ffffff;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .showcase-product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-float);
+            border-color: rgba(16, 185, 129, 0.45);
+        }
+
+        .showcase-img-wrapper {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            background: #f1f5f9;
+        }
+
+        .showcase-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .showcase-product-card:hover .showcase-img {
+            transform: scale(1.08);
+        }
+
+        /* PLACEHOLDERS PARA MUESTRA */
+        .art-placeholder-showcase {
+            background: linear-gradient(145deg, #064e3b 0%, #065f46 50%, #10b981 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 1.25rem;
+        }
+
+        /* 6. TARJETAS DE REDES SOCIALES */
+        .social-card {
+            border-radius: 1.5rem;
+            padding: 2rem 1.75rem;
+            color: #ffffff;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+        }
+
+        .social-instagram {
+            background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+        }
+
+        .social-facebook {
+            background: linear-gradient(135deg, #1877f2 0%, #0d5cb6 100%);
+        }
+
+        .social-tiktok {
+            background: linear-gradient(135deg, #000000 0%, #1e293b 100%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .social-whatsapp {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+        }
+
+        /* 7. TARJETAS DE TESTIMONIOS */
+        .testimonial-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-card);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-float);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .avatar-initial {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #064e3b 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .star-btn {
+            transition: transform 0.15s ease, color 0.15s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .star-btn:hover {
+            transform: scale(1.25);
+        }
+
+        /* 8. BARRA FLOTANTE MÓVIL (BOTTOM BAR) */
+        .mobile-quickbar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(11, 19, 32, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 10px 16px;
+            z-index: 1030;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-quickbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. NAVBAR PÚBLICA FLOTANTE GLASSMORPHISM -->
+    <nav class="navbar navbar-expand-lg fixed-top site-navbar py-2.5">
+        <div class="container" style="max-width: 1300px;">
+            <a class="navbar-brand d-flex align-items-center gap-2.5 text-white fw-bold" href="#inicio">
+                {% if empresa.logo_url %}
+                <img src="{{ url_for('static', filename=empresa.logo_url) }}" alt="{{ empresa.nombre }}"
+                     class="rounded-circle shadow-sm border border-2 border-white border-opacity-75" style="width: 52px; height: 52px; object-fit: cover;">
+                {% else %}
+                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                    <i class="bi bi-flower1 fs-4"></i>
+                </div>
+                {% endif %}
+                <span class="fs-5 brand-font">{{ empresa.nombre }}</span>
+            </a>
+
+            <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navPublica">
+                <i class="bi bi-list fs-2 text-white"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navPublica">
+                <ul class="navbar-nav align-items-lg-center gap-lg-2 mx-auto my-2 my-lg-0">
+                    <li class="nav-item"><a class="nav-link px-3" href="#inicio">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="#sobreNosotros">Nosotros</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="#servicios">Especialidades</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="#testimonios">Testimonios</a></li>
+                    <li class="nav-item"><a class="nav-link px-3" href="#contacto">Contacto</a></li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                    <button id="btnInstallPwaPublic" class="btn btn-outline-light rounded-pill px-3 py-1.5 fw-bold d-none align-items-center gap-1.5 text-white" style="border-color: rgba(52, 211, 153, 0.4); font-size: 0.8rem; background: rgba(16, 185, 129, 0.1);">
+                        <i class="bi bi-phone text-success"></i>
+                        <span>Instalar App</span>
+                    </button>
+
+                    <button onclick="toggleAIChat()" class="btn btn-outline-light rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 text-white" style="border-color: rgba(16, 185, 129, 0.5); font-size: 0.8rem; background: rgba(6, 26, 18, 0.7); backdrop-filter: blur(8px);">
+                        <span class="spinner-grow spinner-grow-sm text-success" style="width: 8px; height: 8px;"></span>
+                        <i class="bi bi-robot text-success"></i>
+                        <span>Asesor IA</span>
+                    </button>
+
+                    {% if empresa.mostrar_catalogo_web %}
+                    <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}"
+                       class="btn btn-outline-success rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-2 text-white"
+                       style="border-color: rgba(52, 211, 153, 0.45) !important;">
+                        <i class="bi bi-bag-check-fill text-success"></i>
+                        <span>Catálogo Digital</span>
+                    </a>
+                    {% endif %}
+
+                    {% set tel_wa = (empresa.whatsapp_pedidos or empresa.telefono or '')|replace(' ', '')|replace('+', '')|replace('-', '') %}
+                    <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}&text=¡Hola%20{{ empresa.nombre|urlencode }}!%20Me%20interesa%20conocer%20m%C3%A1s%20sobre%20sus%20pl%C3%A1ntulas%20y%20servicios."
+                       target="_blank" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-sm border-0"
+                       style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="bi bi-whatsapp"></i>
+                        <span>WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MENSAJES FLASH / NOTIFICACIONES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3" style="max-width: 900px;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'danger' else 'danger' }} alert-dismissible fade show rounded-4 shadow-sm border-0 d-flex align-items-center gap-2" role="alert">
+                        <i class="bi bi-info-circle-fill fs-5"></i>
+                        <div class="fw-medium">{{ message }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- 2. HERO SECTION DE ALTO IMPACTO -->
+    <header class="hero-section" id="inicio">
+        <div class="container text-center text-lg-start position-relative z-1" style="max-width: 1300px;">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-8 text-white">
+                    <div class="mb-3">
+                        <span class="hero-badge">
+                            <i class="bi bi-patch-check-fill text-success"></i> VIVERO PRODUCTOR & AGROFORESTAL CERTIFICADO • CULTIVANDO VIDA
+                        </span>
+                    </div>
+
+                    <h1 class="fw-black text-white mb-3" style="font-size: clamp(2.5rem, 5.2vw, 4.4rem); letter-spacing: -1.5px; line-height: 1.08;">
+                        {{ empresa.nombre }}
+                    </h1>
+
+                    <p class="fs-5 text-white-50 mb-4 fw-medium" style="max-width: 700px; line-height: 1.6;">
+                        {{ empresa.slogan or 'Propagación de plántulas de alta calidad genética, árboles nativos para reforestación, frutales injertados y plantas ornamentales para tus proyectos y tu hogar.' }}
+                    </p>
+
+                    <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-3">
+                        {% if empresa.mostrar_catalogo_web %}
+                        <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}" class="btn btn-success btn-lg rounded-pill px-4 py-3 fw-black shadow-lg d-inline-flex align-items-center gap-2 border-0"
+                           style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="bi bi-bag-check-fill fs-5"></i>
+                            <span>Ver Catálogo Digital Online</span>
+                        </a>
+                        {% endif %}
+
+                        <button type="button" onclick="toggleAIChat(); enviarMensajeIA('Hola, ¿qué plántulas y árboles recomiendas para mi proyecto?');"
+                                class="btn btn-dark btn-lg rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center gap-2 text-white shadow-lg"
+                                style="background: rgba(6, 26, 18, 0.85); border: 1.5px solid #10b981; backdrop-filter: blur(12px); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);">
+                            <i class="bi bi-robot text-success fs-5"></i>
+                            <span>Consultar con IA Agrónomo</span>
+                        </button>
+
+                        <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}&text=¡Hola%20{{ empresa.nombre|urlencode }}!%20Deseo%20cotizar%20pl%C3%A1ntulas%20para%20mi%20proyecto."
+                           target="_blank" class="btn btn-outline-light btn-lg rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center gap-2"
+                           style="border-color: rgba(255,255,255,0.4);">
+                            <i class="bi bi-whatsapp text-success fs-5"></i>
+                            <span>Cotizar con Asesor</span>
+                        </a>
+
+                        <a href="#sobreNosotros" class="btn btn-link text-white-50 text-decoration-none d-flex align-items-center gap-1 ms-lg-2">
+                            <span>Conocer Nuestra Finca</span>
+                            <i class="bi bi-arrow-down-short fs-4"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Flotante en el Hero -->
+                <div class="col-lg-4 d-none d-lg-block">
+                    <div class="p-4 rounded-4 shadow-lg text-white text-center" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15);">
+                        <div class="mb-3 d-inline-block position-relative">
+                            {% if empresa.logo_url %}
+                            <img src="{{ url_for('static', filename=empresa.logo_url) }}" alt="Logo {{ empresa.nombre }}" class="rounded-circle shadow-lg border border-3 border-white" style="width: 145px; height: 145px; object-fit: cover; box-shadow: 0 12px 35px rgba(0,0,0,0.4) !important;">
+                            {% else %}
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto border border-3 border-white shadow-lg" style="width: 145px; height: 145px; box-shadow: 0 12px 35px rgba(0,0,0,0.4) !important;">
+                                <i class="bi bi-tree" style="font-size: 4.5rem;"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <h4 class="fw-bold mb-1">{{ empresa.nombre }}</h4>
+                        <p class="text-white-50 small mb-3">{{ empresa.ciudad or 'Producción Agrícola Sostenible' }}</p>
+
+                        <div class="border-top border-white border-opacity-15 pt-3 small text-start">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-white-50">Trayectoria:</span>
+                                <strong class="text-white">{{ empresa.anios_experiencia or '10+ Años' }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-white-50">Producción Entregada:</span>
+                                <strong class="text-success font-monospace">{{ empresa.plantas_entregadas or '50,000+' }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-white-50">Cobertura de Envíos:</span>
+                                <strong class="text-white">Regional y Nacional</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. BARRA DE MÉTRICAS / IMPACTO -->
+    <div class="container metrics-bar" style="max-width: 1260px;">
+        <div class="row g-3">
+            <div class="col-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="bi bi-award"></i></div>
+                    <h3 class="fw-black mb-1 text-dark font-monospace">{{ empresa.anios_experiencia or '10+ Años' }}</h3>
+                    <p class="text-muted small mb-0 fw-medium">De experiencia y tradición agrícola</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="bi bi-tree"></i></div>
+                    <h3 class="fw-black mb-1 text-success font-monospace">{{ empresa.plantas_entregadas or '50,000+' }}</h3>
+                    <p class="text-muted small mb-0 fw-medium">Plántulas entregadas y sembradas</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="bi bi-flower1"></i></div>
+                    <h3 class="fw-black mb-1 text-dark font-monospace">{{ empresa.hectareas_o_variedades or '150+ Especies' }}</h3>
+                    <p class="text-muted small mb-0 fw-medium">Forestales, frutales y ornamentales</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="bi bi-shield-check"></i></div>
+                    <h3 class="fw-black mb-1 text-info font-monospace">100% Calidad</h3>
+                    <p class="text-muted small mb-0 fw-medium">Sanidad vegetal y vigor garantizado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. SECCIÓN SOBRE NOSOTROS -->
+    <section class="py-5 my-5" id="sobreNosotros">
+        <div class="container" style="max-width: 1260px;">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="position-relative">
+                        <div class="rounded-4 overflow-hidden shadow-lg border border-2 border-white">
+                            {% if empresa.banner_url %}
+                            <img src="{{ url_for('static', filename=empresa.banner_url) }}" alt="Vivero" class="img-fluid w-100" style="min-height: 400px; object-fit: cover;">
+                            {% else %}
+                            <img src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80" alt="Vivero y Plantas" class="img-fluid w-100" style="min-height: 400px; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 m-3 p-3 rounded-4 shadow bg-dark text-white bg-opacity-90 d-none d-sm-block" style="backdrop-filter: blur(10px); max-width: 270px;">
+                            <span class="d-flex align-items-center gap-2 fw-bold text-success mb-1">
+                                <i class="bi bi-heart-pulse-fill"></i> Compromiso Verde
+                            </span>
+                            <small class="text-white-50 extra-small">Cuidamos cada semilla desde la germinación hasta la entrega final.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="mb-2">
+                        <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                            <i class="bi bi-feather me-1"></i> Nuestra Historia & Valores
+                        </span>
+                    </div>
+
+                    <h2 class="fw-black text-dark mb-3" style="font-size: 2.35rem; letter-spacing: -0.5px;">
+                        Pasión por la Naturaleza, Compromiso con la Tierra
+                    </h2>
+
+                    <p class="text-secondary mb-4" style="line-height: 1.7;">
+                        {{ empresa.sobre_nosotros_largo or empresa.descripcion_web or 'Somos un vivero dedicado a la producción y comercialización de plántulas forestales, árboles frutales seleccionados y plantas ornamentales. Nuestro objetivo es aportar a la sostenibilidad ambiental, la reforestación productiva y la belleza de tus espacios mediante material vegetal sano y vigoroso.' }}
+                    </p>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2.5">
+                                <i class="bi bi-check-circle-fill text-success fs-5 mt-0.5"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Genética Seleccionada</h6>
+                                    <small class="text-muted">Árboles madre de alto vigor y adaptabilidad climática.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2.5">
+                                <i class="bi bi-check-circle-fill text-success fs-5 mt-0.5"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Sustratos Enriquecidos</h6>
+                                    <small class="text-muted">Nutrición balanceada con micorrizas y materia orgánica.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2.5">
+                                <i class="bi bi-check-circle-fill text-success fs-5 mt-0.5"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Asesoría Técnica</h6>
+                                    <small class="text-muted">Orientación en densidades de siembra y fertilización.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-start gap-2.5">
+                                <i class="bi bi-check-circle-fill text-success fs-5 mt-0.5"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Envíos Especializados</h6>
+                                    <small class="text-muted">Logística protegida para entregas en finca o vivero.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}&text=¡Hola!%20Me%20gustar%C3%ADa%20recibir%20asesor%C3%ADa%20t%C3%A9cnica%20sobre%20sus%20plantas."
+                       target="_blank" class="btn btn-outline-success rounded-pill px-4 py-2.5 fw-bold d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-chat-text-fill"></i>
+                        <span>Solicitar Asesoría Agrícola</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. SECCIÓN SERVICIOS Y ESPECIALIDADES -->
+    <section class="py-5 bg-white border-top border-bottom" id="servicios">
+        <div class="container" style="max-width: 1260px;">
+            <div class="text-center mb-5" style="max-width: 700px; margin: 0 auto;">
+                <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                    ¿Qué Ofrecemos?
+                </span>
+                <h2 class="fw-black text-dark mb-2" style="font-size: 2.3rem;">
+                    Nuestras Especialidades y Servicios
+                </h2>
+                <p class="text-muted">
+                    {{ empresa.servicios_texto or 'Soluciones integrales tanto para proyectos agroforestales a gran escala como para jardines particulares.' }}
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="service-card text-center">
+                        <div class="metric-icon" style="background: rgba(16, 185, 129, 0.12); color: #059669;">
+                            <i class="bi bi-tree-fill"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Plántulas Forestales</h5>
+                        <p class="text-muted small mb-0">Especies nativas, maderables y de sombrío ideales para reforestación, cercas vivas y protección de fuentes hídricas.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="service-card text-center">
+                        <div class="metric-icon" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">
+                            <i class="bi bi-apple"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Frutales Injertados</h5>
+                        <p class="text-muted small mb-0">Cítricos, aguacates, mangos y árboles frutales de producción temprana y alta resistencia a plagas y sequía.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="service-card text-center">
+                        <div class="metric-icon" style="background: rgba(59, 130, 246, 0.12); color: #2563eb;">
+                            <i class="bi bi-flower2"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Ornamentales y Jardín</h5>
+                        <p class="text-muted small mb-0">Orquídeas, palmas, anturios y plantas de interior y exterior para decorar hogares, fincas y hoteles campestres.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="service-card text-center">
+                        <div class="metric-icon" style="background: rgba(139, 92, 246, 0.12); color: #7c3aed;">
+                            <i class="bi bi-clipboard2-pulse-fill"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Asesoría en Campo</h5>
+                        <p class="text-muted small mb-0">Acompañamiento técnico agronómico para planear el trazado, ahoyado, fertilización y sostenimiento de tus cultivos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. MUESTRA DESTACADA DE ESPECIES EN VIVERO (SHOWCASE) -->
+    {% if empresa.mostrar_catalogo_web and plantas %}
+    <section class="py-5" id="catalogoMuestra">
+        <div class="container" style="max-width: 1260px;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+                <div>
+                    <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                        <i class="bi bi-stars text-warning me-1"></i> Disponibilidad en Vivero
+                    </span>
+                    <h2 class="fw-black text-dark mb-1" style="font-size: 2.2rem;">
+                        Variedades Destacadas
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Algunas de las especies listas para despacho con entrega inmediata.
+                    </p>
+                </div>
+                <div class="mt-3 mt-md-0">
+                    <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}" class="btn btn-outline-success rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2">
+                        <span>Ver Catálogo Completo ({{ plantas|length + productos|length }})</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for lote in plantas[:4] %}
+                <div class="col-sm-6 col-lg-3">
+                    <div class="showcase-product-card">
+                        <div class="showcase-img-wrapper">
+                            {% if lote.especie.imagen_url %}
+                            <img src="{{ url_for('static', filename=lote.especie.imagen_url) }}" alt="{{ lote.especie.nombre_comun }}" class="showcase-img">
+                            {% else %}
+                            <div class="art-placeholder-showcase">
+                                <i class="bi bi-flower1 fs-1 mb-1"></i>
+                                <span class="badge rounded-pill px-2.5 py-1 extra-small text-white" style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.25);">Variedad Seleccionada</span>
+                            </div>
+                            {% endif %}
+                            <span class="position-absolute top-0 start-0 m-2.5 badge bg-success text-white rounded-pill px-2.5 py-1 extra-small fw-bold">
+                                🌿 Planta
+                            </span>
+                        </div>
+                        <div class="card-body p-3.5 d-flex flex-column">
+                            <h5 class="fw-bold text-dark mb-1 text-truncate" title="{{ lote.especie.nombre_comun }}">{{ lote.especie.nombre_comun }}</h5>
+                            <small class="text-muted fst-italic mb-3 text-truncate">{{ lote.especie.nombre_cientifico or 'Variedad de alta pureza' }}</small>
+                            <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                                <div>
+                                    {% if empresa.mostrar_precios_web %}
+                                    <span class="fs-5 fw-black text-success font-monospace">${{ "{:,.0f}".format(lote.especie.precio_venta_sugerido or 0) }}</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark border">Cotizar</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1">
+                                    <span>Ver</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- 7. SECCIÓN POR QUÉ ELEGIRNOS (GARANTÍAS DE CALIDAD) -->
+    <section class="py-5 bg-white border-top border-bottom" id="porQueElegirnos">
+        <div class="container" style="max-width: 1260px;">
+            <div class="text-center mb-5" style="max-width: 650px; margin: 0 auto;">
+                <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                    Confianza y Respaldo
+                </span>
+                <h2 class="fw-black text-dark mb-2" style="font-size: 2.2rem;">
+                    ¿Por Qué Elegir Nuestro Vivero?
+                </h2>
+                <p class="text-muted">
+                    Combinamos conocimiento agronómico tradicional con técnicas modernas de propagación para asegurar el éxito de tu siembra.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="p-4 rounded-4 h-100 border text-center" style="background: #f8fafc;">
+                        <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                             style="width: 65px; height: 65px; background: rgba(16, 185, 129, 0.15); color: #059669; font-size: 1.8rem;">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Sanidad & Vigor Vegetal</h5>
+                        <p class="text-muted small mb-0">Cada planta pasa por un riguroso proceso de endurecimiento al sol y control fitosanitario para garantizar un prendimiento superior al 95% en campo.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="p-4 rounded-4 h-100 border text-center" style="background: #f8fafc;">
+                        <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                             style="width: 65px; height: 65px; background: rgba(59, 130, 246, 0.15); color: #2563eb; font-size: 1.8rem;">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Logística y Despacho Seguro</h5>
+                        <p class="text-muted small mb-0">Empacamos y estibamos cuidadosamente las plántulas para que no sufran estrés hídrico ni daños mecánicos durante el transporte hasta tu finca.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="p-4 rounded-4 h-100 border text-center" style="background: #f8fafc;">
+                        <div class="rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                             style="width: 65px; height: 65px; background: rgba(245, 158, 11, 0.15); color: #d97706; font-size: 1.8rem;">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Precios Directos de Productor</h5>
+                        <p class="text-muted small mb-0">Sin intermediarios. Obtienes la mejor relación costo-beneficio con tarifas preferenciales para compras por mayor y proyectos de reforestación.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. BANNER DESTACADO HACIA EL CATÁLOGO DEDICADO -->
+    {% if empresa.mostrar_catalogo_web %}
+    <section class="py-5" id="catalogoDigital">
+        <div class="container" style="max-width: 1260px;">
+            <div class="p-4 p-md-5 rounded-4 shadow-lg position-relative overflow-hidden"
+                 style="background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0b1320 100%); color: white;">
+                <div class="row align-items-center g-4 position-relative z-1">
+                    <div class="col-lg-7">
+                        <span class="badge rounded-pill px-3 py-1 fw-bold mb-3"
+                              style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4); font-size: 0.8rem;">
+                            <i class="bi bi-box-seam me-1"></i> TIENDA EN LÍNEA & CATÁLOGO DEDICADO
+                        </span>
+                        <h2 class="fw-black text-white mb-3" style="font-size: clamp(2rem, 3.5vw, 2.7rem); letter-spacing: -1px;">
+                            Explora Nuestro Catálogo Digital Completo
+                        </h2>
+                        <p class="text-white-50 fs-5 mb-4" style="line-height: 1.6; max-width: 620px;">
+                            Tenemos a tu disposición <strong class="text-white">{{ plantas|length }} variedades de plantas</strong> y <strong class="text-white">{{ productos|length }} insumos especializados</strong> con stock actualizado en tiempo real.
+                        </p>
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}"
+                               class="btn btn-success btn-lg rounded-pill px-5 py-3.5 fw-black shadow-lg d-inline-flex align-items-center gap-2 border-0"
+                               style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 1.1rem;">
+                                <i class="bi bi-bag-check-fill fs-5"></i>
+                                <span>Abrir Catálogo Digital en Pantalla Completa</span>
+                                <i class="bi bi-arrow-right fs-5 ms-1"></i>
+                            </a>
+                            <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}&text=¡Hola!%20Deseo%20cotizar%20pl%C3%A1ntulas%20del%20cat%C3%A1logo."
+                               target="_blank" class="btn btn-outline-light btn-lg rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center gap-2"
+                               style="border-color: rgba(255,255,255,0.35);">
+                                <i class="bi bi-whatsapp text-success fs-5"></i>
+                                <span>Cotizar por WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3.5 rounded-4 text-center h-100" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15);">
+                                    <div class="fs-1 text-success mb-2"><i class="bi bi-flower1"></i></div>
+                                    <h4 class="fw-black mb-1 font-monospace text-white">{{ plantas|length }}</h4>
+                                    <small class="text-white-50">Variedades de Plantas & Árboles</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3.5 rounded-4 text-center h-100" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15);">
+                                    <div class="fs-1 text-info mb-2"><i class="bi bi-box-seam"></i></div>
+                                    <h4 class="fw-black mb-1 font-monospace text-white">{{ productos|length }}</h4>
+                                    <small class="text-white-50">Insumos, Sustratos y Macetas</small>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="p-3 rounded-4 d-flex align-items-center gap-3" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.15);">
+                                    <i class="bi bi-cart-check-fill text-success fs-2"></i>
+                                    <div>
+                                        <strong class="d-block text-white small">Carrito & Pedidos en Tiempo Real</strong>
+                                        <small class="text-white-50 extra-small">Arma tu selección y envíala al instante con un clic a WhatsApp.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- 9. SECCIÓN REDES SOCIALES CREATIVAS -->
+    <section class="py-5 bg-white border-top border-bottom" id="redesSociales">
+        <div class="container" style="max-width: 1260px;">
+            <div class="text-center mb-5" style="max-width: 650px; margin: 0 auto;">
+                <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                    <i class="bi bi-share-fill me-1"></i> Comunidad Digital
+                </span>
+                <h2 class="fw-black text-dark mb-2" style="font-size: 2.2rem;">
+                    Conéctate con Nosotros en Redes
+                </h2>
+                <p class="text-muted">
+                    Síguenos para conocer consejos de siembra, nuevos lotes disponibles y el día a día en nuestra finca vivero.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <!-- INSTAGRAM -->
+                <div class="col-sm-6 col-lg-3">
+                    <a href="{{ empresa.instagram_url or '#' }}" target="_blank" class="social-card social-instagram">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <i class="bi bi-instagram fs-2"></i>
+                                <span class="badge bg-white text-dark rounded-pill px-2.5 py-1 extra-small fw-bold">Instagram</span>
+                            </div>
+                            <h5 class="fw-black mb-1">@{{ empresa.nombre|lower|replace(' ', '') }}</h5>
+                            <p class="extra-small text-white-50 mb-0">Fotos de nuestros árboles, flores y germinación diaria.</p>
+                        </div>
+                        <div class="mt-4 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold">Seguir Cuenta</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- FACEBOOK -->
+                <div class="col-sm-6 col-lg-3">
+                    <a href="{{ empresa.facebook_url or '#' }}" target="_blank" class="social-card social-facebook">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <i class="bi bi-facebook fs-2"></i>
+                                <span class="badge bg-white text-dark rounded-pill px-2.5 py-1 extra-small fw-bold">Facebook</span>
+                            </div>
+                            <h5 class="fw-black mb-1">{{ empresa.nombre }}</h5>
+                            <p class="extra-small text-white-50 mb-0">Comunidad, recomendaciones de clientes y eventos de reforestación.</p>
+                        </div>
+                        <div class="mt-4 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold">Visitar Página</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- TIKTOK -->
+                <div class="col-sm-6 col-lg-3">
+                    <a href="{{ empresa.tiktok_url or '#' }}" target="_blank" class="social-card social-tiktok">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <i class="bi bi-tiktok fs-2 text-danger"></i>
+                                <span class="badge bg-white text-dark rounded-pill px-2.5 py-1 extra-small fw-bold">TikTok</span>
+                            </div>
+                            <h5 class="fw-black mb-1">Videos en Finca</h5>
+                            <p class="extra-small text-white-50 mb-0">Tips de poda, injertos, control de plagas y propagación en acción.</p>
+                        </div>
+                        <div class="mt-4 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold">Ver Videos</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- WHATSAPP DIRECTO -->
+                <div class="col-sm-6 col-lg-3">
+                    <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}&text=¡Hola!%20Vi%20su%20p%C3%A1gina%20web%20y%20deseo%20m%C3%A1s%20informaci%C3%B3n."
+                       target="_blank" class="social-card social-whatsapp">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <i class="bi bi-whatsapp fs-2"></i>
+                                <span class="badge bg-white text-dark rounded-pill px-2.5 py-1 extra-small fw-bold">WhatsApp</span>
+                            </div>
+                            <h5 class="fw-black mb-1">Chat Directo</h5>
+                            <p class="extra-small text-white-50 mb-0">Respuesta rápida con fotos de lotes en tiempo real y cotizaciones.</p>
+                        </div>
+                        <div class="mt-4 pt-2 border-top border-white border-opacity-25 d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold">Iniciar Chat</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. TESTIMONIOS Y OPINIONES DE CLIENTES -->
+    <section class="py-5" id="testimonios">
+        <div class="container" style="max-width: 1260px;">
+            <div class="text-center mb-4" style="max-width: 680px; margin: 0 auto;">
+                <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                    Opiniones Verificadas
+                </span>
+                <h2 class="fw-black text-dark mb-2" style="font-size: 2.2rem;">
+                    Lo Que Dicen Quienes Siembran Con Nosotros
+                </h2>
+                <p class="text-muted mb-3">
+                    Propietarios de fincas, paisajistas y familias que confían en nuestro material vegetal.
+                </p>
+                <div>
+                    <button type="button" class="btn btn-outline-success rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2"
+                            data-bs-toggle="modal" data-bs-target="#modalNuevoTestimonio"
+                            style="border-color: #10b981; color: #065f46; background-color: #f0fdf4;">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span>¿Eres cliente nuestro? Califica tu Experiencia</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-4" id="testimonialsGrid">
+                {% if testimonios %}
+                    {% for test in testimonios %}
+                        <div class="col-md-4">
+                            <div class="testimonial-card">
+                                <div>
+                                    <div class="text-warning mb-3">
+                                        {% for i in range(test.calificacion) %}
+                                            <i class="bi bi-star-fill"></i>
+                                        {% endfor %}
+                                        {% for i in range(5 - test.calificacion) %}
+                                            <i class="bi bi-star text-muted text-opacity-25"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <p class="text-secondary small fst-italic mb-4" style="line-height: 1.6;">
+                                        "{{ test.comentario }}"
+                                    </p>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 border-top pt-3">
+                                    <div class="avatar-initial" style="background: {{ test.avatar_color or '#10b981' }};">
+                                        {{ test.nombre_cliente[:2]|upper }}
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-dark">{{ test.nombre_cliente }}</h6>
+                                        <small class="text-muted extra-small">{{ test.proyecto_o_ciudad }} &bull; {{ test.fecha.strftime('%d/%m/%Y') if test.fecha else 'Cliente Verificado' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Testimonios Iniciales de Referencia -->
+                    <div class="col-md-4">
+                        <div class="testimonial-card">
+                            <div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="text-secondary small fst-italic mb-4" style="line-height: 1.6;">
+                                    "Compramos 1.800 árboles forestales nativos para cercas vivas y sombrío en nuestra finca ganadera. El prendimiento superó el 96% y la asesoría agronómica para el ahoyado fue fundamental."
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 border-top pt-3">
+                                <div class="avatar-initial">RG</div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Rodrigo Gómez</h6>
+                                    <small class="text-muted extra-small">Hacienda Santa Bárbara &bull; Ganadería Sostenible</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="testimonial-card">
+                            <div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="text-secondary small fst-italic mb-4" style="line-height: 1.6;">
+                                    "Excelente servicio y puntualidad en el despacho. Los árboles frutales injertados llegaron en perfecto estado y las orquídeas para el proyecto hotelero se robaron las miradas de los huéspedes."
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 border-top pt-3">
+                                <div class="avatar-initial" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">ML</div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">María Lucía Ospina</h6>
+                                    <small class="text-muted extra-small">Eco-Hotel Los Samanes &bull; Paisajismo</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="testimonial-card">
+                            <div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="text-secondary small fst-italic mb-4" style="line-height: 1.6;">
+                                    "La atención por WhatsApp es súper rápida, me enviaron fotos en tiempo real de los lotes disponibles y el catálogo digital hace muy fácil armar el pedido sin enredos."
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 border-top pt-3">
+                                <div class="avatar-initial" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);">JA</div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">Jorge Arboleda</h6>
+                                    <small class="text-muted extra-small">Cliente Particular &bull; Jardines & Huertos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL PARA DEJAR TESTIMONIO / CALIFICACIÓN -->
+    <div class="modal fade" id="modalNuevoTestimonio" tabindex="-1" aria-labelledby="modalNuevoTestimonioLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-0 bg-success bg-opacity-10 px-4 pt-4 pb-2">
+                    <div>
+                        <span class="badge bg-success bg-opacity-20 text-success rounded-pill px-3 py-1 font-monospace small mb-1">
+                            ⭐ EXPERIENCIA DEL CLIENTE
+                        </span>
+                        <h5 class="modal-title fw-black text-dark" id="modalNuevoTestimonioLabel">
+                            Califica tu Experiencia con {{ empresa.nombre }}
+                        </h5>
+                        <p class="text-muted small mb-0">Tu reseña ayuda a otros productores y familias a elegir la mejor calidad de plantas.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form action="{{ url_for('tienda.nuevo_testimonio', empresa_id=empresa.id) }}" method="POST" id="formNuevoTestimonio">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+                    <div class="modal-body px-4 py-3">
+                        <!-- Selector de Estrellas Interactivo -->
+                        <div class="text-center py-2 mb-3 bg-light rounded-3 p-3 border">
+                            <label class="form-label fw-bold text-dark d-block mb-1">Tu Calificación General</label>
+                            <div class="star-rating-widget d-inline-flex gap-2 justify-content-center" id="starRatingWidget" style="font-size: 2rem;">
+                                <i class="bi bi-star-fill text-warning star-btn" data-rating="1"></i>
+                                <i class="bi bi-star-fill text-warning star-btn" data-rating="2"></i>
+                                <i class="bi bi-star-fill text-warning star-btn" data-rating="3"></i>
+                                <i class="bi bi-star-fill text-warning star-btn" data-rating="4"></i>
+                                <i class="bi bi-star-fill text-warning star-btn" data-rating="5"></i>
+                            </div>
+                            <input type="hidden" name="calificacion" id="inputCalificacion" value="5">
+                            <div class="small fw-bold text-success mt-1" id="starRatingLabel">¡Excelente! (5 de 5 estrellas)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Tu Nombre Completo *</label>
+                            <input type="text" name="nombre_cliente" class="form-control rounded-3" placeholder="Ej: Carlos Restrepo" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Tipo de Proyecto / Finca / Ciudad</label>
+                            <input type="text" name="proyecto_o_ciudad" class="form-control rounded-3" placeholder="Ej: Finca El Roble • Reforestación o Jardín Hogar">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Tu Opinión o Reseña *</label>
+                            <textarea name="comentario" class="form-control rounded-3" rows="4" placeholder="Cuéntanos sobre la calidad de las plantas recibidas, atención brindada, puntualidad o prendimiento..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light px-4 py-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="bi bi-send-fill me-1"></i> Publicar Mi Calificación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. SECCIÓN PREGUNTAS FRECUENTES (FAQ) -->
+    <section class="py-5 bg-white border-top border-bottom" id="faq">
+        <div class="container" style="max-width: 900px;">
+            <div class="text-center mb-5">
+                <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                    Respuestas Rápidas
+                </span>
+                <h2 class="fw-black text-dark mb-2" style="font-size: 2.2rem;">
+                    Preguntas Frecuentes
+                </h2>
+                <p class="text-muted">
+                    Todo lo que necesitas saber antes de solicitar tus plántulas o programar tu pedido.
+                </p>
+            </div>
+
+            <div class="accordion accordion-flush" id="faqAccordion">
+                <div class="accordion-item border rounded-3 mb-3 overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            ¿Cómo se realiza el despacho y transporte de las plantas vivas?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small" style="line-height: 1.7;">
+                            Contamos con vehículos acondicionados para despachos regionales y convenios logísticos para envíos a nivel nacional. Las plántulas viajan hidratadas en bandejas o bolsas protegidas para evitar el quiebre de tallos y conservar la integridad del cepellón de raíces.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border rounded-3 mb-3 overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            ¿Manejan precios especiales o pedidos al por mayor para fincas?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small" style="line-height: 1.7;">
+                            Sí. Ofrecemos tarifas escalonadas con descuentos importantes para compras a partir de 100, 500 y 1.000 unidades, así como contratos de propagación anticipada para proyectos agroforestales o compensaciones ambientales.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border rounded-3 mb-3 overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            ¿Cómo confirmo mi compra y cuáles son los medios de pago?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small" style="line-height: 1.7;">
+                            Al seleccionar tus productos en el catálogo digital y pulsar "Confirmar Pedido", se abrirá una conversación en WhatsApp con el resumen exacto. Tu asesor confirmará la disponibilidad inmediata y te facilitará pagos vía transferencia bancaria, Nequi, Daviplata o pago contraentrega según la zona.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border rounded-3 mb-3 overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-bold text-dark collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            ¿Brindan asesoría en la elección de especies según el clima o tipo de suelo?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small" style="line-height: 1.7;">
+                            Completamente. Nuestro equipo técnico evalúa la altitud (msnm), régimen de lluvias y objetivos de tu predio para recomendarte las especies nativas o frutales con mayor probabilidad de adaptación y rendimiento.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 12. SECCIÓN UBICACIÓN Y CONTACTO -->
+    <section class="py-5 my-5" id="contacto">
+        <div class="container" style="max-width: 1260px;">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-6">
+                    <span class="text-success fw-bold text-uppercase small" style="letter-spacing: 1px;">
+                        Visítanos en Nuestra Sede
+                    </span>
+                    <h2 class="fw-black text-dark mb-3" style="font-size: 2.2rem;">
+                        ¿Dónde Encontrarnos?
+                    </h2>
+                    <p class="text-muted mb-4">
+                        Ven a recorrer nuestros viveros, conocer las plantas en persona y recibir asesoría directa de nuestros expertos.
+                    </p>
+
+                    <div class="p-4 rounded-4 bg-white shadow-sm border mb-3">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="rounded-circle p-2.5 bg-danger bg-opacity-10 text-danger fs-5">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark">Dirección de la Finca / Vivero:</strong>
+                                <span class="text-muted">{{ empresa.direccion or 'Km 5 Vía Principal' }}{% if empresa.ciudad %}, {{ empresa.ciudad }}{% endif %}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="rounded-circle p-2.5 bg-success bg-opacity-10 text-success fs-5">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark">Horario de Atención:</strong>
+                                <span class="text-muted">{{ empresa.horario_atencion or 'Lunes a Sábado: 7:00 AM - 5:30 PM | Domingos: 8:00 AM - 2:00 PM' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle p-2.5 bg-primary bg-opacity-10 text-primary fs-5">
+                                <i class="bi bi-telephone-fill"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark">Líneas de Atención:</strong>
+                                <span class="text-muted">{{ empresa.whatsapp_pedidos or empresa.telefono or '310 456 7890' }}</span>
+                                {% if empresa.email %} • <span class="text-muted">{{ empresa.email }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="p-4 p-md-5 rounded-4 shadow-lg text-white" style="background: linear-gradient(135deg, #064e3b 0%, #0b1320 100%);">
+                        <h4 class="fw-black mb-2">Envíanos un Mensaje Directo</h4>
+                        <p class="text-white-50 small mb-4">Te responderemos a la mayor brevedad posible por WhatsApp con fotos y precios.</p>
+
+                        <form onsubmit="enviarMensajeRapido(event)">
+                            <div class="mb-3">
+                                <label class="form-label small text-white-50">Tu Nombre Completo</label>
+                                <input type="text" id="contactoNombre" class="form-control rounded-pill bg-white bg-opacity-10 text-white border-0 py-2.5 px-3" placeholder="Ej: Camilo Torres" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-white-50">Tu Teléfono / WhatsApp</label>
+                                <input type="text" id="contactoTel" class="form-control rounded-pill bg-white bg-opacity-10 text-white border-0 py-2.5 px-3" placeholder="Ej: 300 123 4567" required />
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small text-white-50">¿Qué tipo de plantas necesitas?</label>
+                                <textarea id="contactoMensaje" class="form-control rounded-4 bg-white bg-opacity-10 text-white border-0 p-3" rows="3" placeholder="Ej: Necesito 200 árboles nativos para una finca en clima cálido..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success rounded-pill w-100 py-3 fw-bold shadow-lg border-0"
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                <i class="bi bi-send-fill me-1"></i> Enviar Mensaje a WhatsApp
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 13. FOOTER CORPORATIVO -->
+    <footer class="py-5 text-white" style="background-color: #0b1320; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+        <div class="container text-center text-md-start" style="max-width: 1260px;">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-6">
+                    <h4 class="fw-black mb-1 brand-font text-white">{{ empresa.nombre }}</h4>
+                    <p class="text-white-50 small mb-0">{{ empresa.slogan or 'Cultivamos vida y reforestación con la más alta calidad genética.' }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-inline-flex gap-2">
+                        {% if empresa.instagram_url %}
+                        <a href="{{ empresa.instagram_url }}" target="_blank" class="btn btn-outline-light rounded-circle p-2" style="width: 40px; height: 40px;"><i class="bi bi-instagram"></i></a>
+                        {% endif %}
+                        {% if empresa.facebook_url %}
+                        <a href="{{ empresa.facebook_url }}" target="_blank" class="btn btn-outline-light rounded-circle p-2" style="width: 40px; height: 40px;"><i class="bi bi-facebook"></i></a>
+                        {% endif %}
+                        {% if empresa.tiktok_url %}
+                        <a href="{{ empresa.tiktok_url }}" target="_blank" class="btn btn-outline-light rounded-circle p-2" style="width: 40px; height: 40px;"><i class="bi bi-tiktok"></i></a>
+                        {% endif %}
+                        <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}" target="_blank" class="btn btn-success rounded-circle p-2" style="width: 40px; height: 40px;"><i class="bi bi-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary my-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-white-50">
+                <span>© {{ datetime.now().year }} {{ empresa.nombre }}. Todos los derechos reservados.</span>
+                <span>Potenciado con tecnología <strong>EcoSistem Pro</strong></span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 14. BARRA DE ACCIÓN RÁPIDA MÓVIL (STICKY BOTTOM BAR) -->
+    <div class="mobile-quickbar">
+        <a href="tel:{{ tel_wa }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1.5">
+            <i class="bi bi-telephone-fill"></i>
+            <span>Llamar</span>
+        </a>
+        {% if empresa.mostrar_catalogo_web %}
+        <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}" class="btn btn-sm btn-success rounded-pill px-3 py-2 fw-black d-flex align-items-center gap-1.5"
+           style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+            <i class="bi bi-bag-check-fill"></i>
+            <span>Catálogo</span>
+        </a>
+        {% endif %}
+        <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}&text=¡Hola!%20Deseo%20hacer%20una%20consulta." target="_blank"
+           class="btn btn-sm btn-outline-success text-white border-success rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1.5">
+            <i class="bi bi-whatsapp text-success"></i>
+            <span>WhatsApp</span>
+        </a>
+    </div>
+
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const telVivero = "{{ tel_wa }}";
+        const nombreVivero = "{{ empresa.nombre }}";
+
+        // Mensaje rápido de contacto a WhatsApp
+        function enviarMensajeRapido(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('contactoNombre').value.trim();
+            const tel = document.getElementById('contactoTel').value.trim();
+            const msg = document.getElementById('contactoMensaje').value.trim();
+
+            const texto = `🌱 *¡Hola ${nombreVivero}!* Acabo de visitar su página web:\n\n` +
+                          `👤 *Nombre:* ${nombre}\n` +
+                          `📞 *Teléfono:* ${tel}\n` +
+                          `💬 *Mensaje:* ${msg}\n\n` +
+                          `Quedo atento/a para coordinar información y disponibilidad. ¡Muchas gracias!`;
+
+            const url = `https://api.whatsapp.com/send?phone=${telVivero}&text=${encodeURIComponent(texto)}`;
+            window.open(url, '_blank');
+        }
+
+        // Widget Interactivo de Calificación con Estrellas
+        document.addEventListener('DOMContentLoaded', function() {
+            const starBtns = document.querySelectorAll('#starRatingWidget .star-btn');
+            const inputCal = document.getElementById('inputCalificacion');
+            const labelCal = document.getElementById('starRatingLabel');
+            const ratingLabels = {
+                1: 'Deficiente (1 de 5)',
+                2: 'Regular (2 de 5)',
+                3: 'Bueno (3 de 5)',
+                4: 'Muy Bueno (4 de 5)',
+                5: '¡Excelente! (5 de 5 estrellas)'
+            };
+
+            function paintStars(val) {
+                starBtns.forEach(btn => {
+                    const r = parseInt(btn.dataset.rating);
+                    if (r <= val) {
+                        btn.className = 'bi bi-star-fill text-warning star-btn';
+                    } else {
+                        btn.className = 'bi bi-star text-muted text-opacity-25 star-btn';
+                    }
+                });
+            }
+
+            starBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const val = parseInt(this.dataset.rating);
+                    if (inputCal) inputCal.value = val;
+                    if (labelCal) labelCal.textContent = ratingLabels[val] || `${val} de 5 estrellas`;
+                    paintStars(val);
+                });
+
+                btn.addEventListener('mouseenter', function() {
+                    const val = parseInt(this.dataset.rating);
+                    paintStars(val);
+                });
+            });
+
+            const widget = document.getElementById('starRatingWidget');
+            if (widget) {
+                widget.addEventListener('mouseleave', function() {
+                    const currentVal = parseInt(inputCal?.value || 5);
+                    paintStars(currentVal);
+                });
+            }
+        });
+    </script>
+
+    <!-- Asistente de IA Agrónomo Virtual (Cyber-Botanical Bio-AI) -->
+    {% include 'tienda/_asistente_ia.html' %}
+
+    <!-- PWA Service Worker Registration & Install Handler -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('PWA ServiceWorker activo:', reg.scope))
+                    .catch(err => console.log('PWA SW error:', err));
+            });
+        }
+
+        let deferredPrompt = null;
+        const btnInstallPwa = document.getElementById('btnInstallPwaPublic');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (btnInstallPwa) {
+                btnInstallPwa.classList.remove('d-none');
+                btnInstallPwa.classList.add('d-inline-flex');
+            }
+        });
+
+        if (btnInstallPwa) {
+            btnInstallPwa.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'App Web Progresiva (PWA)',
+                        text: 'Para instalar esta aplicación en tu teléfono o PC, abre el menú de opciones de tu navegador y selecciona "Instalar aplicación" o "Agregar a pantalla principal".',
+                        confirmButtonColor: '#10b981'
+                    });
+                    return;
+                }
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    btnInstallPwa.classList.add('d-none');
+                }
+                deferredPrompt = null;
+            });
+        }
+    </script>
+
+</body>
+</html>

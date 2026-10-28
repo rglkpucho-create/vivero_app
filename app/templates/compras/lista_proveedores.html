@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Cabecera Ejecutiva Glass */
+    .suppliers-header {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.75rem;
+        padding: 2.5rem 2.5rem 2.25rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-bs-theme="light"] .suppliers-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+    }
+
+    .suppliers-header::after {
+        content: '';
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 260px;
+        height: 260px;
+        background: radial-gradient(circle, rgba(14, 165, 233, 0.25) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(40px);
+        pointer-events: none;
+    }
+
+    /* Tarjetas KPI Modernas */
+    .kpi-card-luxury {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .kpi-card-luxury:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 30px -8px rgba(0, 0, 0, 0.12);
+        border-color: rgba(14, 165, 233, 0.3);
+    }
+
+    .kpi-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+    }
+
+    /* Barra de Búsqueda Moderna */
+    .search-card-luxury {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.25rem;
+        padding: 0.75rem 1.25rem;
+        box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.06);
+    }
+
+    .search-input-modern {
+        background: transparent;
+        border: none;
+        outline: none;
+        box-shadow: none;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--bs-body-color);
+        width: 100%;
+    }
+
+    .search-input-modern:focus {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+
+    /* Tabla de Proveedores */
+    .table-suppliers {
+        border-collapse: separate;
+        border-spacing: 0 0.85rem;
+    }
+
+    .table-suppliers tbody tr {
+        background-color: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        border-radius: 1.25rem;
+        transition: all 0.25s ease;
+    }
+
+    /* MODO OSCURO */
+    [data-bs-theme="dark"] .kpi-card-luxury,
+    [data-bs-theme="dark"] .search-card-luxury,
+    [data-bs-theme="dark"] .table-suppliers tbody tr {
+        background-color: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    [data-bs-theme="dark"] .table-suppliers tbody tr:hover {
+        background-color: #1e293b !important;
+    }
+
+    .table-suppliers td,
+    .table-suppliers th {
+        border: none;
+        vertical-align: middle;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .table-suppliers tbody tr td:first-child {
+        border-top-left-radius: 1.25rem;
+        border-bottom-left-radius: 1.25rem;
+    }
+
+    .table-suppliers tbody tr td:last-child {
+        border-top-right-radius: 1.25rem;
+        border-bottom-right-radius: 1.25rem;
+    }
+
+    .supplier-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.3rem;
+        color: white;
+        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+        box-shadow: 0 6px 14px rgba(14, 165, 233, 0.3);
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="container-fluid py-4 mx-auto" style="max-width: 1400px;">
+
+    <!-- CABECERA EJECUTIVA -->
+    <div class="suppliers-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4 position-relative z-1">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-info bg-opacity-20 text-info border border-info border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-building-gear me-1"></i> GESTIÓN DE SUMINISTROS
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-20 text-white-50 border border-secondary border-opacity-25 font-monospace rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                        DIRECTORIO B2B
+                    </span>
+                </div>
+                <h1 class="fw-black text-white mb-1" style="letter-spacing: -1px; font-size: 2.2rem;">Directorio de Proveedores</h1>
+                <p class="text-white-50 mb-0 fw-medium fs-6">
+                    Control centralizado de aliados comerciales, adquisición de insumos, semillas y órdenes de compra.
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('compras.nuevo_pedido') }}" 
+                   class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                   style="border-color: rgba(255,255,255,0.25);">
+                    <i class="bi bi-cart-plus"></i> <span class="d-none d-sm-inline">Nueva Orden</span>
+                </a>
+                <a href="{{ url_for('compras.nuevo_proveedor') }}"
+                   class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 shadow-lg hover-lift border-0"
+                   style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);">
+                    <i class="bi bi-person-plus-fill fs-5"></i> Registrar Proveedor
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIBBON DE KPIs DE PROVEEDORES -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                    <i class="bi bi-buildings"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Total Proveedores</span>
+                    <h3 class="fw-black mb-0 text-body font-monospace">{{ kpi_total_proveedores or proveedores|length }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Empresas registradas</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Pedidos en Tránsito</span>
+                    <h3 class="fw-black mb-0 text-warning font-monospace">{{ kpi_pedidos_activos or 0 }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Pendientes de recepción</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Compras Recibidas</span>
+                    <h3 class="fw-black mb-0 text-success font-monospace">${{ "{:,.0f}".format(kpi_inversion_compras or 0) }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Inversión en inventario</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Con Actividad</span>
+                    <h3 class="fw-black mb-0 text-info font-monospace">{{ kpi_con_pedidos or 0 }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Proveedores abasteciendo</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE BÚSQUEDA Y FILTRADO INTELIGENTE -->
+    <div class="search-card-luxury mb-4 d-flex align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <i class="bi bi-search text-primary fs-5"></i>
+            <input type="text" id="dynamicSearch" class="form-control search-input-modern"
+                   placeholder="Buscar proveedor por razón social, NIT, contacto o teléfono..."
+                   value="{{ search_query if search_query else '' }}" autocomplete="off" autofocus>
+            <div class="spinner-border spinner-border-sm text-primary search-loader" id="searchLoader" role="status" style="display: none;"></div>
+        </div>
+        <div class="d-none d-md-flex align-items-center gap-2 border-start ps-3">
+            <span class="badge bg-body-tertiary text-secondary border font-monospace px-3 py-2 rounded-pill" style="font-size: 0.78rem;">
+                <i class="bi bi-funnel me-1"></i> Búsqueda en Vivo
+            </span>
+        </div>
+    </div>
+
+    <!-- TABLA DE PROVEEDORES -->
+    <div class="table-responsive px-1 pb-5">
+        <table class="table table-suppliers align-middle w-100">
+            <thead>
+                <tr>
+                    <th class="ps-4 text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Empresa / Proveedor
+                    </th>
+                    <th class="text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Identificación (NIT)
+                    </th>
+                    <th class="text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Contacto Comercial
+                    </th>
+                    <th class="text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Teléfono / Canales
+                    </th>
+                    <th class="text-end pe-4 text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="proveedoresTableBody">
+                {% include 'parciales/items_proveedores.html' %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- SCRIPT DE BÚSQUEDA DINÁMICA (AJAX) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('dynamicSearch');
+        const tableBody = document.getElementById('proveedoresTableBody');
+        const searchLoader = document.getElementById('searchLoader');
+        let timeout = null;
+
+        searchInput.addEventListener('input', function (e) {
+            const query = e.target.value.trim();
+            if (searchLoader) searchLoader.style.display = 'inline-block';
+
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                fetch(`{{ url_for('compras.lista_proveedores') }}?q=${encodeURIComponent(query)}&ajax=1`)
+                    .then(response => response.text())
+                    .then(html => {
+                        tableBody.innerHTML = html;
+                        if (searchLoader) searchLoader.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error en búsqueda:', error);
+                        if (searchLoader) searchLoader.style.display = 'none';
+                    });
+            }, 250);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .web-orders-hero {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.75rem;
+        padding: 2rem 2.25rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+
+    [data-bs-theme="light"] .web-orders-hero {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0b1320 100%);
+        color: white;
+    }
+
+    .kpi-order-card {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid var(--bs-border-color, #e2e8f0);
+        border-radius: 1.25rem;
+        padding: 1.4rem 1.5rem;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+    }
+
+    .kpi-order-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08);
+    }
+
+    .order-row-card {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid var(--bs-border-color, #e2e8f0);
+        border-radius: 1.25rem;
+        padding: 1.4rem 1.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .order-row-card:hover {
+        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.12);
+    }
+
+    .order-item-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--bs-body-bg, #f8fafc);
+        border: 1px solid var(--bs-border-color, #e2e8f0);
+        padding: 0.35rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-right: 0.35rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .btn-send-pos {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border: none;
+        font-weight: 700;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .btn-send-pos:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(16, 185, 129, 0.45);
+    }
+
+    .filter-pill {
+        border-radius: 9999px;
+        padding: 0.45rem 1.15rem;
+        font-weight: 700;
+        font-size: 0.84rem;
+        border: 1.5px solid var(--bs-border-color, #e2e8f0);
+        background: var(--bs-card-bg, #ffffff);
+        color: var(--bs-body-color, #475569);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .filter-pill:hover,
+    .filter-pill.active {
+        background: #064e3b;
+        color: white;
+        border-color: #064e3b;
+        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25);
+    }
+
+    .filter-pill.active .badge {
+        background-color: white !important;
+        color: #064e3b !important;
+    }
+</style>
+
+<div class="container-fluid py-4 mx-auto" style="max-width: 1400px;">
+
+    <!-- 1. CABECERA EJECUTIVA -->
+    <div class="web-orders-hero mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge rounded-pill bg-success text-white px-3 py-1 font-monospace fw-bold" style="letter-spacing: 0.5px;">
+                        <i class="bi bi-cart-check-fill me-1"></i> E-COMMERCE & CATÁLOGO
+                    </span>
+                    <span class="text-white-50">•</span>
+                    <span class="text-white-50 small">Gestión y Facturación de Pedidos Web</span>
+                </div>
+                <h1 class="fw-black text-white mb-2" style="font-size: clamp(1.8rem, 3.2vw, 2.5rem); letter-spacing: -1px;">
+                    Pedidos en Línea del Catálogo
+                </h1>
+                <p class="text-white-50 mb-0" style="max-width: 720px; line-height: 1.6;">
+                    Supervisa las solicitudes de compra generadas desde tu sitio web y catálogo virtual. Coordina el pago con el cliente vía WhatsApp y envía el pedido al Punto de Venta (POS) con un solo clic para facturar y descontar inventario.
+                </p>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <a href="{{ url_for('tienda.ver_mi_catalogo') }}" target="_blank"
+                   class="btn btn-outline-light rounded-pill px-3.5 py-2 fw-bold d-inline-flex align-items-center gap-2"
+                   style="border-color: rgba(255,255,255,0.3);">
+                    <i class="bi bi-bag-check-fill text-success"></i>
+                    <span>Ver Catálogo Digital</span>
+                </a>
+                <a href="{{ url_for('ventas.nueva_venta') }}"
+                   class="btn btn-success rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 border-0 shadow-sm"
+                   style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="bi bi-calculator"></i>
+                    <span>Ir al POS Mostrador</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MÉTRICAS CLAVE / KPIS -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="kpi-order-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-secondary small fw-bold text-uppercase">Total Pedidos</span>
+                    <div class="rounded-circle p-2 bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-inbox-fill fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-black mb-1 font-monospace text-body">{{ kpi_total }}</h3>
+                <small class="text-muted">Generados desde la web</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="kpi-order-card border-warning border-opacity-50">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-warning small fw-bold text-uppercase">Pendientes de Pago</span>
+                    <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-clock-history fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-black mb-1 font-monospace text-warning">{{ kpi_pendientes }}</h3>
+                <small class="text-muted">Por valor de <strong>${{ "{:,.0f}".format(kpi_monto_pendiente) }}</strong></small>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="kpi-order-card border-success border-opacity-50">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-success small fw-bold text-uppercase">Facturados en POS</span>
+                    <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-check2-all fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-black mb-1 font-monospace text-success">{{ kpi_facturados }}</h3>
+                <small class="text-muted">Ventas cerradas con éxito</small>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="kpi-order-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-secondary small fw-bold text-uppercase">Cancelados</span>
+                    <div class="rounded-circle p-2 bg-secondary bg-opacity-10 text-secondary">
+                        <i class="bi bi-x-circle-fill fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-black mb-1 font-monospace text-secondary">{{ kpi_cancelados }}</h3>
+                <small class="text-muted">Desistidos o anulados</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BARRA DE FILTROS & BÚSQUEDA -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background-color: var(--bs-card-bg);">
+        <div class="card-body p-3.5">
+            <div class="row g-3 align-items-center">
+                <!-- Filtros por Estado -->
+                <div class="col-xl-8 col-lg-7">
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('ventas.lista_pedidos_web', estado='todos', q=q, tiempo=tiempo_filtro) }}"
+                           class="filter-pill {% if estado_filtro == 'todos' %}active{% endif %}">
+                            <span>Todos</span>
+                            <span class="badge rounded-pill bg-secondary bg-opacity-15 text-body font-monospace">{{ kpi_total }}</span>
+                        </a>
+
+                        <a href="{{ url_for('ventas.lista_pedidos_web', estado='pendientes', q=q, tiempo=tiempo_filtro) }}"
+                           class="filter-pill {% if estado_filtro == 'pendientes' %}active{% endif %}">
+                            <span class="text-warning">●</span>
+                            <span>Pendientes de Cobro</span>
+                            <span class="badge rounded-pill bg-warning text-dark font-monospace">{{ kpi_pendientes }}</span>
+                        </a>
+
+                        <a href="{{ url_for('ventas.lista_pedidos_web', estado='facturados', q=q, tiempo=tiempo_filtro) }}"
+                           class="filter-pill {% if estado_filtro == 'facturados' %}active{% endif %}">
+                            <span class="text-success">●</span>
+                            <span>Facturados en POS</span>
+                            <span class="badge rounded-pill bg-success text-white font-monospace">{{ kpi_facturados }}</span>
+                        </a>
+
+                        <a href="{{ url_for('ventas.lista_pedidos_web', estado='cancelados', q=q, tiempo=tiempo_filtro) }}"
+                           class="filter-pill {% if estado_filtro == 'cancelados' %}active{% endif %}">
+                            <span class="text-secondary">●</span>
+                            <span>Cancelados</span>
+                            <span class="badge rounded-pill bg-secondary text-white font-monospace">{{ kpi_cancelados }}</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Buscador de Pedidos -->
+                <div class="col-xl-4 col-lg-5">
+                    <form method="GET" action="{{ url_for('ventas.lista_pedidos_web') }}" class="d-flex gap-2">
+                        <input type="hidden" name="estado" value="{{ estado_filtro }}">
+                        <div class="input-group">
+                            <span class="input-group-text bg-body-tertiary border-end-0 rounded-start-pill ps-3 text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" name="q" value="{{ q }}" class="form-control bg-body-tertiary border-start-0 border-end-0 py-2 text-body"
+                                   placeholder="Buscar por cliente, teléfono, código...">
+                            {% if q %}
+                            <a href="{{ url_for('ventas.lista_pedidos_web', estado=estado_filtro) }}" class="input-group-text bg-body-tertiary border-start-0 text-muted">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </a>
+                            {% endif %}
+                            <button type="submit" class="btn btn-success rounded-end-pill px-3 fw-bold">Buscar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. LISTADO DE PEDIDOS -->
+    {% if pedidos %}
+    <div class="d-flex flex-column gap-3 mb-5">
+        {% for pedido in pedidos %}
+        <div class="order-row-card">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                
+                <!-- Columna 1: Código, Fecha y Estado -->
+                <div style="min-width: 260px;" class="flex-shrink-0">
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <span class="fw-black font-monospace fs-5 text-body text-nowrap">#{{ pedido.numero_factura }}</span>
+                        
+                        {% if pedido.estado in ['Pedido Web', 'Borrador'] %}
+                        <span class="badge rounded-pill bg-warning text-dark fw-bold px-2.5 py-1 text-nowrap">
+                            <i class="bi bi-clock-fill me-1"></i> Pendiente de Pago
+                        </span>
+                        {% elif pedido.estado == 'Finalizada' %}
+                        <span class="badge rounded-pill bg-success text-white fw-bold px-2.5 py-1 text-nowrap">
+                            <i class="bi bi-check-circle-fill me-1"></i> Facturado en POS
+                        </span>
+                        {% elif pedido.estado == 'Cancelado' %}
+                        <span class="badge rounded-pill bg-secondary text-white fw-bold px-2.5 py-1 text-nowrap">
+                            <i class="bi bi-x-circle me-1"></i> Cancelado
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-muted extra-small">
+                        <i class="bi bi-calendar3 me-1"></i>{{ pedido.fecha.strftime('%d/%m/%Y %I:%M %p') if pedido.fecha else 'Fecha no registrada' }}
+                        {% if pedido.usuario and pedido.usuario.nombre_completo %}
+                        • <i class="bi bi-person-badge me-1"></i>Atendido por: {{ pedido.usuario.nombre_completo }}
+                        {% else %}
+                        • <i class="bi bi-globe me-1 text-success"></i>Origen: Catálogo Web
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Columna 2: Cliente y Contacto -->
+                <div style="min-width: 240px;">
+                    <div class="fw-bold text-body fs-6 mb-0.5">
+                        <i class="bi bi-person-fill text-primary me-1"></i>{{ pedido.cliente.nombre if pedido.cliente else 'Consumidor Web' }}
+                    </div>
+                    <div class="extra-small text-muted mb-0.5">
+                        {% if pedido.cliente and pedido.cliente.telefono %}
+                        {% set tel_clean = pedido.cliente.telefono|replace(' ', '')|replace('+', '')|replace('-', '') %}
+                        <a href="https://api.whatsapp.com/send?phone={{ tel_clean }}&text=¡Hola%20{{ pedido.cliente.nombre }}!%20Te%20contactamos%20de%20{{ (pedido.empresa.nombre if pedido.empresa else 'Vivero')|urlencode }}%20para%20confirmar%20tu%20pedido%20{{ pedido.numero_factura }}." 
+                           target="_blank" class="text-success text-decoration-none fw-bold me-2">
+                            <i class="bi bi-whatsapp"></i> {{ pedido.cliente.telefono }}
+                        </a>
+                        {% endif %}
+                        {% if pedido.cliente and pedido.cliente.documento and not pedido.cliente.documento.startswith('WEB-') %}
+                        <span class="font-monospace text-secondary">CC: {{ pedido.cliente.documento }}</span>
+                        {% endif %}
+                    </div>
+                    {% if pedido.cliente and pedido.cliente.direccion %}
+                    <div class="extra-small text-secondary text-truncate" style="max-width: 260px;" title="{{ pedido.cliente.direccion }}">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ pedido.cliente.direccion }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Columna 3: Productos / Ítems -->
+                <div class="flex-grow-1" style="max-width: 440px;">
+                    <div class="text-secondary extra-small fw-bold text-uppercase mb-1">
+                        Ítems del Pedido ({{ pedido.detalles|length }} tipos):
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center">
+                        {% for d in pedido.detalles %}
+                        {% set nom = d.lote_origen.especie.nombre_comun if d.lote_id and d.lote_origen and d.lote_origen.especie else (d.insumo.nombre if d.insumo else 'Producto') %}
+                        <span class="order-item-chip" title="{{ nom }} x{{ '{:g}'.format(d.cantidad) }}">
+                            {% if d.lote_id %}🌿{% else %}📦{% endif %}
+                            <span class="text-truncate" style="max-width: 190px;">{{ nom }}</span>
+                            <span class="badge bg-dark bg-opacity-75 rounded-pill font-monospace">x{{ "{:g}".format(d.cantidad) }}</span>
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Columna 4: Total & Acciones -->
+                <div class="d-flex align-items-center justify-content-between justify-content-lg-end gap-3" style="min-width: 280px;">
+                    <div class="text-lg-end">
+                        <small class="text-secondary extra-small d-block text-uppercase fw-bold">Total Pedido</small>
+                        <span class="fs-4 fw-black text-success font-monospace">${{ "{:,.0f}".format(pedido.total or 0) }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1.5">
+                        {% if pedido.estado in ['Pedido Web', 'Borrador'] %}
+                        <!-- BOTÓN ESTELAR: ENVIAR A POS -->
+                        <a href="{{ url_for('ventas.enviar_pedido_pos', venta_id=pedido.id) }}"
+                           class="btn btn-sm btn-send-pos rounded-pill px-3 py-2 d-inline-flex align-items-center gap-1.5"
+                           title="Cargar pedido en el Punto de Venta para seleccionar medio de pago y facturar">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                            <span>Enviar a POS</span>
+                        </a>
+
+                        <!-- BOTÓN WHATSAPP -->
+                        {% if pedido.cliente and pedido.cliente.telefono %}
+                        {% set tel_clean = pedido.cliente.telefono|replace(' ', '')|replace('+', '')|replace('-', '') %}
+                        <a href="https://api.whatsapp.com/send?phone={{ tel_clean }}&text=¡Hola%20{{ pedido.cliente.nombre }}!%20Te%20escribimos%20de%20{{ (pedido.empresa.nombre if pedido.empresa else 'Vivero')|urlencode }}%20respecto%20a%20tu%20pedido%20{{ pedido.numero_factura }}%20por%20valor%20de%20${{ '{:,.0f}'.format(pedido.total or 0) }}."
+                           target="_blank" class="btn btn-sm btn-outline-success rounded-circle p-2" title="Chatear con el cliente por WhatsApp">
+                            <i class="bi bi-whatsapp fs-6"></i>
+                        </a>
+                        {% endif %}
+
+                        <!-- BOTÓN CANCELAR -->
+                        <form action="{{ url_for('ventas.cancelar_pedido_web', venta_id=pedido.id) }}" method="POST" class="d-inline"
+                              onsubmit="return confirm('¿Seguro que deseas cancelar el pedido #{{ pedido.numero_factura }}?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-2" title="Cancelar pedido">
+                                <i class="bi bi-trash fs-6"></i>
+                            </button>
+                        </form>
+
+                        {% elif pedido.estado == 'Finalizada' %}
+                        <a href="{{ url_for('ventas.ver_venta', venta_id=pedido.id) }}"
+                           class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5">
+                            <i class="bi bi-eye"></i>
+                            <span>Ver Venta</span>
+                        </a>
+                        <a href="{{ url_for('ventas.imprimir_ticket_venta', venta_id=pedido.id) }}" target="_blank"
+                           class="btn btn-sm btn-outline-secondary rounded-circle p-2" title="Imprimir Tiquete Térmico">
+                            <i class="bi bi-printer"></i>
+                        </a>
+
+                        {% elif pedido.estado == 'Cancelado' %}
+                        <a href="{{ url_for('ventas.enviar_pedido_pos', venta_id=pedido.id) }}"
+                           class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5"
+                           title="Reactivar pedido y cargarlo al POS">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>Reactivar en POS</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- ESTADO VACÍO -->
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4" style="background-color: var(--bs-card-bg);">
+        <div class="mb-3 text-muted" style="font-size: 3.5rem;">
+            <i class="bi bi-inbox"></i>
+        </div>
+        <h4 class="fw-bold mb-2">No se encontraron pedidos web</h4>
+        <p class="text-muted mb-4" style="max-width: 500px; margin: 0 auto;">
+            {% if q or estado_filtro != 'todos' %}
+            No hay pedidos coincidentes con los filtros actuales. Intenta limpiar la búsqueda.
+            {% else %}
+            Aún no has recibido pedidos desde el catálogo digital. Cuando un cliente agregue productos y confirme su carrito, aparecerá listado aquí en tiempo real.
+            {% endif %}
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            {% if q or estado_filtro != 'todos' %}
+            <a href="{{ url_for('ventas.lista_pedidos_web') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                <i class="bi bi-x-circle me-1"></i> Limpiar Filtros
+            </a>
+            {% else %}
+            <a href="{{ url_for('tienda.ver_mi_catalogo') }}" target="_blank" class="btn btn-success rounded-pill px-4 fw-bold">
+                <i class="bi bi-eye me-1"></i> Abrir Mi Catálogo Digital
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

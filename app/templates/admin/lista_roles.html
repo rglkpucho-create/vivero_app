@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+        <h3 class="mb-1 fw-bold text-success"><i class="bi bi-person-lines-fill me-2"></i>Roles del Sistema</h3>
+        <p class="text-muted mb-0">Niveles de acceso y permisos</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Rol</th>
+                        <th>Nivel de Privilegio</th>
+                        <th>Descripción</th>
+                        <th>Usuarios Asignados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in roles|sort(attribute='nivel') %}
+                    <tr>
+                        <td class="ps-4 fw-bold">{{ r.nombre }}</td>
+                        <td>
+                            {% if r.nivel == 1 %}
+                                <span class="badge bg-danger">Nivel 1 (Total)</span>
+                            {% elif r.nivel == 2 %}
+                                <span class="badge bg-warning text-dark">Nivel 2 (Gestión)</span>
+                            {% elif r.nivel == 3 %}
+                                <span class="badge bg-primary">Nivel 3 (Operación)</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Nivel 4 (Lectura)</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ r.descripcion or 'Sin descripción' }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ r.usuarios|length }} usuarios</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

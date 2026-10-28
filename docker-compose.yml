@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: vivero_web
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DB_USER=${DB_USER:-root}
+      - DB_PASS=${DB_PASS:-secret}
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-ecosistem_v4}
+      - SECRET_KEY=${SECRET_KEY:-default_secret_key_for_docker_compose}
+    depends_on:
+      - db
+    restart: unless-stopped
+    volumes:
+      - ./app/static/uploads:/app/app/static/uploads # Persistencia de subidas (imágenes, etc.)
+
+  db:
+    image: mysql:8.0
+    container_name: vivero_db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASS:-secret}
+      - MYSQL_DATABASE=${DB_NAME:-ecosistem_v4}
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  db_data:

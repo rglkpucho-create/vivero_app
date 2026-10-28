@@ -1,418 +1,2290 @@
 {% extends "base.html" %}
 
 {% block content %}
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
 <style>
-    /* Estilos específicos para el POS */
-    .dropdown-sugerencias { z-index: 9999 !important; }
-    .input-ghost { background: transparent; border: 1px solid transparent; transition: all 0.2s; }
-    .input-ghost:hover { background: #f8fafc; border-color: #cbd5e1; }
-    .input-ghost:focus { background: white; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); outline: none; }
-    .fade-enter { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* Estilos de Terminal POS Ejecutivo (Estilo OPTICAL) */
+    .pos-header-luxury {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.75rem;
+        padding: 1.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-bs-theme="light"] .pos-header-luxury {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+    }
+
+    .pos-header-luxury::after {
+        content: '';
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(45px);
+        pointer-events: none;
+    }
+
+    /* Tarjetas de Catálogo Rápido */
+    .catalog-item-card {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.25rem;
+        padding: 1.15rem;
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .catalog-item-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(16, 185, 129, 0.45);
+        box-shadow: 0 12px 24px -6px rgba(16, 185, 129, 0.2);
+    }
+
+    [data-bs-theme="dark"] .catalog-item-card,
+    [data-bs-theme="dark"] .ticket-panel-luxury,
+    [data-bs-theme="dark"] .receipt-digital-card {
+        background-color: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    [data-bs-theme="dark"] .catalog-item-card:hover {
+        background-color: #1e293b !important;
+    }
+
+    .catalog-icon-wrapper {
+        width: 44px;
+        height: 44px;
+        border-radius: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    /* Panel del Carrito / Factura */
+    .ticket-panel-luxury {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.08);
+        position: sticky;
+        top: 20px;
+        overflow: hidden;
+    }
+
+    .ticket-item-row {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 0.85rem 1.15rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .ticket-item-row:hover {
+        background-color: rgba(16, 185, 129, 0.04);
+    }
+
+    .category-tab-btn {
+        border-radius: 2rem;
+        padding: 0.45rem 1.1rem;
+        font-weight: 700;
+        font-size: 0.82rem;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        cursor: pointer;
+    }
+
+    .category-tab-btn.active, .category-tab-btn:hover {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .dropdown-sugerencias {
+        z-index: 1055 !important;
+        max-height: 320px;
+        overflow-y: auto;
+    }
+
+    /* Botones de Billete Rápido (Estilo OPTICAL) */
+    /* Estilos Premium para Barra Superior de Acciones POS (Aparcar, En Espera, Cobrar) */
+    .pos-action-group {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 5px 6px;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        backdrop-filter: blur(10px);
+    }
+
+    .pos-action-btn {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--bs-body-color, #e2e8f0);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 9999px;
+        padding: 0.42rem 0.95rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .pos-action-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .pos-action-btn:active {
+        transform: translateY(0);
+    }
+
+    .pos-action-btn.btn-cobrar-top {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        border: 1px solid rgba(16, 185, 129, 0.45);
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .pos-action-btn.btn-cobrar-top:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.55);
+        transform: translateY(-1.5px);
+        color: #ffffff;
+    }
+
+    .pos-kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5px 5px;
+        font-size: 0.66rem;
+        font-family: var(--bs-font-monospace, monospace);
+        font-weight: 800;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.38);
+        color: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        line-height: 1.2;
+    }
+
+    .pos-badge-counter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        font-family: var(--bs-font-monospace, monospace);
+        border-radius: 9999px;
+        background: #ef4444;
+        color: #ffffff;
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+    }
+
+    /* Estilos para Navegación con Teclado (Flechas + Enter) en Sugerencias */
+    .pos-sugerencia-item {
+        transition: all 0.15s ease;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .pos-sugerencia-item:hover,
+    .pos-sugerencia-item.sugerencia-activa {
+        background: rgba(16, 185, 129, 0.18) !important;
+        border-left: 3px solid #10b981 !important;
+        box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.1);
+    }
+
+    .pos-sugerencia-item.sugerencia-activa .item-nombre-pos {
+        color: #10b981 !important;
+        font-weight: 800;
+    }
+
+    [data-bs-theme="light"] .pos-action-group {
+        background: rgba(241, 245, 249, 0.9);
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    }
+    [data-bs-theme="light"] .pos-action-btn {
+        background: #ffffff;
+        color: #334155;
+        border: 1px solid rgba(203, 213, 225, 0.8);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    [data-bs-theme="light"] .pos-action-btn:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #94a3b8;
+    }
+    [data-bs-theme="light"] .pos-kbd {
+        background: #f1f5f9;
+        color: #475569;
+        border-color: #cbd5e1;
+    }
+    [data-bs-theme="light"] .pos-sugerencia-item:hover,
+    [data-bs-theme="light"] .pos-sugerencia-item.sugerencia-activa {
+        background: rgba(16, 185, 129, 0.12) !important;
+    }
+
+    /* Comprobante Térmico Digital (Para Ventas Finalizadas) */
+    .receipt-digital-card {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.1);
+    }
+
+    .receipt-divider-dashed {
+        border-top: 1px dashed rgba(255, 255, 255, 0.2);
+        margin: 1.25rem 0;
+    }
+
+    [data-bs-theme="light"] .receipt-divider-dashed {
+        border-top: 1px dashed rgba(0, 0, 0, 0.2);
+    }
 </style>
 
-<div class="min-h-screen bg-slate-50/50 pb-32 font-sans text-slate-800">
+<div class="container-fluid py-3 mx-auto" style="max-width: 1450px;">
 
-    <!-- 1. ENCABEZADO STICKY (Efecto Vidrio) -->
-    <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm transition-all">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center py-3 gap-4">
-                
-                <!-- Info Venta -->
-                <div class="flex items-center gap-4 w-full md:w-auto">
-                    <div class="relative group">
-                        <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000"></div>
-                        <div class="relative bg-slate-900 text-white p-2.5 rounded-xl shadow-sm">
-                            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
-                        </div>
+    <!-- BANNER DE PEDIDO EN LÍNEA / WEB (Si proviene del Catálogo Digital) -->
+    {% if venta.numero_factura and (venta.numero_factura.startswith('WEB-') or venta.estado == 'Pedido Web') %}
+    <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden" style="background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #0b1320 100%); color: white;">
+        <div class="card-body p-3.5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle p-2.5 text-white d-flex align-items-center justify-content-center flex-shrink-0" style="background: rgba(16, 185, 129, 0.25); width: 48px; height: 48px;">
+                    <i class="bi bi-cart-check-fill fs-4 text-success"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge rounded-pill bg-success text-white fw-bold px-2.5 py-1">🌱 PEDIDO EN LÍNEA • CATÁLOGO VIRTUAL</span>
+                        <strong class="font-monospace text-white fs-6">#{{ venta.numero_factura }}</strong>
+                        {% if venta.estado in ['Borrador', 'Pedido Web'] %}
+                        <span class="badge rounded-pill bg-warning text-dark fw-bold">Esperando Pago / En Caja</span>
+                        {% else %}
+                        <span class="badge rounded-pill bg-info text-dark fw-bold">Facturado en POS</span>
+                        {% endif %}
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h1 class="text-xl font-bold text-slate-800 tracking-tight">Venta <span class="font-mono text-blue-600">#{{ venta.numero_factura }}</span></h1>
-                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border
-                                {% if venta.estado == 'Borrador' %}bg-amber-50 text-amber-700 border-amber-200
-                                {% else %}bg-emerald-50 text-emerald-700 border-emerald-200{% endif %}">
-                                {{ venta.estado }}
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-3 text-sm text-slate-500 mt-0.5 font-medium">
-                            <span class="flex items-center gap-1.5">
-                                <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i> {{ venta.cliente.nombre }}
-                            </span>
-                            <span class="text-slate-300">|</span>
-                            <span class="flex items-center gap-1.5">
-                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i> {{ venta.fecha.strftime('%Y-%m-%d') }}
-                            </span>
-                            {% if venta.estado == 'Borrador' %}
-                            <button class="text-blue-600 hover:text-blue-800 transition-colors ml-2 bg-blue-50 p-1 rounded hover:bg-blue-100" onclick="toggleEditHeader()" title="Cambiar Cliente">
-                                <i data-lucide="user-cog" class="w-3.5 h-3.5"></i>
-                            </button>
-                            {% endif %}
-                        </div>
+                    <div class="small text-white-50 mt-1">
+                        <i class="bi bi-person me-1"></i><strong>Cliente:</strong> {{ venta.cliente.nombre }}
+                        {% if venta.cliente.telefono %}
+                        • <i class="bi bi-whatsapp text-success me-1"></i>
+                        {% set clean_tel = venta.cliente.telefono|replace(' ', '')|replace('+', '')|replace('-', '') %}
+                        <a href="https://api.whatsapp.com/send?phone={{ clean_tel }}&text=¡Hola%20{{ venta.cliente.nombre }}!%20Te%20contactamos%20de%20{{ (venta.empresa.nombre if venta.empresa else 'Vivero')|urlencode }}%20respecto%20a%20tu%20pedido%20{{ venta.numero_factura }}." 
+                           target="_blank" class="text-success text-decoration-none fw-bold">
+                           {{ venta.cliente.telefono }} [Abrir WhatsApp]
+                        </a>
+                        {% endif %}
+                        {% if venta.cliente.direccion %}
+                        • <i class="bi bi-geo-alt text-warning me-1"></i><strong>Entrega:</strong> {{ venta.cliente.direccion }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{{ url_for('ventas.lista_pedidos_web') }}" class="btn btn-outline-light btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5" style="border-color: rgba(255,255,255,0.3);">
+                    <i class="bi bi-arrow-left"></i> Volver a Pedidos Web
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 1. CABECERA EJECUTIVA DEL PUNTO DE VENTA (POS HERO) -->
+    <div class="pos-header-luxury mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 position-relative z-1">
+            <div>
+                <!-- BADGES SUPERIORES CON ALTO CONTRASTE GARANTIZADO -->
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <a href="{{ url_for('ventas.lista_ventas') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 extra-small fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Ver Historial de Ventas y Facturas">
+                        <i class="bi bi-clock-history text-info"></i> Historial de Ventas
+                    </a>
+                    <span class="text-white-50">•</span>
+
+                    <!-- Estado Semántico Nítido -->
+                    {% if venta.estado in ['Borrador', 'Pedido Web'] %}
+                    <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);">
+                        <i class="bi bi-pencil-fill me-1"></i> {% if venta.numero_factura and venta.numero_factura.startswith('WEB-') %}PEDIDO WEB EN CAJA{% else %}BORRADOR EN CAJA{% endif %}
+                    </span>
+                    {% else %}
+                    <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">
+                        <i class="bi bi-check-circle-fill me-1"></i> VENTA FINALIZADA
+                    </span>
+                    {% endif %}
+
+                    <!-- Número de Factura -->
+                    <span class="badge rounded-pill px-3 py-1.5 font-monospace fw-bold" style="background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.15);">
+                        #{{ venta.numero_factura }}
+                    </span>
+
+                    <!-- Sede / Empresa -->
+                    <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">
+                        <i class="bi bi-geo-alt-fill me-1"></i> {{ venta.empresa.nombre if venta.empresa else 'Vivero El Edén Forestal' }}
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <h2 class="fw-black text-white mb-0 font-monospace" style="letter-spacing: -1px; font-size: 1.85rem;">
+                        {% if venta.estado in ['Borrador', 'Pedido Web'] %}Terminal de Venta POS{% else %}Comprobante de Venta POS{% endif %}
+                    </h2>
+                    
+                    <!-- Badge del Cliente Activo -->
+                    <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-10 px-3 py-1.5 rounded-pill border border-white border-opacity-15 text-white shadow-sm" style="font-size: 0.85rem;" id="badgeClienteActivo">
+                        <i class="bi bi-person-circle text-info fs-6"></i>
+                        <span class="fw-bold" id="nombreClienteLabel">{{ venta.cliente.nombre }}</span>
+                        <small class="text-white-50 font-monospace" id="docClienteLabel">({{ venta.cliente.documento or 'Consumidor Final' }})</small>
+                        {% if venta.estado in ['Borrador', 'Pedido Web'] %}
+                        <button type="button" class="btn btn-sm btn-link text-info p-0 ms-1 text-decoration-none fw-bold" onclick="toggleEditHeader()" title="Cambiar Cliente (F4)">
+                            [Editar]
+                        </button>
+                        <button type="button" class="btn btn-sm btn-link text-success p-0 text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoClientePOS" title="Crear Cliente Rápido">
+                            [+ Nuevo]
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total y Acciones Primarias -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end me-2">
+                    <span class="small fw-bold text-white-50 text-uppercase d-block mb-0" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        {% if venta.estado in ['Borrador', 'Pedido Web'] %}Total a Cobrar{% else %}Total Cobrado{% endif %}
+                    </span>
+                    <h3 class="fw-black text-success font-monospace mb-0" id="totalVentaHero" style="font-size: 2.1rem; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);">
+                        ${{ "{:,.0f}".format(venta.total or 0) }}
+                    </h3>
+                </div>
+
+                {% if venta.estado in ['Borrador', 'Pedido Web'] %}
+                <div class="pos-action-group shadow-sm">
+                    <a href="{{ url_for('ventas.lista_ventas') }}" class="pos-action-btn text-decoration-none" title="Ver Historial de Ventas y Facturas">
+                        <i class="bi bi-clock-history text-info fs-6"></i>
+                        <span class="d-none d-sm-inline">Historial</span>
+                    </a>
+                    <button type="button" class="pos-action-btn" onclick="aparcarVenta()" title="Aparcar venta actual para atender a otro cliente (F8)">
+                        <i class="bi bi-pause-circle-fill text-warning fs-6"></i>
+                        <span class="d-none d-sm-inline">Aparcar</span>
+                        <kbd class="pos-kbd">F8</kbd>
+                    </button>
+                    <button type="button" class="pos-action-btn position-relative" onclick="abrirBorradores()" title="Ver ventas aparcadas en espera">
+                        <i class="bi bi-inboxes-fill text-info fs-6"></i>
+                        <span class="d-none d-sm-inline">En Espera</span>
+                        <span class="pos-badge-counter" id="badgeBorradores">0</span>
+                    </button>
+                    {% if venta.detalles %}
+                    <button type="button" class="pos-action-btn btn-cobrar-top" onclick="triggerCobroPOS()" title="Finalizar Venta (F9)">
+                        <i class="bi bi-lightning-charge-fill fs-6"></i>
+                        <span>Cobrar</span>
+                        <kbd class="pos-kbd">F9</kbd>
+                    </button>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('ventas.lista_ventas') }}"
+                       class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                       style="border-color: rgba(255,255,255,0.3);">
+                        <i class="bi bi-clock-history text-info"></i> Historial
+                    </a>
+                    <a href="{{ url_for('ventas.imprimir_ticket_venta', venta_id=venta.id) }}" target="_blank"
+                       class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                       style="border-color: rgba(255,255,255,0.3);">
+                        <i class="bi bi-printer-fill"></i> Tiquete Térmico
+                    </a>
+                    <a href="{{ url_for('ventas.descargar_factura_pdf', venta_id=venta.id) }}" target="_blank"
+                       class="btn btn-primary rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                       style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none;">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> Factura PDF
+                    </a>
+                    <a href="{{ url_for('ventas.nueva_venta') }}"
+                       class="btn btn-success rounded-pill px-4 py-2 fw-black shadow-lg d-flex align-items-center gap-2 border-0"
+                       style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="bi bi-plus-circle fs-5"></i> Nueva Venta (POS)
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL COLAPSABLE: CAMBIAR CLIENTE EXISTENTE (SOLO BORRADOR) -->
+    {% if venta.estado in ['Borrador', 'Pedido Web'] %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 d-none" id="editHeader" style="background-color: var(--bs-card-bg);">
+        <div class="card-body p-4">
+            <form action="{{ url_for('ventas.cambiar_cliente_venta', venta_id=venta.id) }}" method="POST" class="row g-3 align-items-end">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="col-md-7">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem;">Seleccionar Cliente Registrado</label>
+                    <select name="cliente_id" class="form-select border-0 bg-body-tertiary fw-bold text-body shadow-sm">
+                        {% for c in clientes %}
+                        <option value="{{ c.id }}" {% if c.id == venta.cliente_id %}selected{% endif %}>
+                            {{ c.nombre }} ({{ c.documento or 'Sin Doc' }} - {{ c.telefono or 'Sin Tel' }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Asignar Cliente</button>
+                    <button type="button" class="btn btn-success rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoClientePOS">
+                        <i class="bi bi-person-plus-fill me-1"></i> Crear Nuevo (F4)
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3 fw-bold" onclick="toggleEditHeader()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ============================================================== -->
+    <!-- CASO A: VENTA FINALIZADA (VISTA EJECUTIVA DE FACTURA / RECIBO) -->
+    <!-- ============================================================== -->
+    {% if venta.estado != 'Borrador' %}
+    <div class="row g-4 align-items-start">
+        <!-- Columna Izquierda: Vista Previa del Tiquete Térmico Digital -->
+        <div class="col-lg-7">
+            <div class="receipt-digital-card">
+                <!-- Encabezado del Tiquete -->
+                <div class="text-center mb-3">
+                    <h4 class="fw-black text-body font-monospace mb-1">
+                        {{ venta.empresa.nombre if venta.empresa else 'VIVERO EL EDÉN FORESTAL' }}
+                    </h4>
+                    <p class="text-secondary small mb-1 font-monospace">
+                        NIT: {{ venta.empresa.nit_rut if (venta.empresa and venta.empresa.nit_rut) else '901.842.190-4' }} • Régimen Simplificado Agropecuario
+                    </p>
+                    <p class="text-secondary small mb-0 font-monospace">
+                        {{ venta.empresa.direccion if (venta.empresa and venta.empresa.direccion) else 'Vía al Totumo Km 4, Ibagué - Tolima' }} • Tel: {{ venta.empresa.telefono or '315 076 5432' }}
+                    </p>
+                </div>
+
+                <div class="receipt-divider-dashed"></div>
+
+                <!-- Metadatos de la Factura -->
+                <div class="row g-2 font-monospace small mb-3">
+                    <div class="col-6">
+                        <span class="text-secondary d-block">COMPROBANTE:</span>
+                        <strong class="text-body fs-6">#{{ venta.numero_factura }}</strong>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="text-secondary d-block">FECHA & HORA:</span>
+                        <strong class="text-body">{{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <span class="text-secondary d-block">CLIENTE:</span>
+                        <strong class="text-body">{{ venta.cliente.nombre }}</strong>
+                        <small class="text-secondary d-block">NIT/CC: {{ venta.cliente.documento or 'Consumidor Final' }}</small>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="text-secondary d-block">MÉTODO DE PAGO:</span>
+                        <span class="badge rounded-pill px-2.5 py-1 fw-bold" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">
+                            {{ venta.metodo_pago or 'Efectivo' }}
+                        </span>
                     </div>
                 </div>
 
-                <!-- Totalizador -->
-                <div class="flex items-center gap-6 w-full md:w-auto justify-end border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6">
-                    <div class="text-right">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Total a Pagar</p>
-                        <p class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 font-mono tracking-tight tabular-nums">
-                            ${{ "{:,.0f}".format(venta.total) }}
-                        </p>
+                <div class="receipt-divider-dashed"></div>
+
+                <!-- Tabla de Artículos Vendidos -->
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm align-middle font-monospace mb-0" style="font-size: 0.88rem;">
+                        <thead>
+                            <tr class="text-secondary border-bottom">
+                                <th style="width: 50%;">DESCRIPCIÓN</th>
+                                <th class="text-center" style="width: 15%;">CANT</th>
+                                <th class="text-end" style="width: 15%;">UNIT</th>
+                                <th class="text-end" style="width: 20%;">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in venta.detalles %}
+                            <tr class="border-bottom border-secondary border-opacity-10">
+                                <td>
+                                    <div class="fw-bold text-body">
+                                        {% if d.lote_origen %}🌱 {{ d.lote_origen.especie.nombre_comun }}{% elif d.animal %}🐄 {{ d.animal.nombre or d.animal.codigo }}{% else %}📦 {{ d.insumo.nombre }}{% endif %}
+                                    </div>
+                                    <small class="text-secondary" style="font-size: 0.72rem;">
+                                        {% if d.lote_origen %}Lote: {{ d.lote_origen.codigo_lote }}{% elif d.animal %}Arete/ID: {{ d.animal.codigo }}{% else %}Ref: {{ d.insumo.codigo or 'Stock' }}{% endif %}
+                                    </small>
+                                </td>
+                                <td class="text-center fw-bold">{{ "{:g}".format(d.cantidad) }}</td>
+                                <td class="text-end text-secondary">${{ "{:,.0f}".format(d.precio_venta_unitario) }}</td>
+                                <td class="text-end fw-black text-body">${{ "{:,.0f}".format(d.subtotal) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="receipt-divider-dashed"></div>
+
+                <!-- Totales e Impuestos -->
+                <div class="row g-2 font-monospace mb-3">
+                    <div class="col-6 text-secondary small">Subtotal Neto:</div>
+                    <div class="col-6 text-end fw-bold text-body font-monospace">${{ "{:,.0f}".format(venta.total) }}</div>
+                    <div class="col-6 text-secondary small">IVA Agropecuario (0% Exento):</div>
+                    <div class="col-6 text-end text-secondary font-monospace">$0</div>
+                    <div class="col-6 fs-5 fw-black text-body pt-2 border-top">TOTAL PAGADO:</div>
+                    <div class="col-6 fs-4 fw-black text-success text-end pt-2 border-top font-monospace">${{ "{:,.0f}".format(venta.total) }}</div>
+                </div>
+
+                <!-- QR y Pie de Recibo -->
+                <div class="text-center pt-3 border-top text-secondary small font-monospace">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=FAC-{{ venta.numero_factura }}-TOTAL-{{ venta.total }}"
+                         alt="QR Comprobante" class="rounded-3 shadow-sm mb-2" style="width: 80px; height: 80px;">
+                    <p class="mb-1 fw-bold text-body">¡Gracias por sembrar vida y cosechar futuro con nosotros!</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.72rem;">Comprobante de Entrega Digital Oficial • EcoSistem ERP v5.0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Panel de Auditoría y Acciones Ejecutivas -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background-color: var(--bs-card-bg);">
+                <div class="text-center py-3 mb-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-4">
+                    <i class="bi bi-patch-check-fill text-success display-4 d-block mb-1"></i>
+                    <h5 class="fw-black text-success mb-1">Factura Liquidada con Éxito</h5>
+                    <span class="badge bg-success text-white rounded-pill px-3 py-1 font-monospace">
+                        COBRADO: ${{ "{:,.0f}".format(venta.total) }}
+                    </span>
+                </div>
+
+                <!-- Datos Clave de la Transacción -->
+                <div class="d-flex flex-column gap-2.5 mb-4">
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-secondary small fw-bold">Canal / Método:</span>
+                        <strong class="text-body font-monospace">{{ venta.metodo_pago }}</strong>
                     </div>
-                    {% if venta.estado == 'Borrador' and venta.detalles %}
-                    <form action="{{ url_for('main.finalizar_venta', venta_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Finalizar venta? Se descontará del inventario.');">
-                        <button type="submit" class="group relative inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-white transition-all duration-200 bg-emerald-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-200/50 active:scale-95">
-                            <span>Cobrar</span>
-                            <i data-lucide="banknote" class="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1"></i>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-secondary small fw-bold">Atendido por:</span>
+                        <strong class="text-body">{{ venta.usuario.nombre_completo if venta.usuario else 'Cajero Central' }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-secondary small fw-bold">Cliente Vinculado:</span>
+                        <strong class="text-body">{{ venta.cliente.nombre }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2">
+                        <span class="text-secondary small fw-bold">Artículos Entregados:</span>
+                        <strong class="text-body font-monospace">{{ venta.detalles|length }} producto(s)</strong>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción Inmediata (Estilo OPTICAL) -->
+                <div class="d-flex flex-column gap-2.5">
+                    <a href="{{ url_for('ventas.imprimir_ticket_venta', venta_id=venta.id) }}" target="_blank"
+                       class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 border-0"
+                       style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="bi bi-printer-fill fs-5"></i> Imprimir Tiquete Térmico (80mm)
+                    </a>
+
+                    {% set tel = venta.cliente.telefono or '' %}
+                    {% if tel %}
+                    <a href="https://wa.me/57{{ tel|replace(' ', '')|replace('-', '') }}?text=Hola%20{{ venta.cliente.nombre }},%20te%20compartimos%20tu%20comprobante%20de%20compra%20en%20Vivero%20El%20Ed%C3%A9n%20Forestal%20Factura%20%23{{ venta.numero_factura }}%20por%20un%20total%20de%20${{ '{:,.0f}'.format(venta.total) }}.%20%C2%A1Gracias%20por%20tu%20confianza!"
+                       target="_blank"
+                       class="btn btn-outline-success rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-whatsapp fs-5 text-success"></i> Compartir por WhatsApp al Cliente
+                    </a>
+                    {% endif %}
+
+                    <a href="{{ url_for('ventas.nueva_venta') }}"
+                       class="btn btn-primary rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                        <i class="bi bi-plus-circle fs-5"></i> Iniciar Otra Venta en Mostrador
+                    </a>
+
+                    <a href="{{ url_for('ventas.lista_ventas') }}"
+                       class="btn btn-outline-secondary rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-arrow-left"></i> Volver a la Lista de Ventas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- CASO B: VENTA EN BORRADOR (PUNTO DE VENTA ACTIVO / TOUCH POS)  -->
+    <!-- ============================================================== -->
+    {% else %}
+    <div class="row g-4 align-items-start">
+
+        <!-- COLUMNA IZQUIERDA: BUSCADOR HERO + PRODUCTOS EN VENTA (ESTILO OPTICAL) -->
+        <div class="col-lg-8 col-md-7">
+            
+            <!-- Barra de Búsqueda Rápida HERO con Atajos (Estilo OPTICAL) -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-3" style="background-color: var(--bs-card-bg);">
+                <form action="{{ url_for('ventas.agregar_item_venta', venta_id=venta.id) }}" method="POST" id="formPos" autocomplete="off" onsubmit="procesarEnvioBuscador(event)">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-7 position-relative">
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-0 text-success"><i class="bi bi-search fs-5"></i></span>
+                                <input type="text" id="buscador_unificado" name="busqueda"
+                                       class="form-control bg-body-tertiary border-0 fw-bold text-body shadow-sm"
+                                       placeholder="Buscar por nombre, código de barras o ref... (F2)" autofocus>
+                                <button type="button" class="btn btn-outline-success border-0 bg-body-tertiary d-flex align-items-center gap-1 px-3"
+                                        onclick="abrirEscanerCamaraPOS()" title="Escanear con Cámara Móvil / Tablet">
+                                    <i class="bi bi-camera-fill text-success"></i>
+                                    <span class="d-none d-sm-inline small fw-bold text-success">Cámara</span>
+                                </button>
+                            </div>
+                            <input type="hidden" name="insumo_id" id="insumo_id_seleccionado">
+                            <input type="hidden" name="lote_id" id="lote_id_seleccionado">
+                            <input type="hidden" name="animal_id" id="animal_id_seleccionado">
+                            <div id="sugerencias_lista" class="dropdown-sugerencias position-absolute w-100 mt-1 bg-body rounded-4 shadow-lg border border-secondary border-opacity-25 d-none" style="z-index: 2500;">
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 col-4">
+                            <input type="number" id="inputCantidad" name="cantidad" value="1" min="0.1" step="0.1" required
+                                   class="form-control bg-body-tertiary border-0 text-center fw-black text-body shadow-sm font-monospace"
+                                   placeholder="Cant." title="Cantidad a vender">
+                        </div>
+
+                        <div class="col-md-2 col-5">
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-0 text-muted px-2">$</span>
+                                <input type="number" id="precio_input" name="precio_unitario" step="0.01" placeholder="Precio"
+                                       class="form-control bg-body-tertiary border-0 text-end font-monospace fw-bold text-success shadow-sm"
+                                       title="Precio de venta unitario (Dejar vacío para usar precio de catálogo)">
+                            </div>
+                        </div>
+
+                        <div class="col-md-1 col-3">
+                            <button type="submit" class="btn btn-success rounded-pill w-100 py-2 d-flex align-items-center justify-content-center shadow-sm border-0"
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);" title="Agregar ítem al ticket (Enter)">
+                                <i class="bi bi-plus-lg fs-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Atajos Rápidos de Teclado POS (Estilo OPTICAL) -->
+                    <div class="d-none d-md-flex gap-2 flex-wrap mt-2 pt-2 border-top align-items-center">
+                        <span class="text-secondary small fw-bold me-1 d-flex align-items-center">
+                            <i class="bi bi-keyboard me-1"></i> Atajos:
+                        </span>
+                        <span class="badge bg-body-tertiary text-body border extra-small py-1 px-2 rounded-2">
+                            <strong class="text-success me-1">F2</strong> Buscar
+                        </span>
+                        <span class="badge bg-body-tertiary text-body border extra-small py-1 px-2 rounded-2">
+                            <strong class="text-info me-1">F4</strong> Cliente
+                        </span>
+                        <span class="badge bg-body-tertiary text-body border extra-small py-1 px-2 rounded-2">
+                            <strong class="text-warning me-1">F8</strong> Aparcar
+                        </span>
+                        <span class="badge bg-body-tertiary text-body border extra-small py-1 px-2 rounded-2">
+                            <strong class="text-success me-1">F9</strong> Cobrar
+                        </span>
+                        <span class="badge bg-body-tertiary text-body border extra-small py-1 px-2 rounded-2">
+                            <strong class="text-secondary me-1">ESC</strong> Limpiar
+                        </span>
+
+                        <div class="ms-auto d-flex align-items-center gap-3">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" name="es_caja" id="checkCaja" role="switch">
+                                <label class="form-check-label small fw-bold text-secondary" for="checkCaja" style="font-size: 0.72rem;">
+                                    Venta por Empaque/Caja
+                                </label>
+                            </div>
+                            <div id="divUnidadesCaja" class="d-none d-flex align-items-center gap-2 bg-body-tertiary rounded-pill px-2 py-0 border shadow-sm">
+                                <span class="small fw-bold text-secondary" style="font-size: 0.68rem;">Unds/Caja:</span>
+                                <input type="number" name="unidades_por_caja" value="1" min="1" class="form-control form-control-sm border-0 bg-transparent text-center fw-bold text-primary p-0" style="width: 45px;">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- PANEL PRINCIPAL: PRODUCTOS EN VENTA (CARRITO EN TIEMPO REAL) -->
+            <div class="card border-0 shadow-sm rounded-4 p-4" style="background-color: var(--bs-card-bg);">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cart-check-fill text-success fs-5"></i>
+                        <h5 class="fw-black text-body mb-0">Productos en Venta</h5>
+                        <span class="badge rounded-pill px-2.5 py-1 font-monospace" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);" id="badgeArticulosTicket">
+                            {{ venta.detalles|length }} Artículo(s)
+                        </span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-secondary extra-small font-monospace d-none d-sm-inline">Ticket Activo</span>
+                        {% if venta.detalles %}
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 extra-small fw-bold d-flex align-items-center gap-1 border-0"
+                                onclick="descartarVentaActual()" title="Vaciar carrito" style="background: rgba(239, 68, 68, 0.1); color: #f87171;">
+                            <i class="bi bi-trash"></i> Vaciar
                         </button>
-                    </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Lista de Ítems en el Carrito con Ajuste Rápido (+ / -), Descuento e IVA por Línea -->
+                <div id="listaItemsTicket" class="d-flex flex-column gap-2" style="min-height: 240px;">
+                    {% if venta.detalles %}
+                    {% for detalle in venta.detalles %}
+                    <div class="card border border-secondary border-opacity-15 rounded-4 p-3 shadow-none pos-item-row" id="fila-detalle-{{ detalle.id }}" data-id="{{ detalle.id }}" data-precio="{{ detalle.precio_venta_unitario }}" style="background: var(--bs-body-bg);">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2.5" style="min-width: 0; flex: 1;">
+                                <div class="rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width: 42px; height: 42px; background: {% if detalle.lote_origen %}rgba(16,185,129,0.12); color: #10b981;{% elif detalle.animal %}rgba(245,158,11,0.12); color: #f59e0b;{% else %}rgba(59,130,246,0.12); color: #3b82f6;{% endif %};">
+                                    <i class="bi {% if detalle.lote_origen %}bi-flower1{% elif detalle.animal %}bi-shield-check{% else %}bi-box-seam{% endif %} fs-5"></i>
+                                </div>
+                                <div style="min-width: 0; flex: 1;">
+                                    <h6 class="fw-bold text-body mb-0 text-truncate" style="font-size: 0.95rem;">
+                                        {% if detalle.lote_origen %}{{ detalle.lote_origen.especie.nombre_comun }}{% elif detalle.animal %}{{ detalle.animal.nombre or detalle.animal.codigo }}{% else %}{{ detalle.insumo.nombre }}{% endif %}
+                                    </h6>
+                                    <small class="text-secondary font-monospace" style="font-size: 0.75rem;">
+                                        {% if detalle.lote_origen %}Lote: {{ detalle.lote_origen.codigo_lote }}{% elif detalle.animal %}Arete/ID: {{ detalle.animal.codigo }}{% else %}Ref: {{ detalle.insumo.codigo or 'Stock Bodega' }}{% endif %}
+                                        • ${{ "{:,.0f}".format(detalle.precio_venta_unitario) }} c/u Base
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-3 ms-2 flex-shrink-0">
+                                <div class="text-end">
+                                    <span class="fw-black text-body d-block font-monospace" id="subtotal-label-{{ detalle.id }}" style="font-size: 1.05rem;">
+                                        ${{ "{:,.0f}".format(detalle.subtotal) }}
+                                    </span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0" onclick="eliminarFilaItemTicket({{ detalle.id }})" title="Eliminar del ticket">
+                                    <i class="bi bi-trash fs-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Barra Inferior de Ajustes: Stepper Cantidad, Descuento %, IVA % -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap pt-2 border-top border-secondary border-opacity-10">
+                            <!-- Stepper Cantidad -->
+                            <div class="d-inline-flex align-items-center bg-body-tertiary rounded-pill border px-2 py-1 shadow-sm">
+                                <button type="button" class="btn btn-sm btn-link text-body p-0 px-1 text-decoration-none fw-bold" onclick="cambiarCantidadTicket({{ detalle.id }}, -1)">
+                                    <i class="bi bi-dash fs-6"></i>
+                                </button>
+                                <span class="font-monospace fw-black px-2 small text-body" id="cant-label-{{ detalle.id }}" style="min-width: 28px; text-align: center;">
+                                    {{ "{:g}".format(detalle.cantidad) }}
+                                </span>
+                                <button type="button" class="btn btn-sm btn-link text-body p-0 px-1 text-decoration-none fw-bold" onclick="cambiarCantidadTicket({{ detalle.id }}, 1)">
+                                    <i class="bi bi-plus fs-6"></i>
+                                </button>
+                            </div>
+
+                            <!-- Descuento por Línea % -->
+                            <div class="d-flex align-items-center gap-1 bg-body-tertiary rounded-pill px-2.5 py-1 border shadow-sm" style="max-width: 140px;" title="Descuento en este producto">
+                                <span class="text-secondary fw-bold" style="font-size: 0.72rem;">Desc:</span>
+                                <input type="number" id="desc-input-{{ detalle.id }}" class="text-center p-0 border-0 text-warning fw-bold bg-transparent hide-spinners w-100 font-monospace"
+                                       value="{{ detalle.descuento_pct or 0 }}" min="0" max="100" step="1"
+                                       onchange="cambiarDescuentoLinea({{ detalle.id }}, this.value)"
+                                       style="font-size: 0.82rem; outline: none;">
+                                <span class="text-warning fw-bold" style="font-size: 0.72rem;">%</span>
+                            </div>
+
+                            <!-- IVA por Línea % -->
+                            <div class="d-flex align-items-center gap-1 bg-body-tertiary rounded-pill px-2.5 py-1 border shadow-sm" style="max-width: 130px;" title="IVA en este producto">
+                                <span class="text-secondary fw-bold" style="font-size: 0.72rem;">IVA:</span>
+                                <input type="number" id="iva-input-{{ detalle.id }}" class="text-center p-0 border-0 text-info fw-bold bg-transparent hide-spinners w-100 font-monospace"
+                                       value="{{ detalle.iva_pct or 0 }}" min="0" max="100" step="1"
+                                       onchange="cambiarIvaLinea({{ detalle.id }}, this.value)"
+                                       style="font-size: 0.82rem; outline: none;">
+                                <span class="text-info fw-bold" style="font-size: 0.72rem;">%</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Carrito Vacío (Estilo OPTICAL) -->
+                    <div id="emptyCartMessage" class="text-center py-5 my-auto text-secondary">
+                        <i class="bi bi-cart3 display-3 opacity-25 d-block mb-3"></i>
+                        <h5 class="fw-bold text-body">El carrito está vacío</h5>
+                        <p class="small mb-0 text-secondary">Escribe en el buscador superior o escanea un código de barras para agregar productos a la venta.</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Panel Cambio Cliente (Oculto) -->
-            <div class="hidden pb-4 border-t border-slate-100 transition-all duration-300" id="editHeader">
-                <form action="{{ url_for('main.cambiar_cliente_venta', venta_id=venta.id) }}" method="POST" class="flex flex-col md:flex-row gap-4 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200 items-end shadow-inner">
-                    <div class="flex-grow w-full">
-                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cliente</label>
-                        <select name="cliente_id" class="w-full text-sm p-2.5 rounded-lg border-slate-300 focus:ring-blue-500 focus:border-blue-500 bg-white">
+        </div>
+
+        <!-- COLUMNA DERECHA: CIERRE DE VENTA (FACTURACIÓN, DESCUENTOS Y COBRO - ESTILO OPTICAL) -->
+        <div class="col-lg-4 col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 20px; background-color: var(--bs-card-bg);">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h5 class="fw-black text-body mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-credit-card-2-front-fill text-success"></i> Cierre de Venta
+                    </h5>
+                    <span class="badge bg-body-tertiary text-secondary border extra-small px-2 py-1">
+                        <i class="bi bi-geo-alt-fill text-success me-1"></i>Sede Principal
+                    </span>
+                </div>
+
+                <form id="formCierrePOS" method="POST" action="{{ url_for('ventas.finalizar_venta', venta_id=venta.id) }}" onsubmit="procesarVentaPOS(event); return false;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Selector Inteligente de Cliente con Modal Rápido -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label text-secondary extra-small fw-bold text-uppercase mb-0">Cliente / Destinatario</label>
+                            <button type="button" class="btn btn-link btn-sm text-success p-0 text-decoration-none extra-small fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoClientePOS">
+                                + Nuevo Cliente
+                            </button>
+                        </div>
+                        <select name="cliente_id" id="clienteSelectPOS" class="form-select bg-body-tertiary border-0 fw-bold text-body shadow-sm" onchange="cambiarClienteSelect(this.value)">
                             {% for c in clientes %}
-                            <option value="{{ c.id }}" {% if c.id == venta.cliente_id %}selected{% endif %}>{{ c.nombre }} ({{ c.documento }})</option>
+                            <option value="{{ c.id }}" {% if c.id == venta.cliente_id %}selected{% endif %}>
+                                {{ c.nombre }} {% if c.documento %}({{ c.documento }}){% endif %}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="flex gap-2 w-full md:w-auto">
-                        <button type="submit" class="bg-blue-600 text-white border border-transparent px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 w-full md:w-auto shadow-sm">Guardar</button>
-                        <a href="{{ url_for('main.nuevo_cliente') }}" class="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-50 w-full md:w-auto text-center flex items-center justify-center gap-2">
-                            <i data-lucide="plus" class="w-3 h-3"></i> Nuevo
-                        </a>
+
+                    <!-- Asesor / Cajero -->
+                    <div class="mb-3">
+                        <label class="form-label text-secondary extra-small fw-bold text-uppercase mb-1">
+                            <i class="bi bi-person-check-fill text-success me-1"></i> Asesor / Cajero
+                        </label>
+                        <input type="text" class="form-control form-control-sm bg-body-tertiary border-0 text-body font-monospace fw-bold" readonly value="{{ current_user.nombre_completo or current_user.username }}">
+                    </div>
+
+                    <!-- Canal de Pago y Tipo de Venta -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label text-secondary extra-small fw-bold mb-1">Método de Pago</label>
+                            <select name="metodo_pago" id="metodoPagoPOS" class="form-select form-select-sm bg-body-tertiary border-0 fw-bold text-body" onchange="toggleMetodoPagoPOS()">
+                                <option value="Efectivo" selected>💵 Efectivo</option>
+                                <option value="Transferencia (Nequi / Daviplata)">📱 Nequi / DaviPlata</option>
+                                <option value="Transferencia Bancaria">🏦 Bancolombia / Transf.</option>
+                                <option value="Tarjeta Débito / Crédito">💳 Datáfono / Tarjeta</option>
+                                <option value="Mixto">🔀 Pago Mixto</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-secondary extra-small fw-bold mb-1">Tipo de Venta</label>
+                            <select name="tipo_venta" id="tipoVentaPOS" class="form-select form-select-sm bg-body-tertiary border-0 fw-bold text-body" onchange="toggleTipoVentaPOS()">
+                                <option value="Contado" selected>Contado</option>
+                                <option value="Credito">Crédito / Fiado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Panel Crédito / Fiado (Cartera CxC) -->
+                    <div id="panelCreditoPOS" class="p-2.5 mb-2.5 rounded-3 bg-body-tertiary border border-warning border-opacity-40 d-none">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-warning text-dark fw-bold extra-small">Crédito / Cartera</span>
+                            <span class="text-secondary extra-small">Vence en 30 días</span>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="extra-small text-secondary fw-bold mb-0.5">Abono Inicial ($)</label>
+                                <input type="number" name="abono_inicial" id="abonoInicialPOS" class="form-control form-control-sm font-monospace text-warning fw-bold text-end bg-body border-0" value="0" oninput="actualizarSaldoCreditoPOS()">
+                            </div>
+                            <div class="col-6">
+                                <label class="extra-small text-secondary fw-bold mb-0.5">Fecha Venc.</label>
+                                <input type="date" name="fecha_vencimiento" id="fechaVencimientoPOS" class="form-control form-control-sm bg-body border-0 text-body">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-1 border-top">
+                            <span class="extra-small fw-bold text-secondary">Saldo a Financiar:</span>
+                            <span class="text-danger small fw-bold font-monospace" id="labelSaldoCreditoPOS">$0</span>
+                        </div>
+                    </div>
+
+                    <!-- Panel Pago Mixto / Combinado -->
+                    <div id="panelPagoMixtoPOS" class="p-2.5 mb-2.5 rounded-3 bg-body-tertiary border border-info border-opacity-40 d-none">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-info text-dark fw-bold extra-small">Pago Mixto</span>
+                            <span id="labelDiferenciaMixto" class="fw-bold text-success font-monospace extra-small">Total Cubierto</span>
+                        </div>
+                        <div class="row g-1.5 mb-1.5">
+                            <div class="col-6">
+                                <select name="metodo_mixto_1" id="mixtoMetodo1" class="form-select form-select-sm bg-body border-0 fw-bold">
+                                    <option value="Efectivo" selected>Efectivo</option>
+                                    <option value="Tarjeta">Tarjeta</option>
+                                    <option value="Nequi">Nequi</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="monto_mixto_1" id="mixtoMonto1" class="form-control form-control-sm bg-body border-0 font-monospace fw-bold text-end" value="0" oninput="actualizarCalculoMixto()">
+                            </div>
+                        </div>
+                        <div class="row g-1.5">
+                            <div class="col-6">
+                                <select name="metodo_mixto_2" id="mixtoMetodo2" class="form-select form-select-sm bg-body border-0 fw-bold">
+                                    <option value="Nequi" selected>Nequi / DaviPlata</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                    <option value="Tarjeta">Tarjeta</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <input type="number" name="monto_mixto_2" id="mixtoMonto2" class="form-control form-control-sm bg-body border-0 font-monospace fw-bold text-end" value="0" oninput="actualizarCalculoMixto()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculadora de Cambio en Efectivo con Billetes Rápidos (Estilo OPTICAL) -->
+                    <div id="panelCalculadoraEfectivo" class="p-2.5 mb-2.5 rounded-3 bg-body-tertiary border border-success border-opacity-35">
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <label class="form-label text-success extra-small fw-bold mb-0 d-flex align-items-center gap-1">
+                                <i class="bi bi-cash-stack"></i> Paga con (Efectivo)
+                            </label>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-outline-secondary py-0 px-1.5 extra-small fw-bold" onclick="setBilleteRapido('exacto')">Exacto</button>
+                                <button type="button" class="btn btn-outline-success py-0 px-1.5 extra-small fw-bold" onclick="setBilleteRapido(20000)">$20k</button>
+                                <button type="button" class="btn btn-outline-success py-0 px-1.5 extra-small fw-bold" onclick="setBilleteRapido(50000)">$50k</button>
+                                <button type="button" class="btn btn-outline-success py-0 px-1.5 extra-small fw-bold" onclick="setBilleteRapido(100000)">$100k</button>
+                            </div>
+                        </div>
+                        <div class="row g-2 align-items-center">
+                            <div class="col-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-body border-0 text-success fw-bold">$</span>
+                                    <input type="number" id="pagaConPOS" class="form-control form-control-sm bg-body border-0 text-success fw-bold text-end font-monospace" placeholder="0" oninput="calcularCambioPOS()">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex justify-content-between align-items-center px-2 py-1 rounded bg-body border border-secondary border-opacity-15">
+                                    <span class="text-secondary extra-small fw-bold">Vueltas:</span>
+                                    <span class="fw-black text-success font-monospace" id="labelCambioDevuelta">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Checkboxes de Factura Electrónica, Mayorista e IVA Agropecuario (Estilo OPTICAL) -->
+                    <div class="d-flex gap-2 mb-2.5 flex-wrap">
+                        <label class="form-check form-check-inline m-0 p-1 px-2.5 rounded-pill bg-body-tertiary border border-secondary border-opacity-25 d-flex align-items-center gap-1.5 shadow-sm" style="cursor: pointer; user-select: none;">
+                            <input class="form-check-input m-0" type="checkbox" id="requiereFE" name="requiere_fe" style="width: 15px; height: 15px; cursor: pointer;">
+                            <span class="text-body extra-small fw-bold" style="font-size: 0.75rem;">
+                                📄 Factura Electrónica (DIAN)
+                            </span>
+                        </label>
+                        <label class="form-check form-check-inline m-0 p-1 px-2.5 rounded-pill bg-body-tertiary border border-secondary border-opacity-25 d-flex align-items-center gap-1.5 shadow-sm" style="cursor: pointer; user-select: none;">
+                            <input class="form-check-input m-0" type="checkbox" id="esMayorista" onchange="toggleMayoristaPOS()" style="width: 15px; height: 15px; cursor: pointer;">
+                            <span class="text-warning extra-small fw-bold" style="font-size: 0.75rem;">
+                                🏷 Mayorista
+                            </span>
+                        </label>
+                        <label class="form-check form-check-inline m-0 p-1 px-2.5 rounded-pill bg-body-tertiary border border-secondary border-opacity-25 d-flex align-items-center gap-1.5 shadow-sm" style="cursor: pointer; user-select: none;">
+                            <input class="form-check-input m-0" type="checkbox" id="aplicarIVA" onchange="toggleAplicarIVAPOS()" style="width: 15px; height: 15px; cursor: pointer;">
+                            <span class="text-info extra-small fw-bold" style="font-size: 0.75rem;">
+                                🧾 IVA (19%)
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Aplicador de Descuentos en Venta (Global - Estilo OPTICAL) -->
+                    <div class="mb-3 p-2 rounded bg-body-tertiary border border-warning border-opacity-30">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label text-warning extra-small fw-bold mb-0 d-flex align-items-center gap-1">
+                                <i class="bi bi-percent"></i> Descuento Global
+                            </label>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <input type="radio" class="btn-check" name="tipoDescuentoPOS" id="descMontoPOS" value="monto" checked onchange="actualizarDesgloseTotales()">
+                                    <label class="btn btn-outline-warning py-0 px-2 extra-small fw-bold" for="descMontoPOS">$</label>
+
+                                    <input type="radio" class="btn-check" name="tipoDescuentoPOS" id="descPctPOS" value="pct" onchange="actualizarDesgloseTotales()">
+                                    <label class="btn btn-outline-warning py-0 px-2 extra-small fw-bold" for="descPctPOS">%</label>
+                                </div>
+                                <div class="input-group input-group-sm" style="max-width: 110px;">
+                                    <span class="input-group-text bg-body text-warning border-0 fw-bold py-0 px-1" id="symbolDescuento">$</span>
+                                    <input type="number" id="valorDescuentoPOS" class="form-control form-control-sm bg-body border-0 text-warning fw-bold text-end font-monospace py-0 px-1" placeholder="0" value="0" min="0" oninput="actualizarDesgloseTotales()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen Financiero y Totales -->
+                    <div class="pt-2 border-top">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-secondary small">Subtotal Neto:</span>
+                            <span class="text-body small fw-bold font-monospace" id="subtotalLabel">$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1 text-warning d-none" id="rowDescuentoPOS">
+                            <span class="extra-small fw-bold">Descuento Global:</span>
+                            <span class="extra-small fw-bold font-monospace" id="descuentoLabelPOS">-$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1 text-info d-none" id="rowIvaPOS">
+                            <span class="extra-small fw-bold">Impuestos (IVA):</span>
+                            <span class="extra-small fw-bold font-monospace" id="ivaLabelPOS">$0</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center my-3 pt-2 border-top">
+                            <span class="fw-black text-body fs-5">TOTAL:</span>
+                            <span class="fw-black text-success font-monospace fs-2" id="totalCobrarTicket" style="text-shadow: 0 0 20px rgba(16, 185, 129, 0.45);">$0</span>
+                        </div>
+
+                        <!-- Botón Principal: Procesar Venta -->
+                        <button type="button" id="btnProcesarVenta" onclick="procesarVentaPOS(event)"
+                                class="btn btn-success btn-lg rounded-pill w-100 py-3 fs-5 fw-black shadow-lg hover-scale border-0 d-flex align-items-center justify-content-center gap-2"
+                                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="bi bi-check-circle-fill fs-4"></i> PROCESAR VENTA (F9)
+                        </button>
+
+                        <div class="text-center mt-2.5">
+                            <button type="button" class="btn btn-link text-danger text-decoration-none small p-0" onclick="descartarVentaActual()">
+                                <i class="bi bi-trash me-1"></i> Descartar Venta
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
+
     </div>
+    {% endif %}
 
-    <!-- 2. ÁREA DE TRABAJO -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
-        
-        <!-- BARRA DE POS (SOLO EN BORRADOR) -->
-        {% if venta.estado == 'Borrador' %}
-        <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-1.5 relative z-50 fade-enter">
-            
-            <form action="{{ url_for('main.agregar_item_venta', venta_id=venta.id) }}" method="POST" id="formPos" autocomplete="off">
-                <div class="flex flex-col md:flex-row gap-2 items-center">
-                    
-                    <!-- BUSCADOR UNIFICADO INTELIGENTE -->
-                    <div class="relative flex-grow w-full group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors" id="searchIcon">
-                            <i data-lucide="search" class="w-5 h-5"></i>
+</div>
+
+<!-- MODAL 1: DATOS FALTANTES FACTURACIÓN ELECTRÓNICA (DIAN / AGRO - ESTILO OPTICAL) -->
+<div class="modal fade" id="modalDatosFE" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: var(--bs-body-bg);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-text-fill text-warning"></i> Datos para Facturación Electrónica (DIAN)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCompletarFE" onsubmit="guardarYContinuarFE(event)">
+                <input type="hidden" id="fe_cliente_id">
+                <div class="modal-body p-4">
+                    <p class="text-secondary small mb-3">
+                        El cliente <strong id="fe_cliente_nombre_display" class="text-body"></strong> requiere completar los siguientes datos obligatorios para emitir la <b>Factura Electrónica</b>:
+                    </p>
+                    <div class="row g-2 mb-3">
+                        <div class="col-5">
+                            <label class="form-label extra-small fw-bold text-secondary text-uppercase mb-1">Tipo Doc.</label>
+                            <select id="fe_tipo_documento" class="form-select form-select-sm bg-body-tertiary border-0 fw-bold">
+                                <option value="CC" selected>Cédula (CC)</option>
+                                <option value="NIT">NIT Empresa</option>
+                                <option value="CE">Cédula Extr. (CE)</option>
+                                <option value="PP">Pasaporte</option>
+                            </select>
                         </div>
-                        <input type="text" id="buscador_unificado" name="busqueda" 
-                               class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-transparent rounded-xl text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-base font-bold transition-all shadow-inner focus:shadow-none"
-                               placeholder="Buscar mercancía o cosecha..." autofocus>
-                        
-                        <!-- Campos Ocultos Dinámicos -->
-                        <input type="hidden" name="insumo_id" id="insumo_id_seleccionado">
-                        <input type="hidden" name="lote_id" id="lote_id_seleccionado">
-                        
-                        <!-- Lista Sugerencias -->
-                        <div id="sugerencias_lista" class="dropdown-sugerencias absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden hidden max-h-[400px] overflow-y-auto"></div>
+                        <div class="col-7">
+                            <label class="form-label extra-small fw-bold text-secondary text-uppercase mb-1">Número Documento / NIT *</label>
+                            <input type="text" id="fe_documento" class="form-control form-control-sm bg-body-tertiary border-0 font-monospace fw-bold" required>
+                        </div>
                     </div>
-
-                    <!-- MARGEN % -->
-                    <div class="w-full md:w-20 relative group" title="Margen de Ganancia Sugerido">
-                        <span class="absolute top-1 left-2 text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10 group-focus-within:text-blue-500">% Gan.</span>
-                        <input type="number" id="inputMargen" value="30" min="0" step="1"
-                               class="block w-full pt-5 pb-1.5 px-2 bg-slate-50 border-transparent rounded-xl text-slate-600 text-center font-bold text-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner focus:shadow-none">
+                    <div class="mb-3">
+                        <label class="form-label extra-small fw-bold text-secondary text-uppercase mb-1">Correo Electrónico (Envío Factura XML/PDF) *</label>
+                        <input type="email" id="fe_email" class="form-control form-control-sm bg-body-tertiary border-0 fw-bold" placeholder="cliente@ejemplo.com" required>
                     </div>
-
-                    <!-- Precio (Calculado) -->
-                    <div class="w-full md:w-36 relative group">
-                        <span class="absolute top-1 left-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10 group-focus-within:text-blue-500">Precio ($)</span>
-                        <input type="number" id="precio_input" name="precio_unitario" step="0.01" placeholder="0.00" required
-                               class="block w-full pt-5 pb-1.5 px-3 bg-slate-50 border-transparent rounded-xl text-slate-900 text-right font-bold text-lg font-mono focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner focus:shadow-none">
+                    <div class="row g-2 mb-2">
+                        <div class="col-7">
+                            <label class="form-label extra-small fw-bold text-secondary text-uppercase mb-1">Dirección / Finca *</label>
+                            <input type="text" id="fe_direccion" class="form-control form-control-sm bg-body-tertiary border-0" placeholder="Ej. Vereda La Florida Km 2" required>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label extra-small fw-bold text-secondary text-uppercase mb-1">Municipio / Ciudad *</label>
+                            <input type="text" id="fe_ciudad" class="form-control form-control-sm bg-body-tertiary border-0" placeholder="Ej. Ibagué" required>
+                        </div>
                     </div>
-
-                    <!-- Cantidad -->
-                    <div class="w-full md:w-24 relative group">
-                        <span class="absolute top-1 left-3 text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10 group-focus-within:text-blue-500">Cant.</span>
-                        <input type="number" id="inputCantidad" name="cantidad" value="1" min="0.1" step="0.1" required
-                               class="block w-full pt-5 pb-1.5 px-3 bg-slate-50 border-transparent rounded-xl text-slate-900 text-center font-bold text-lg focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner focus:shadow-none">
-                    </div>
-
-                    <!-- Botón Agregar -->
-                    <button type="submit" class="w-full md:w-auto h-[58px] px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg shadow-slate-300/50 transition-all flex items-center justify-center gap-2 active:scale-95 group">
-                        <span class="hidden md:inline">Agregar</span>
-                        <i data-lucide="plus" class="w-6 h-6 group-hover:rotate-90 transition-transform"></i>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4 justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm border-0">
+                        <i class="bi bi-check-lg me-1"></i> Guardar y Emitir
                     </button>
                 </div>
-                
-                <!-- Opciones Extra -->
-                <div class="mt-2 px-2 flex items-center gap-4">
-                    <label class="inline-flex items-center cursor-pointer group">
-                        <input type="checkbox" name="es_caja" id="checkCaja" class="form-checkbox h-4 w-4 text-blue-500 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 focus:ring-offset-0">
-                        <span class="ml-2 text-xs font-bold text-slate-500 group-hover:text-blue-600 transition-colors uppercase tracking-wide select-none">Venta por Caja</span>
-                    </label>
-                    <div id="divUnidadesCaja" class="hidden animate-fade-in-right flex items-center gap-2 bg-slate-100 rounded-lg px-2 py-1 border border-slate-200">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase">Unds:</span>
-                        <input type="number" name="unidades_por_caja" value="1" class="w-12 bg-transparent border-0 border-b border-slate-300 p-0 text-center text-xs font-bold focus:ring-0 focus:border-blue-500 outline-none">
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: CREACIÓN RÁPIDA DE CLIENTE EN CALIENTE (ESTILO OPTICAL) -->
+<div class="modal fade" id="modalNuevoClientePOS" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: var(--bs-body-bg);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                    <i class="bi bi-person-plus-fill text-success"></i> Crear Cliente Instantáneo (POS)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formClienteRapidoPOS" onsubmit="guardarClienteRapidoPOS(event)">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1">Nombre Completo o Empresa *</label>
+                        <input type="text" id="cliRapidoNombre" class="form-control bg-body-tertiary border-0 fw-bold text-body" placeholder="Ej. Juan Pérez / Hacienda El Paraíso" required>
                     </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary text-uppercase mb-1">Cédula / NIT</label>
+                            <input type="text" id="cliRapidoDoc" class="form-control bg-body-tertiary border-0 font-monospace text-body" placeholder="Ej. 1085234900">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary text-uppercase mb-1">Celular / WhatsApp</label>
+                            <input type="tel" id="cliRapidoTel" class="form-control bg-body-tertiary border-0 font-monospace text-body" placeholder="Ej. 3124567890">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary text-uppercase mb-1">Dirección / Finca</label>
+                        <input type="text" id="cliRapidoDir" class="form-control bg-body-tertiary border-0 text-body" placeholder="Ej. Km 4 Vía al Mar">
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4 justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold border-0 shadow-sm" style="background: #10b981;">
+                        <i class="bi bi-check-lg me-1"></i> Guardar y Asignar
+                    </button>
                 </div>
             </form>
         </div>
-        {% endif %}
+    </div>
+</div>
 
-        <!-- TABLA DE ITEMS (CARRITO) -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden relative z-0 fade-enter" style="animation-delay: 0.1s;">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-bold">
-                        <tr>
-                            <th class="px-6 py-4">Descripción</th>
-                            <th class="px-6 py-4 text-center w-32">Cant.</th>
-                            <th class="px-6 py-4 text-right w-40">Precio Unit.</th>
-                            <th class="px-6 py-4 text-right w-40">Subtotal</th>
-                            {% if venta.estado == 'Borrador' %}
-                            <th class="px-4 py-4 w-12"></th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 bg-white">
-                        {% for detalle in venta.detalles %}
-                        <tr class="hover:bg-slate-50 transition-colors group">
-                            <td class="px-6 py-4">
-                                <div class="flex items-start gap-4">
-                                    <div class="mt-1 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 
-                                        {% if detalle.lote_origen %}bg-green-50 text-green-600 border border-green-100{% else %}bg-blue-50 text-blue-600 border border-blue-100{% endif %}">
-                                        <i data-lucide="{{ 'wheat' if detalle.lote_origen else 'package' }}" class="w-4 h-4"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-slate-800 text-sm group-hover:text-blue-700 transition-colors">
-                                            <!-- CORRECCIÓN AQUÍ: Usamos detalle.lote_origen para acceder a los datos del lote -->
-                                            {% if detalle.lote_origen %}{{ detalle.lote_origen.especie.nombre_comun }}{% else %}{{ detalle.insumo.nombre }}{% endif %}
-                                        </p>
-                                        <div class="flex items-center gap-2 mt-1">
-                                            {% if detalle.lote_origen %}
-                                                <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">Lote: {{ detalle.lote_origen.codigo_lote }}</span>
-                                            {% else %}
-                                                <span class="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ detalle.insumo.codigo or 'S/C' }}</span>
-                                            {% endif %}
-                                            
-                                            {% if detalle.ganancia %}
-                                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border 
-                                                {% if detalle.ganancia > 0 %}text-emerald-600 bg-emerald-50 border-emerald-100{% else %}text-red-500 bg-red-50 border-red-100{% endif %}">
-                                                {{ 'Ganancia' if detalle.ganancia > 0 else 'Pérdida' }}
-                                            </span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            
-                            <td class="px-6 py-4 text-center">
-                                {% if venta.estado == 'Borrador' %}
-                                <form action="{{ url_for('main.actualizar_item_venta', detalle_id=detalle.id) }}" method="POST">
-                                    <input type="number" name="cantidad" value="{{ detalle.cantidad }}" 
-                                           class="w-full text-center font-bold text-sm text-slate-700 input-ghost py-1 rounded" 
-                                           min="0.1" step="0.1" onchange="this.form.submit()">
-                                </form>
-                                {% else %}
-                                    <span class="font-bold text-slate-700 text-sm">{{ detalle.cantidad }}</span>
-                                {% endif %}
-                            </td>
-
-                            <td class="px-6 py-4 text-right">
-                                <span class="font-mono text-sm text-slate-600">${{ "{:,.0f}".format(detalle.precio_venta_unitario) }}</span>
-                            </td>
-                            
-                            <td class="px-6 py-4 text-right">
-                                <span class="font-bold text-slate-900 text-sm font-mono tracking-tight">${{ "{:,.0f}".format(detalle.subtotal) }}</span>
-                            </td>
-                            
-                            {% if venta.estado == 'Borrador' %}
-                            <td class="px-4 py-4 text-right">
-                                <form action="{{ url_for('main.eliminar_item_venta', detalle_id=detalle.id) }}" method="POST"> 
-                                    <button type="submit" class="text-slate-300 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 opacity-0 group-hover:opacity-100" title="Eliminar">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    </button>
-                                </form>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="px-6 py-24 text-center text-slate-400">
-                                <i data-lucide="shopping-bag" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
-                                <p class="font-medium text-slate-500">Carrito vacío.</p>
-                                <p class="text-xs text-slate-400 mt-1">Busca productos arriba para comenzar.</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot class="bg-slate-50/50 border-t border-slate-200">
-                        <tr>
-                            <td colspan="{{ '3' if venta.estado != 'Borrador' else '3' }}" class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Total</td>
-                            <td class="px-6 py-4 text-right">
-                                <span class="text-2xl font-black text-slate-800 font-mono tracking-tighter">${{ "{:,.0f}".format(venta.total) }}</span>
-                            </td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+<!-- MODAL 3: ESCÁNER DE CÁMARA MÓVIL / TABLET CON LÁSER ANIMADO (ESTILO OPTICAL) -->
+<div class="modal fade" id="modalCamaraPOS" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg text-center" style="background-color: var(--bs-body-bg);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                    <i class="bi bi-camera text-success"></i> Escáner Láser de Cámara
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="detenerCamaraLive()"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="position-relative bg-dark rounded-4 overflow-hidden mb-3" style="height: 280px;" id="lectorCamaraLive">
+                    <div class="scanner-laser-line"></div>
+                    <video id="videoScannerPOS" playsinline autoplay class="w-100 h-100"></video>
+                    <div class="position-absolute bottom-0 start-0 w-100 p-2 text-white bg-dark bg-opacity-75 small">
+                        Apunta la cámara al código de barras o QR de la planta/insumo
+                    </div>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="inputCodigoManualModal" class="form-control bg-body-tertiary border-0 fw-bold font-monospace" placeholder="O ingresa código manualmente...">
+                    <button type="button" class="btn btn-success fw-bold" onclick="procesarCodigoManual()">Ingresar</button>
+                </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Botones Finales -->
-        <div class="flex justify-between items-center pt-2 mb-8">
-            <a href="{{ url_for('main.lista_ventas') }}" class="text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center gap-2 px-4 py-2 hover:bg-white rounded-lg transition-colors">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a Ventas
-            </a>
-            
-            {% if venta.estado == 'Borrador' %}
-            <form action="{{ url_for('main.cancelar_venta_ruta', pedido_id=venta.id) }}" method="POST" onsubmit="return confirm('¿Anular venta?');"> 
-                <button type="submit" class="text-red-500 hover:text-red-700 font-bold text-xs uppercase tracking-wider px-4 py-2 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2">
-                    <i data-lucide="trash" class="w-3.5 h-3.5"></i> Anular Venta
-                </button>
-            </form>
-            {% endif %}
+<!-- MODAL 4: VENTAS APARCADAS EN ESPERA (ESTILO OPTICAL) -->
+<div class="modal fade" id="modalBorradoresPOS" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: var(--bs-body-bg);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                    <i class="bi bi-pause-circle text-warning"></i> Ventas Aparcadas en Espera
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="listaVentasAparcadas" class="d-flex flex-column gap-2">
+                    <!-- Rellenado por JS -->
+                </div>
+            </div>
         </div>
+    </div>
+</div>
 
+<!-- MODAL 5: VENTA FINALIZADA (PREGUNTA: IMPRIMIR O SEGUIR CON OTRA VENTA) -->
+<div class="modal fade" id="modalVentaFinalizada" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+        <div class="modal-content rounded-4 border-0 shadow-lg p-2" style="background-color: var(--bs-body-bg);">
+            <div class="modal-body text-center p-4">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width: 76px; height: 76px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 2px solid rgba(16, 185, 129, 0.3); box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);">
+                    <i class="bi bi-check-lg" style="font-size: 3rem;"></i>
+                </div>
+
+                <h4 class="fw-black text-body mb-1">¡Venta Finalizada con Éxito!</h4>
+                <p class="text-secondary small mb-3">
+                    Comprobante <strong class="text-success font-monospace" id="modalFacturaNum">#FAC-XXXXX</strong>
+                </p>
+
+                <!-- Resumen de Pago -->
+                <div class="p-3 rounded-4 bg-body-tertiary border mb-4 text-start">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-secondary small fw-bold">Total Cobrado:</span>
+                        <span class="fs-4 fw-black text-success font-monospace" id="modalTotalCobrado">$0</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-secondary extra-small">Canal de Pago:</span>
+                        <span class="extra-small fw-bold text-body" id="modalMetodoPago">Efectivo</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center d-none" id="modalRowCambio">
+                        <span class="text-secondary extra-small">Cambio / Vueltas:</span>
+                        <span class="extra-small fw-bold text-warning font-monospace" id="modalCambioDevuelta">$0</span>
+                    </div>
+                </div>
+
+                <p class="fw-bold text-body mb-3" style="font-size: 0.95rem;">
+                    ¿Deseas imprimir el comprobante o continuar con otra venta?
+                </p>
+
+                <!-- Botones de Acción -->
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success btn-lg rounded-pill fw-black py-2.5 shadow-sm d-flex align-items-center justify-content-center gap-2 border-0"
+                            id="btnModalImprimir" onclick="accionModalImprimir()"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="bi bi-printer-fill fs-5"></i> Imprimir Tiquete y Continuar
+                    </button>
+                    
+                    <button type="button" class="btn btn-primary btn-lg rounded-pill fw-bold py-2.5 shadow-sm d-flex align-items-center justify-content-center gap-2 border-0"
+                            id="btnModalNuevaVenta" onclick="accionModalNuevaVenta()"
+                            style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                        <i class="bi bi-arrow-right-circle-fill fs-5"></i> Seguir en Otra Venta (Sin Imprimir)
+                    </button>
+
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none py-1 extra-small fw-bold mt-1"
+                            onclick="accionModalVerVenta()">
+                        <i class="bi bi-eye me-1"></i> Ver comprobante de esta venta
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    lucide.createIcons();
+    let totalVenta = {{ venta.total or 0 }};
+    let subtotalVenta = {{ venta.subtotal or 0 }};
+    const ventaIdActual = {{ venta.id }};
+    const esBorrador = {{ 'true' if venta.estado in ['Borrador', 'Pedido Web'] else 'false' }};
+    const csrfToken = '{{ csrf_token() }}';
+    let streamCamaraActivo = null;
 
-    function toggleEditHeader() {
-        document.getElementById('editHeader').classList.toggle('hidden');
+    // 1. Sintetizador de Sonido POS (Web Audio API - Estilo Supermercado / OPTICAL)
+    function reproducirBeepPOS() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(920, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.09);
+        } catch (e) {
+            console.log('Audio POS no habilitado', e);
+        }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    // 2. Desglose Dinámico de Totales, Descuentos e Impuestos (Estilo OPTICAL)
+    function actualizarDesgloseTotales() {
+        let subtotalNeto = 0;
+        let totalDescuentoLineas = 0;
+        let totalIvaLineas = 0;
+        const rows = document.querySelectorAll('.pos-item-row');
+
+        rows.forEach(row => {
+            const id = row.getAttribute('data-id');
+            const precioBase = parseFloat(row.getAttribute('data-precio')) || 0;
+            const cantEl = document.getElementById(`cant-label-${id}`);
+            const cant = parseFloat(cantEl ? cantEl.textContent.trim() : 0) || 0;
+            const descEl = document.getElementById(`desc-input-${id}`);
+            const descPct = parseFloat(descEl ? descEl.value : 0) || 0;
+            const ivaEl = document.getElementById(`iva-input-${id}`);
+            const ivaPct = parseFloat(ivaEl ? ivaEl.value : 0) || 0;
+
+            const baseLineaBruta = cant * precioBase;
+            const montoDescLinea = baseLineaBruta * (descPct / 100);
+            const baseConDesc = baseLineaBruta - montoDescLinea;
+            const montoIvaLinea = baseConDesc * (ivaPct / 100);
+            const subtotalLinea = baseConDesc + montoIvaLinea;
+
+            subtotalNeto += baseLineaBruta;
+            totalDescuentoLineas += montoDescLinea;
+            totalIvaLineas += montoIvaLinea;
+
+            const lblSub = document.getElementById(`subtotal-label-${id}`);
+            if (lblSub) lblSub.textContent = `$${Math.round(subtotalLinea).toLocaleString()}`;
+        });
+
+        // Descuento Global
+        const isPct = document.getElementById('descPctPOS') && document.getElementById('descPctPOS').checked;
+        const inputValDesc = document.getElementById('valorDescuentoPOS');
+        const valorDescRaw = parseFloat(inputValDesc ? inputValDesc.value : 0) || 0;
+        const symbolDesc = document.getElementById('symbolDescuento');
+        if (symbolDesc) symbolDesc.textContent = isPct ? '%' : '$';
+
+        let descuentoGlobalVal = 0;
+        if (isPct) {
+            descuentoGlobalVal = (subtotalNeto * Math.min(100, Math.max(0, valorDescRaw))) / 100;
+        } else {
+            descuentoGlobalVal = Math.min(subtotalNeto, Math.max(0, valorDescRaw));
+        }
+
+        const descuentoTotal = totalDescuentoLineas + descuentoGlobalVal;
+        totalVenta = Math.max(0, (subtotalNeto - descuentoTotal) + totalIvaLineas);
+
+        // Actualizar etiquetas en el DOM
+        const subtotalLbl = document.getElementById('subtotalLabel');
+        if (subtotalLbl) subtotalLbl.textContent = `$${Math.round(subtotalNeto).toLocaleString()}`;
+
+        const descLbl = document.getElementById('descuentoLabelPOS');
+        const rowDesc = document.getElementById('rowDescuentoPOS');
+        if (descLbl && rowDesc) {
+            descLbl.textContent = `-$${Math.round(descuentoTotal).toLocaleString()}`;
+            rowDesc.classList.toggle('d-none', descuentoTotal <= 0);
+        }
+
+        const ivaLbl = document.getElementById('ivaLabelPOS');
+        const rowIva = document.getElementById('rowIvaPOS');
+        if (ivaLbl && rowIva) {
+            ivaLbl.textContent = `$${Math.round(totalIvaLineas).toLocaleString()}`;
+            rowIva.classList.toggle('d-none', totalIvaLineas <= 0);
+        }
+
+        const totalTicketLbl = document.getElementById('totalCobrarTicket');
+        if (totalTicketLbl) totalTicketLbl.textContent = `$${Math.round(totalVenta).toLocaleString()}`;
+
+        const totalHeroLbl = document.getElementById('totalVentaHero');
+        if (totalHeroLbl) totalHeroLbl.textContent = `$${Math.round(totalVenta).toLocaleString()}`;
+
+        const badgeArt = document.getElementById('badgeArticulosTicket');
+        if (badgeArt) badgeArt.textContent = `${rows.length} Artículo(s)`;
+
+        // Recalcular componentes dependientes
+        calcularCambioPOS();
+        actualizarSaldoCreditoPOS();
+        actualizarCalculoMixto();
+    }
+
+    // 3. Ajuste Rápido de Cantidad Directamente en el Ticket (+ / -)
+    function cambiarCantidadTicket(detalleId, delta) {
+        reproducirBeepPOS();
+        fetch(`{{ url_for('ventas.actualizar_item_venta', detalle_id=0) }}`.replace('0', detalleId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ delta: delta })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (data.action === 'deleted') {
+                    const fila = document.getElementById(`fila-detalle-${detalleId}`);
+                    if (fila) fila.remove();
+                    verificarCarritoVacio();
+                } else if (data.action === 'updated') {
+                    const cantLabel = document.getElementById(`cant-label-${detalleId}`);
+                    if (cantLabel) cantLabel.textContent = data.cantidad;
+                }
+                actualizarDesgloseTotales();
+            } else {
+                alert(data.message || 'Error al actualizar cantidad');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            window.location.reload();
+        });
+    }
+
+    // 4. Modificación de Descuento e IVA por Línea
+    function cambiarDescuentoLinea(detalleId, pct) {
+        pct = Math.max(0, Math.min(100, parseFloat(pct) || 0));
+        fetch(`{{ url_for('ventas.actualizar_item_venta', detalle_id=0) }}`.replace('0', detalleId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ descuento_pct: pct })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                actualizarDesgloseTotales();
+            } else {
+                alert(data.message || 'Error al aplicar descuento');
+            }
+        })
+        .catch(console.error);
+    }
+
+    function cambiarIvaLinea(detalleId, pct) {
+        pct = Math.max(0, Math.min(100, parseFloat(pct) || 0));
+        fetch(`{{ url_for('ventas.actualizar_item_venta', detalle_id=0) }}`.replace('0', detalleId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ iva_pct: pct })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                actualizarDesgloseTotales();
+            } else {
+                alert(data.message || 'Error al aplicar IVA');
+            }
+        })
+        .catch(console.error);
+    }
+
+    // 5. Eliminación de Ítem del Carrito
+    function eliminarFilaItemTicket(detalleId) {
+        reproducirBeepPOS();
+        fetch(`{{ url_for('ventas.eliminar_item_venta', detalle_id=0) }}`.replace('0', detalleId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ csrf_token: csrfToken })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const fila = document.getElementById(`fila-detalle-${detalleId}`);
+                if (fila) fila.remove();
+                verificarCarritoVacio();
+                actualizarDesgloseTotales();
+            } else {
+                alert(data.message || 'Error al eliminar artículo');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            window.location.reload();
+        });
+    }
+
+    function verificarCarritoVacio() {
+        const cont = document.getElementById('listaItemsTicket');
+        if (!cont) return;
+        const rows = cont.querySelectorAll('.pos-item-row');
+        if (rows.length === 0) {
+            cont.innerHTML = `
+                <div id="emptyCartMessage" class="text-center py-5 my-auto text-secondary">
+                    <i class="bi bi-cart3 display-3 opacity-25 d-block mb-3"></i>
+                    <h5 class="fw-bold text-body">El carrito está vacío</h5>
+                    <p class="small mb-0 text-secondary">Escribe en el buscador superior o escanea un código de barras para agregar productos a la venta.</p>
+                </div>
+            `;
+        }
+    }
+
+    // 6. Calculadora de Cambio en Efectivo y Billetes Rápidos (Estilo OPTICAL)
+    function setBilleteRapido(monto) {
+        const inputPagaCon = document.getElementById('pagaConPOS');
+        if (!inputPagaCon) return;
+
+        if (monto === 'exacto') {
+            inputPagaCon.value = Math.round(totalVenta);
+        } else {
+            inputPagaCon.value = Math.round(monto);
+        }
+        calcularCambioPOS();
+        reproducirBeepPOS();
+    }
+
+    function calcularCambioPOS() {
+        const inputPagaCon = document.getElementById('pagaConPOS');
+        const labelCambio = document.getElementById('labelCambioDevuelta');
+        if (!inputPagaCon || !labelCambio) return;
+
+        const pagaCon = parseFloat(inputPagaCon.value) || 0;
+        const cambio = pagaCon - totalVenta;
+
+        if (pagaCon === 0) {
+            labelCambio.textContent = "$0";
+            labelCambio.className = "fw-black text-secondary font-monospace";
+        } else if (cambio < 0) {
+            labelCambio.textContent = `Faltan $${Math.abs(Math.round(cambio)).toLocaleString()}`;
+            labelCambio.className = "fw-black text-danger font-monospace";
+        } else {
+            labelCambio.textContent = `$${Math.round(cambio).toLocaleString()}`;
+            labelCambio.className = "fw-black text-success font-monospace";
+        }
+    }
+
+    // 7. Métodos de Pago, Crédito y Pago Mixto
+    function toggleMetodoPagoPOS() {
+        const metodo = document.getElementById('metodoPagoPOS').value;
+        const panelEfectivo = document.getElementById('panelCalculadoraEfectivo');
+        const panelMixto = document.getElementById('panelPagoMixtoPOS');
+
+        if (panelEfectivo) panelEfectivo.classList.toggle('d-none', metodo !== 'Efectivo');
+        if (panelMixto) {
+            panelMixto.classList.toggle('d-none', metodo !== 'Mixto');
+            if (metodo === 'Mixto') {
+                const mitad = Math.round(totalVenta / 2);
+                document.getElementById('mixtoMonto1').value = mitad;
+                document.getElementById('mixtoMonto2').value = totalVenta - mitad;
+                actualizarCalculoMixto();
+            }
+        }
+
+        if (metodo === 'Efectivo') {
+            calcularCambioPOS();
+        }
+    }
+
+    function toggleTipoVentaPOS() {
+        const tipo = document.getElementById('tipoVentaPOS').value;
+        const panelCredito = document.getElementById('panelCreditoPOS');
+        if (panelCredito) {
+            panelCredito.classList.toggle('d-none', tipo !== 'Credito');
+            if (tipo === 'Credito') {
+                const fv = document.getElementById('fechaVencimientoPOS');
+                if (fv && !fv.value) {
+                    const hoy = new Date();
+                    hoy.setDate(hoy.getDate() + 30);
+                    fv.value = hoy.toISOString().split('T')[0];
+                }
+                actualizarSaldoCreditoPOS();
+            }
+        }
+    }
+
+    function actualizarSaldoCreditoPOS() {
+        const inputAbono = document.getElementById('abonoInicialPOS');
+        const labelSaldo = document.getElementById('labelSaldoCreditoPOS');
+        if (!inputAbono || !labelSaldo) return;
+
+        const abono = parseFloat(inputAbono.value) || 0;
+        const saldo = Math.max(0, totalVenta - abono);
+        labelSaldo.textContent = `$${Math.round(saldo).toLocaleString()}`;
+    }
+
+    function actualizarCalculoMixto() {
+        const m1 = parseFloat(document.getElementById('mixtoMonto1').value) || 0;
+        const m2 = parseFloat(document.getElementById('mixtoMonto2').value) || 0;
+        const dif = (m1 + m2) - totalVenta;
+        const label = document.getElementById('labelDiferenciaMixto');
+        if (!label) return;
+
+        if (dif === 0) {
+            label.textContent = "Exacto ($0)";
+            label.className = "fw-bold text-success font-monospace extra-small";
+        } else if (dif < 0) {
+            label.textContent = `Faltan $${Math.abs(dif).toLocaleString()}`;
+            label.className = "fw-bold text-danger font-monospace extra-small";
+        } else {
+            label.textContent = `Excedente $${dif.toLocaleString()}`;
+            label.className = "fw-bold text-warning font-monospace extra-small";
+        }
+    }
+
+    // 8. Toggles de Negocio: Mayorista e IVA Agropecuario
+    function toggleMayoristaPOS() {
+        const esMay = document.getElementById('esMayorista').checked;
+        const radioPct = document.getElementById('descPctPOS');
+        const inputValDesc = document.getElementById('valorDescuentoPOS');
+        if (esMay) {
+            if (radioPct) radioPct.checked = true;
+            if (inputValDesc && (parseFloat(inputValDesc.value) || 0) === 0) {
+                inputValDesc.value = 10;
+            }
+        } else {
+            if (inputValDesc && parseFloat(inputValDesc.value) === 10) {
+                inputValDesc.value = 0;
+            }
+        }
+        actualizarDesgloseTotales();
+    }
+
+    function toggleAplicarIVAPOS() {
+        const aplicar = document.getElementById('aplicarIVA').checked;
+        const rows = document.querySelectorAll('.pos-item-row');
+        rows.forEach(row => {
+            const id = row.getAttribute('data-id');
+            const ivaInput = document.getElementById(`iva-input-${id}`);
+            if (ivaInput) {
+                ivaInput.value = aplicar ? 19 : 0;
+                cambiarIvaLinea(id, ivaInput.value);
+            }
+        });
+        actualizarDesgloseTotales();
+    }
+
+    // 9. Cambio de Cliente y Creación Rápida
+    function cambiarClienteSelect(clienteId) {
+        if (!clienteId) return;
+        fetch(`{{ url_for('ventas.cambiar_cliente_venta', venta_id=venta.id) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ cliente_id: clienteId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.cliente) {
+                const nombreLbl = document.getElementById('nombreClienteLabel');
+                const docLbl = document.getElementById('docClienteLabel');
+                if (nombreLbl) nombreLbl.textContent = data.cliente.nombre;
+                if (docLbl) docLbl.textContent = `(${data.cliente.documento || 'Consumidor Final'})`;
+                reproducirBeepPOS();
+            }
+        })
+        .catch(console.error);
+    }
+
+    function guardarClienteRapidoPOS(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('cliRapidoNombre').value.trim();
+        const doc = document.getElementById('cliRapidoDoc').value.trim();
+        const tel = document.getElementById('cliRapidoTel').value.trim();
+        const dir = document.getElementById('cliRapidoDir').value.trim();
+
+        if (!nombre) return;
+
+        fetch(`{{ url_for('ventas.cliente_rapido') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                nombre: nombre,
+                documento: doc,
+                telefono: tel,
+                direccion: dir
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.cliente) {
+                // Agregar al select
+                const sel = document.getElementById('clienteSelectPOS');
+                if (sel) {
+                    const opt = document.createElement('option');
+                    opt.value = data.cliente.id;
+                    opt.textContent = `${data.cliente.nombre} ${data.cliente.documento ? '(' + data.cliente.documento + ')' : ''}`;
+                    opt.selected = true;
+                    sel.appendChild(opt);
+                }
+                cambiarClienteSelect(data.cliente.id);
+                bootstrap.Modal.getInstance(document.getElementById('modalNuevoClientePOS')).hide();
+                document.getElementById('formClienteRapidoPOS').reset();
+            } else {
+                alert(data.message || 'Error al crear cliente');
+            }
+        })
+        .catch(console.error);
+    }
+
+    // 10. Procesar y Finalizar Venta con Validación DIAN (Estilo OPTICAL)
+    function procesarVentaPOS(event) {
+        if (event) event.preventDefault();
+
+        const rows = document.querySelectorAll('.pos-item-row');
+        if (rows.length === 0) {
+            alert('El carrito está vacío. Agrega productos antes de procesar.');
+            return;
+        }
+
+        const btn = document.getElementById('btnProcesarVenta');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> PROCESANDO...';
+        }
+
+        const isPct = document.getElementById('descPctPOS') && document.getElementById('descPctPOS').checked;
+        const payload = {
+            cliente_id: document.getElementById('clienteSelectPOS').value,
+            metodo_pago: document.getElementById('metodoPagoPOS').value,
+            tipo_venta: document.getElementById('tipoVentaPOS').value,
+            abono_inicial: document.getElementById('abonoInicialPOS') ? document.getElementById('abonoInicialPOS').value : 0,
+            fecha_vencimiento: document.getElementById('fechaVencimientoPOS') ? document.getElementById('fechaVencimientoPOS').value : '',
+            metodo_mixto_1: document.getElementById('mixtoMetodo1') ? document.getElementById('mixtoMetodo1').value : '',
+            monto_mixto_1: document.getElementById('mixtoMonto1') ? document.getElementById('mixtoMonto1').value : 0,
+            metodo_mixto_2: document.getElementById('mixtoMetodo2') ? document.getElementById('mixtoMetodo2').value : '',
+            monto_mixto_2: document.getElementById('mixtoMonto2') ? document.getElementById('mixtoMonto2').value : 0,
+            requiere_fe: document.getElementById('requiereFE').checked,
+            descuento_global: document.getElementById('valorDescuentoPOS') ? document.getElementById('valorDescuentoPOS').value : 0,
+            tipo_descuento: isPct ? 'pct' : 'monto',
+            csrf_token: csrfToken
+        };
+
+        fetch(`{{ url_for('ventas.finalizar_venta', venta_id=venta.id) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                reproducirBeepPOS();
+                urlTicketActual = data.ticket_url || `{{ url_for('ventas.imprimir_ticket_venta', venta_id=venta.id) }}`;
+                urlVentaActual = `{{ url_for('ventas.ver_venta', venta_id=venta.id) }}`;
+
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill fs-4"></i> PROCESAR VENTA (F9)';
+                }
+
+                // Cargar datos en el modal de confirmación
+                const elNumFac = document.getElementById('modalFacturaNum');
+                if (elNumFac) elNumFac.textContent = '#' + (data.numero_factura || 'FAC');
+
+                const elTotal = document.getElementById('modalTotalCobrado');
+                if (elTotal) elTotal.textContent = '$' + Math.round(data.total || 0).toLocaleString();
+
+                const elMetodo = document.getElementById('modalMetodoPago');
+                if (elMetodo) elMetodo.textContent = data.metodo_pago || 'Efectivo';
+
+                const cambioVal = document.getElementById('labelCambioDevuelta')?.textContent || '$0';
+                const rowCambio = document.getElementById('modalRowCambio');
+                if (rowCambio) {
+                    if (cambioVal && cambioVal !== '$0') {
+                        document.getElementById('modalCambioDevuelta').textContent = cambioVal;
+                        rowCambio.classList.remove('d-none');
+                    } else {
+                        rowCambio.classList.add('d-none');
+                    }
+                }
+
+                // Mostrar el modal de confirmación
+                const modalFinal = new bootstrap.Modal(document.getElementById('modalVentaFinalizada'));
+                modalFinal.show();
+
+                // Foco en botón de Imprimir
+                setTimeout(() => {
+                    const btnImp = document.getElementById('btnModalImprimir');
+                    if (btnImp) btnImp.focus();
+                }, 300);
+            } else if (data.requiere_completar_fe) {
+                // Abrir Modal de Facturación Electrónica DIAN
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill fs-4"></i> PROCESAR VENTA (F9)';
+                }
+                document.getElementById('fe_cliente_id').value = data.cliente.id;
+                document.getElementById('fe_cliente_nombre_display').textContent = data.cliente.nombre;
+                document.getElementById('fe_tipo_documento').value = data.cliente.tipo_documento || 'CC';
+                document.getElementById('fe_documento').value = data.cliente.documento || '';
+                document.getElementById('fe_email').value = data.cliente.email || '';
+                document.getElementById('fe_direccion').value = data.cliente.direccion || '';
+                document.getElementById('fe_ciudad').value = data.cliente.ciudad || '';
+
+                const modalFE = new bootstrap.Modal(document.getElementById('modalDatosFE'));
+                modalFE.show();
+
+                // Foco en el primer campo vacío
+                setTimeout(() => {
+                    if (!data.cliente.documento) document.getElementById('fe_documento').focus();
+                    else if (!data.cliente.email) document.getElementById('fe_email').focus();
+                    else if (!data.cliente.direccion) document.getElementById('fe_direccion').focus();
+                    else document.getElementById('fe_ciudad').focus();
+                }, 350);
+            } else {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill fs-4"></i> PROCESAR VENTA (F9)';
+                }
+                alert(data.message || 'Error al procesar la venta');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle-fill fs-4"></i> PROCESAR VENTA (F9)';
+            }
+            alert('Error en el servidor al procesar la venta.');
+        });
+    }
+
+    // Acciones del Modal de Venta Finalizada (Imprimir vs Otra Venta)
+    let urlTicketActual = '';
+    let urlVentaActual = '';
+
+    function accionModalImprimir() {
+        const printUrl = (urlTicketActual || `{{ url_for('ventas.imprimir_ticket_venta', venta_id=venta.id) }}`);
+        const finalUrl = printUrl.includes('?') ? (printUrl + '&autoprint=1') : (printUrl + '?autoprint=1');
+        
+        // Abre la impresión en una nueva pestaña (para no cerrar la pantalla de venta)
+        window.open(finalUrl, '_blank');
+        
+        // Y en esta pestaña de venta, renueva inmediatamente a Nueva Venta para el siguiente cliente
+        setTimeout(() => {
+            window.location.href = "{{ url_for('ventas.nueva_venta') }}";
+        }, 150);
+    }
+
+    function accionModalNuevaVenta() {
+        window.location.href = "{{ url_for('ventas.nueva_venta') }}";
+    }
+
+    function accionModalVerVenta() {
+        const vUrl = (urlVentaActual || `{{ url_for('ventas.ver_venta', venta_id=venta.id) }}`);
+        window.location.href = vUrl;
+    }
+
+    // 11. Guardar Datos Faltantes de Facturación Electrónica (DIAN)
+    function guardarYContinuarFE(e) {
+        e.preventDefault();
+        const clienteId = document.getElementById('fe_cliente_id').value;
+        const payload = {
+            tipo_documento: document.getElementById('fe_tipo_documento').value,
+            documento: document.getElementById('fe_documento').value.trim(),
+            email: document.getElementById('fe_email').value.trim(),
+            direccion: document.getElementById('fe_direccion').value.trim(),
+            ciudad: document.getElementById('fe_ciudad').value.trim(),
+            csrf_token: csrfToken
+        };
+
+        fetch(`{{ url_for('ventas.completar_datos_fe', cliente_id=0) }}`.replace('0', clienteId), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('modalDatosFE')).hide();
+                // Reintentar procesar la venta automáticamente
+                procesarVentaPOS();
+            } else {
+                alert(data.message || 'Error al guardar datos de Factura Electrónica');
+            }
+        })
+        .catch(console.error);
+    }
+
+    // 12. Descartar Venta Borrador
+    function descartarVentaActual() {
+        if (!confirm('¿Estás seguro de descartar y anular esta venta en borrador?')) return;
+        fetch(`{{ url_for('ventas.descartar_venta_borrador', venta_id=venta.id) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ csrf_token: csrfToken })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url || `{{ url_for('ventas.nueva_venta') }}`;
+            } else {
+                alert(data.message || 'Error al descartar venta');
+            }
+        })
+        .catch(() => {
+            window.location.href = `{{ url_for('ventas.nueva_venta') }}`;
+        });
+    }
+
+    // 13. Sistema de Ventas Aparcadas / Borradores en Espera
+    function aparcarVenta() {
+        const borradores = JSON.parse(localStorage.getItem('pos_borradores_vivero') || '[]');
+        borradores.push({
+            venta_id: ventaIdActual,
+            factura: '{{ venta.numero_factura }}',
+            cliente: '{{ venta.cliente.nombre }}',
+            total: totalVenta,
+            hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        localStorage.setItem('pos_borradores_vivero', JSON.stringify(borradores));
+        actualizarBadgeBorradores();
+        reproducirBeepPOS();
+        window.location.href = "{{ url_for('ventas.nueva_venta') }}";
+    }
+
+    function actualizarBadgeBorradores() {
+        const borradores = JSON.parse(localStorage.getItem('pos_borradores_vivero') || '[]');
+        const badge = document.getElementById('badgeBorradores');
+        if (badge) badge.textContent = borradores.length;
+    }
+
+    function abrirBorradores() {
+        const borradores = JSON.parse(localStorage.getItem('pos_borradores_vivero') || '[]');
+        const cont = document.getElementById('listaVentasAparcadas');
+        if (!cont) return;
+
+        if (borradores.length === 0) {
+            cont.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-inbox fs-2 d-block mb-1 opacity-50"></i>No hay ventas aparcadas en espera.</div>';
+        } else {
+            cont.innerHTML = borradores.map((b, idx) => `
+                <div class="card p-3 border rounded-3 d-flex flex-row align-items-center justify-content-between bg-body-tertiary">
+                    <div>
+                        <div class="fw-bold text-body">${b.factura} - ${b.cliente}</div>
+                        <small class="text-muted">Aparcada a las ${b.hora} • Total: <strong class="text-success">$${Math.round(b.total).toLocaleString()}</strong></small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="/venta/${b.venta_id}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">Reanudar</a>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle" onclick="eliminarBorrador(${idx})"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        new bootstrap.Modal(document.getElementById('modalBorradoresPOS')).show();
+    }
+
+    function eliminarBorrador(idx) {
+        let borradores = JSON.parse(localStorage.getItem('pos_borradores_vivero') || '[]');
+        borradores.splice(idx, 1);
+        localStorage.setItem('pos_borradores_vivero', JSON.stringify(borradores));
+        actualizarBadgeBorradores();
+        abrirBorradores();
+    }
+
+    // 14. Escáner de Cámara Móvil
+    function abrirEscanerCamaraPOS() {
+        const modal = new bootstrap.Modal(document.getElementById('modalCamaraPOS'));
+        modal.show();
+        const video = document.getElementById('videoScannerPOS');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+                .then(stream => {
+                    streamCamaraActivo = stream;
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.log("No se pudo iniciar cámara:", err);
+                });
+        }
+    }
+
+    function detenerCamaraLive() {
+        if (streamCamaraActivo) {
+            streamCamaraActivo.getTracks().forEach(track => track.stop());
+            streamCamaraActivo = null;
+        }
+    }
+
+    function procesarCodigoManual() {
+        const input = document.getElementById('inputCodigoManualModal');
+        const codigo = input ? input.value.trim() : '';
+        if (codigo) {
+            const buscador = document.getElementById('buscador_unificado');
+            if (buscador) {
+                buscador.value = codigo;
+                buscador.dispatchEvent(new Event('input'));
+            }
+            detenerCamaraLive();
+            bootstrap.Modal.getInstance(document.getElementById('modalCamaraPOS')).hide();
+        }
+    }
+
+    // 15. Atajos de Teclado POS
+    document.addEventListener('keydown', function (e) {
+        // Atajos cuando el modal de venta finalizada está visible
+        const modalFinalEl = document.getElementById('modalVentaFinalizada');
+        if (modalFinalEl && modalFinalEl.classList.contains('show')) {
+            if (e.key === 'i' || e.key === 'I' || e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                accionModalImprimir();
+                return;
+            } else if (e.key === 'n' || e.key === 'N') {
+                e.preventDefault();
+                accionModalNuevaVenta();
+                return;
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                accionModalVerVenta();
+                return;
+            }
+        }
+
+        if (!esBorrador) return;
+        if (e.key === 'F2') {
+            e.preventDefault();
+            const b = document.getElementById('buscador_unificado');
+            if (b) { b.focus(); b.select(); }
+        } else if (e.key === 'F4') {
+            e.preventDefault();
+            new bootstrap.Modal(document.getElementById('modalNuevoClientePOS')).show();
+        } else if (e.key === 'F8') {
+            e.preventDefault();
+            aparcarVenta();
+        } else if (e.key === 'F9') {
+            e.preventDefault();
+            triggerCobroPOS();
+        } else if (e.key === 'Escape') {
+            const sug = document.getElementById('sugerencias_lista');
+            if (sug) sug.classList.add('d-none');
+        }
+    });
+
+    // 16. Activar Cobro POS (Desde botón superior 'Cobrar' o tecla F9)
+    function triggerCobroPOS() {
+        const rows = document.querySelectorAll('.pos-item-row');
+        if (rows.length === 0) {
+            alert('El carrito está vacío. Agregue al menos un producto al ticket antes de cobrar.');
+            const b = document.getElementById('buscador_unificado');
+            if (b) b.focus();
+            return;
+        }
+        const btnProcesar = document.getElementById('btnProcesarVenta');
+        if (btnProcesar) {
+            btnProcesar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        procesarVentaPOS();
+    }
+
+    // 17. Integración del Buscador Unificado HERO
+    function cargarItemPos(tipo, id, nombre, precio, stock) {
+        if (!esBorrador) return;
+        reproducirBeepPOS();
         const inputBuscador = document.getElementById('buscador_unificado');
-        const searchIcon = document.getElementById('searchIcon');
         const inputInsumoId = document.getElementById('insumo_id_seleccionado');
         const inputLoteId = document.getElementById('lote_id_seleccionado');
+        const inputAnimalId = document.getElementById('animal_id_seleccionado');
         const inputPrecio = document.getElementById('precio_input');
-        const inputCantidad = document.getElementById('inputCantidad');
-        const inputMargen = document.getElementById('inputMargen');
-        const listaSugerencias = document.getElementById('sugerencias_lista');
         const formPos = document.getElementById('formPos');
+
+        if (inputBuscador) inputBuscador.value = nombre;
+        if (tipo === 'lote') {
+            if (inputLoteId) inputLoteId.value = id;
+            if (inputInsumoId) inputInsumoId.value = '';
+            if (inputAnimalId) inputAnimalId.value = '';
+        } else if (tipo === 'animal') {
+            if (inputAnimalId) inputAnimalId.value = id;
+            if (inputLoteId) inputLoteId.value = '';
+            if (inputInsumoId) inputInsumoId.value = '';
+        } else {
+            if (inputInsumoId) inputInsumoId.value = id;
+            if (inputLoteId) inputLoteId.value = '';
+            if (inputAnimalId) inputAnimalId.value = '';
+        }
+
+        if (inputPrecio) {
+            inputPrecio.value = precio > 0 ? Math.round(precio) : '';
+        }
+
+        if (precio > 0 && formPos) {
+            formPos.submit();
+        } else if (inputPrecio) {
+            inputPrecio.focus();
+        }
+    }
+
+    function procesarEnvioBuscador(event) {
+        // Validación antes de enviar el formulario de búsqueda
+        const insumoId = document.getElementById('insumo_id_seleccionado').value;
+        const loteId = document.getElementById('lote_id_seleccionado').value;
+        const animalId = document.getElementById('animal_id_seleccionado') ? document.getElementById('animal_id_seleccionado').value : '';
+        const buscadorVal = document.getElementById('buscador_unificado').value.trim();
+
+        if (!insumoId && !loteId && !animalId && buscadorVal) {
+            // Si el usuario escribió y dio Enter sin seleccionar de la lista, consultar API directa
+            event.preventDefault();
+            fetch(`{{ url_for('ventas.buscar_items_venta_api') }}?q=${encodeURIComponent(buscadorVal)}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const top = data[0];
+                        cargarItemPos(top.type, top.id, top.nombre, top.precio || 0, top.stock);
+                    } else {
+                        alert('No se encontró ningún producto con ese nombre o código.');
+                    }
+                })
+                .catch(console.error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        actualizarBadgeBorradores();
+        actualizarDesgloseTotales();
+
+        const inputBuscador = document.getElementById('buscador_unificado');
+        const inputInsumoId = document.getElementById('insumo_id_seleccionado');
+        const inputLoteId = document.getElementById('lote_id_seleccionado');
+        const listaSugerencias = document.getElementById('sugerencias_lista');
         const checkCaja = document.getElementById('checkCaja');
         const divUnidadesCaja = document.getElementById('divUnidadesCaja');
-        const inputUnidadesCaja = divUnidadesCaja.querySelector('input');
-        
-        let selectedIndex = -1;
 
-        if(!inputBuscador) return;
-
-        checkCaja.addEventListener('change', function() {
-            if(this.checked) {
-                divUnidadesCaja.classList.remove('hidden');
-                inputUnidadesCaja.focus();
-            } else {
-                divUnidadesCaja.classList.add('hidden');
-            }
-        });
-
-        // Foco inicial
-        inputBuscador.focus();
-
-        let timeoutId;
-        inputBuscador.addEventListener('input', function() {
-            const query = this.value;
-            inputInsumoId.value = ''; inputLoteId.value = ''; selectedIndex = -1;
-            clearTimeout(timeoutId);
-            if (query.length < 1) { listaSugerencias.classList.add('hidden'); return; }
-
-            searchIcon.innerHTML = '<div class="animate-spin h-4 w-4 border-2 border-blue-500 rounded-full border-t-transparent"></div>';
-
-            timeoutId = setTimeout(() => {
-                fetch(`{{ url_for('main.buscar_items_venta_api') }}?q=${query}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        listaSugerencias.innerHTML = '';
-                        if (data.length > 0) {
-                            data.forEach((item, index) => {
-                                const div = document.createElement('div');
-                                div.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors border-b border-slate-50 last:border-0 group';
-                                
-                                let badgeClass = item.type === 'lote' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700';
-                                let typeLabel = item.type === 'lote' ? 'Cosecha' : 'Bodega';
-                                
-                                div.innerHTML = `
-                                    <div>
-                                        <div class="font-bold text-slate-800 text-sm group-hover:text-blue-700">${item.nombre}</div>
-                                        <div class="text-[10px] text-slate-400 font-mono flex gap-2">
-                                            <span>${item.codigo || '---'}</span>
-                                            <span class="${badgeClass} px-1 rounded text-[9px] font-bold uppercase">${typeLabel}</span>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-[10px] font-bold bg-slate-100 px-2 py-1 rounded text-slate-500 group-hover:bg-white">Disp: ${item.stock}</span>
-                                        ${item.costo > 0 ? `<div class="text-xs text-emerald-600 font-mono mt-1 font-bold" title="Costo Unitario">$${Math.round(item.costo)}</div>` : ''}
-                                    </div>
-                                `;
-                                div.addEventListener('click', () => seleccionarItem(item));
-                                listaSugerencias.appendChild(div);
-                            });
-                            listaSugerencias.classList.remove('hidden');
-                        } else {
-                            listaSugerencias.classList.add('hidden');
-                        }
-                    })
-                    .catch(console.error)
-                    .finally(() => {
-                        searchIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search w-5 h-5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
-                    });
-            }, 150);
-        });
-
-        function seleccionarItem(item) {
-            inputBuscador.value = item.nombre;
-            if(item.type === 'lote') { inputLoteId.value = item.id; inputInsumoId.value = ""; } 
-            else { inputInsumoId.value = item.id; inputLoteId.value = ""; }
-
-            // LÓGICA DE PRECIO AUTOMÁTICO
-            if (item.costo > 0) {
-                const margen = parseFloat(inputMargen.value) || 0;
-                const precioSugerido = item.costo * (1 + (margen / 100));
-                inputPrecio.value = Math.round(precioSugerido);
-            } else {
-                inputPrecio.value = ""; 
-            }
-
-            listaSugerencias.classList.add('hidden');
-            
-            // AUTO-SUBMIT SI HAY PRECIO
-            if(inputPrecio.value > 0) {
-                formPos.submit();
-            } else {
-                inputPrecio.focus(); 
-            }
-        }
-        
-        // Navegación (Teclado)
-        inputBuscador.addEventListener('keydown', function(e) {
-            const items = listaSugerencias.children;
-            if (e.key === 'ArrowDown') { e.preventDefault(); selectedIndex = Math.min(selectedIndex + 1, items.length - 1); updateSelection(items); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); selectedIndex = Math.max(selectedIndex - 1, -1); updateSelection(items); }
-            else if (e.key === 'Enter') { if (selectedIndex > -1 && items[selectedIndex]) { e.preventDefault(); items[selectedIndex].click(); } }
-            else if (e.key === 'Escape') { listaSugerencias.classList.add('hidden'); }
-        });
-
-        function updateSelection(items) {
-            Array.from(items).forEach((item, index) => {
-                if (index === selectedIndex) item.className = 'px-4 py-3 bg-blue-600 text-white cursor-pointer flex justify-between items-center transition-colors';
-                else item.className = 'px-4 py-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition-colors border-b border-slate-50 last:border-0 group';
+        if (checkCaja && divUnidadesCaja) {
+            checkCaja.addEventListener('change', function () {
+                divUnidadesCaja.classList.toggle('d-none', !this.checked);
             });
         }
-        
-        document.addEventListener('click', function(e) {
-            if (e.target !== inputBuscador && e.target !== listaSugerencias) {
-                listaSugerencias.classList.add('hidden');
+
+        if (!inputBuscador) return;
+
+        let timeoutId;
+        let itemsSugeridos = [];
+        let indiceSugerenciaActiva = -1;
+
+        function actualizarResaltado() {
+            if (!listaSugerencias) return;
+            const elementos = listaSugerencias.querySelectorAll('.pos-sugerencia-item');
+            elementos.forEach((el, idx) => {
+                if (idx === indiceSugerenciaActiva) {
+                    el.classList.add('sugerencia-activa');
+                    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                } else {
+                    el.classList.remove('sugerencia-activa');
+                }
+            });
+        }
+
+        function seleccionarItem(item) {
+            if (!item) return;
+            if (listaSugerencias) listaSugerencias.classList.add('d-none');
+            indiceSugerenciaActiva = -1;
+            itemsSugeridos = [];
+            cargarItemPos(item.type, item.id, item.nombre, item.precio || 0, item.stock);
+        }
+
+        // Navegación con Teclado (Flecha Abajo, Flecha Arriba, Enter, Escape)
+        inputBuscador.addEventListener('keydown', function (e) {
+            const dropdownVisible = listaSugerencias && !listaSugerencias.classList.contains('d-none');
+            
+            if (!dropdownVisible || itemsSugeridos.length === 0) {
+                return;
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (indiceSugerenciaActiva < itemsSugeridos.length - 1) {
+                    indiceSugerenciaActiva++;
+                } else {
+                    indiceSugerenciaActiva = 0;
+                }
+                actualizarResaltado();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (indiceSugerenciaActiva > 0) {
+                    indiceSugerenciaActiva--;
+                } else {
+                    indiceSugerenciaActiva = itemsSugeridos.length - 1;
+                }
+                actualizarResaltado();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+
+                let itemElegido = null;
+                if (indiceSugerenciaActiva >= 0 && indiceSugerenciaActiva < itemsSugeridos.length) {
+                    itemElegido = itemsSugeridos[indiceSugerenciaActiva];
+                } else if (itemsSugeridos.length > 0) {
+                    // Si el usuario no presionó flecha pero dio Enter teniendo opciones, elige la primera
+                    itemElegido = itemsSugeridos[0];
+                }
+
+                if (itemElegido) {
+                    seleccionarItem(itemElegido);
+                }
+                return false;
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                listaSugerencias.classList.add('d-none');
+                indiceSugerenciaActiva = -1;
+            }
+        });
+
+        inputBuscador.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            inputInsumoId.value = '';
+            inputLoteId.value = '';
+            clearTimeout(timeoutId);
+            indiceSugerenciaActiva = -1;
+
+            if (query.length < 1) {
+                itemsSugeridos = [];
+                if (listaSugerencias) listaSugerencias.classList.add('d-none');
+                return;
+            }
+
+            timeoutId = setTimeout(() => {
+                fetch(`{{ url_for('ventas.buscar_items_venta_api') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!listaSugerencias) return;
+                        listaSugerencias.innerHTML = '';
+                        itemsSugeridos = data || [];
+                        indiceSugerenciaActiva = -1;
+
+                        if (itemsSugeridos.length > 0) {
+                            const listGroup = document.createElement('div');
+                            listGroup.className = 'list-group list-group-flush rounded-4 overflow-hidden';
+
+                            itemsSugeridos.forEach((item, index) => {
+                                const btn = document.createElement('div');
+                                btn.className = 'list-group-item list-group-item-action pos-sugerencia-item d-flex justify-content-between align-items-center';
+                                btn.dataset.index = index;
+
+                                let badgeClass = item.type === 'lote' ? 'bg-success text-white' : 'bg-primary text-white';
+                                let typeLabel = item.type === 'lote' ? 'Cultivo' : 'Bodega';
+
+                                btn.innerHTML = `
+                                    <div style="min-width: 0; flex: 1;" class="pe-2">
+                                        <div class="fw-bold text-body item-nombre-pos text-truncate">${item.nombre}</div>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="text-secondary extra-small font-monospace">${item.codigo || 'S/C'}</span>
+                                            <span class="badge ${badgeClass} fw-bold" style="font-size: 0.65rem;">${typeLabel}</span>
+                                            <span class="badge bg-body-tertiary text-body border px-1.5 py-0.5 font-monospace extra-small">Disp: ${item.stock}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end flex-shrink-0">
+                                        ${item.precio > 0 ? `<div class="fw-bold text-success font-monospace" style="font-size: 1.05rem;">$${Math.round(item.precio).toLocaleString()}</div>` : '<span class="text-secondary extra-small">Sin precio</span>'}
+                                        <span class="extra-small text-muted d-none d-sm-inline font-monospace" style="font-size: 0.68rem;">↵ Enter</span>
+                                    </div>
+                                `;
+
+                                btn.addEventListener('mouseenter', () => {
+                                    indiceSugerenciaActiva = index;
+                                    actualizarResaltado();
+                                });
+
+                                btn.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    seleccionarItem(item);
+                                });
+
+                                listGroup.appendChild(btn);
+                            });
+                            listaSugerencias.appendChild(listGroup);
+                            listaSugerencias.classList.remove('d-none');
+                        } else {
+                            listaSugerencias.classList.add('d-none');
+                        }
+                    })
+                    .catch(console.error);
+            }, 180);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (inputBuscador && e.target !== inputBuscador && listaSugerencias && !listaSugerencias.contains(e.target)) {
+                listaSugerencias.classList.add('d-none');
+                indiceSugerenciaActiva = -1;
             }
         });
     });

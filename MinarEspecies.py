@@ -101,29 +101,35 @@ especies_data = [
 ]
 
 # --- SCRIPT DE CARGA ---
-app = create_app()
+def sembrar_especies(app=None):
+    if app is None:
+        app = create_app()
 
-with app.app_context():
-    print("🌱 Iniciando siembra de datos...")
-    
-    conteo = 0
-    for data in especies_data:
-        # Verificar si ya existe para no duplicar
-        existe = Especie.query.filter_by(nombre_comun=data['nombre_comun']).first()
+    with app.app_context():
+        print("[*] Iniciando siembra de especies botánicas...")
         
-        if not existe:
-            nueva = Especie(
-                nombre_comun=data['nombre_comun'],
-                nombre_cientifico=data['nombre_cientifico'],
-                dias_ciclo_estimado=data['dias_ciclo_estimado'],
-                detalles_cuidado=data['detalles_cuidado'],
-                imagen_url=None # Se pueden subir fotos luego
-            )
-            db.session.add(nueva)
-            conteo += 1
-            print(f"   + Agregada: {data['nombre_comun']}")
-        else:
-            print(f"   . Saltada (ya existe): {data['nombre_comun']}")
+        conteo = 0
+        for data in especies_data:
+            # Verificar si ya existe para no duplicar
+            existe = Especie.query.filter_by(nombre_comun=data['nombre_comun']).first()
+            
+            if not existe:
+                nueva = Especie(
+                    nombre_comun=data['nombre_comun'],
+                    nombre_cientifico=data.get('nombre_cientifico'),
+                    dias_ciclo_estimado=data.get('dias_ciclo_estimado', 90),
+                    detalles_cuidado=data.get('detalles_cuidado'),
+                    precio_venta_sugerido=data.get('precio_venta_sugerido', 15000.0),
+                    imagen_url=None
+                )
+                db.session.add(nueva)
+                conteo += 1
+                print(f"   + Agregada: {data['nombre_comun']}")
+            else:
+                print(f"   . Saltada (ya existe): {data['nombre_comun']}")
 
-    db.session.commit()
-    print(f"✨ Proceso finalizado. {conteo} nuevas especies registradas en EcoSistem.")
+        db.session.commit()
+        print(f"[+] Proceso finalizado. {conteo} nuevas especies registradas en EcoSistem.")
+
+if __name__ == '__main__':
+    sembrar_especies()

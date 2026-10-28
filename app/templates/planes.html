@@ -1,0 +1,468 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="saas-landing-wrapper">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section py-5 py-lg-6 text-center position-relative overflow-hidden">
+        <div class="container position-relative z-1">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 mb-4 shadow-sm animate-fade-in">
+                <span class="badge bg-success rounded-pill px-2 py-0.5 extra-small fw-bold">NUEVO 2026</span>
+                <span class="small fw-bold"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Tecnología Colombiana para el Campo & Viveros</span>
+            </div>
+
+            <h1 class="display-4 fw-black text-body mb-3 tracking-tight">
+                El Software Inteligente que Impulsa tu <br class="d-none d-md-inline">
+                <span class="text-gradient-emerald">Vivero, Finca y Negocio Agropecuario</span>
+            </h1>
+
+            <p class="lead text-muted mx-auto mb-4 col-lg-8" style="font-size: 1.15rem; line-height: 1.6;">
+                Deja los cuadernos de papel y el desorden. Controla tus lotes de plantas, liquida los jornales de tus trabajadores, imprime códigos QR de trazabilidad y <strong>vende por internet con tu propio catálogo sincronizado a WhatsApp</strong>.
+            </p>
+
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-5">
+                <a href="#planes" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-lg d-inline-flex align-items-center gap-2 pulse-btn"
+                   style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    <span>Ver Planes & Precios</span>
+                </a>
+                <a href="https://wa.me/573000000000?text=Hola!%20Me%20interesa%20conocer%20el%20software%20EcoSistem%20para%20mi%20vivero" target="_blank"
+                   class="btn btn-outline-secondary btn-lg rounded-pill px-4 py-2.5 fw-bold d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-whatsapp text-success fs-5"></i>
+                    <span>Hablar con un Asesor</span>
+                </a>
+            </div>
+
+            <!-- Badges de Confianza -->
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 text-muted small border-top pt-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-success fs-5"></i>
+                    <span>Sin contratos amarrados (cancela cuando quieras)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-phone text-primary fs-5"></i>
+                    <span>100% Funcional en Celular y Computador</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-headset text-warning fs-5"></i>
+                    <span>Soporte personalizado por WhatsApp en Colombia</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOBRE NUESTRA EMPRESA & EL FUNDADOR (DARTE A CONOCER) -->
+    <section class="py-5 bg-body-tertiary border-top border-bottom" id="nosotros">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="position-relative">
+                        <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: linear-gradient(145deg, #064e3b 0%, #022c22 100%); color: #fff;">
+                            <div class="card-body p-4 p-md-5">
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold extra-small text-uppercase mb-3">
+                                    <i class="bi bi-flag-fill me-1 text-danger"></i>Emprendimiento 100% Colombiano
+                                </span>
+                                <h3 class="fw-black mb-3 text-white">Nuestra Misión: Dignificar y Modernizar el Campo</h3>
+                                <p class="text-white-50 mb-4" style="line-height: 1.7;">
+                                    Somos un equipo joven de apasionados por la tecnología y la agricultura de nuestra tierra. Vimos de cerca cómo viveristas y agricultores pierden dinero y tiempo anotando sus siembras, ventas y jornales en cuadernos que se mojan o se pierden.
+                                </p>
+                                <p class="text-white-50 mb-4" style="line-height: 1.7;">
+                                    Por eso creamos <strong>EcoSistem</strong>: una plataforma sencilla, amigable y potente que no requiere saber de sistemas. Nuestro compromiso no es venderte un programa y desaparecer; es acompañarte paso a paso para que tu negocio crezca, venda más y tenga el control que merece.
+                                </p>
+                                <div class="d-flex align-items-center gap-3 pt-3 border-top border-white border-opacity-10">
+                                    <div class="rounded-circle bg-emerald-subtle text-emerald d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.2); color: #34d399;">
+                                        <i class="bi bi-person-heart"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-white">Trato Directo y Humano</h6>
+                                        <small class="text-white-50">Te atiende directamente el desarrollador fundador</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <span class="text-success fw-bold text-uppercase extra-small tracking-wider">¿POR QUÉ ELEGIRNOS?</span>
+                    <h2 class="fw-black text-body mb-3">Hecho a la medida de los viveros y el agro colombiano</h2>
+                    <p class="text-muted mb-4">
+                        A diferencia de otros softwares extranjeros costosos y complicados en dólares, EcoSistem está adaptado a la moneda, las costumbres y la realidad de los productores colombianos.
+                    </p>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded-4 bg-body border shadow-sm h-100">
+                                <div class="rounded-3 bg-success bg-opacity-10 text-success d-inline-flex p-2.5 mb-2">
+                                    <i class="bi bi-whatsapp fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1">Pedidos a WhatsApp</h6>
+                                <p class="text-muted extra-small mb-0">Tus clientes piden desde tu web y te llega el mensaje listo para despachar.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded-4 bg-body border shadow-sm h-100">
+                                <div class="rounded-3 bg-info bg-opacity-10 text-info d-inline-flex p-2.5 mb-2">
+                                    <i class="bi bi-qr-code-scan fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1">Trazabilidad con QR</h6>
+                                <p class="text-muted extra-small mb-0">Genera códigos QR para tus plantas con fotos y ficha técnica botánica.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded-4 bg-body border shadow-sm h-100">
+                                <div class="rounded-3 bg-warning bg-opacity-10 text-warning d-inline-flex p-2.5 mb-2">
+                                    <i class="bi bi-people-fill fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1">Control de Jornales</h6>
+                                <p class="text-muted extra-small mb-0">Lleva el registro de días laborados por trabajador y emite recibos de pago.</p>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="p-3 rounded-4 bg-body border shadow-sm h-100">
+                                <div class="rounded-3 bg-purple bg-opacity-10 text-primary d-inline-flex p-2.5 mb-2">
+                                    <i class="bi bi-cash-coin fs-4"></i>
+                                </div>
+                                <h6 class="fw-bold mb-1">Costos Reales por Lote</h6>
+                                <p class="text-muted extra-small mb-0">Descubre exactamente cuánto te cuesta producir cada planta o cosecha.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE PLANES Y PRECIOS -->
+    <section class="py-5 py-lg-6" id="planes">
+        <div class="container">
+            <div class="text-center max-w-2xl mx-auto mb-5">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 extra-small fw-bold font-monospace mb-2">
+                    TARIFAS TRANSPARENTES EN PESOS COLOMBIANOS (COP)
+                </span>
+                <h2 class="display-6 fw-black text-body mb-3">Planes accesibles para cada etapa de tu negocio</h2>
+                <p class="text-muted">Elige el plan que mejor se adapte a tu tamaño. Todos incluyen actualizaciones continuas y soporte técnico.</p>
+
+                <!-- SWITCH MENSUAL / ANUAL -->
+                <div class="d-inline-flex align-items-center justify-content-center p-1.5 rounded-pill bg-body-tertiary border mt-3 shadow-sm">
+                    <button type="button" class="btn btn-sm rounded-pill px-4 fw-bold billing-toggle active" id="btnBillingMensual" onclick="setBillingCycle('mensual')">
+                        Pago Mensual
+                    </button>
+                    <button type="button" class="btn btn-sm rounded-pill px-4 fw-bold billing-toggle position-relative" id="btnBillingAnual" onclick="setBillingCycle('anual')">
+                        Pago Anual
+                        <span class="badge bg-warning text-dark rounded-pill ms-1 extra-small">2 Meses Gratis</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TARJETAS DE PLANES -->
+            <div class="row g-4 justify-content-center align-items-stretch">
+                {% for plan_key, plan in planes.items() %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 rounded-4 border-0 shadow-sm plan-card {% if plan.destacado %}plan-featured border border-2 border-success{% endif %} position-relative overflow-hidden">
+                        {% if plan.destacado %}
+                        <div class="position-absolute top-0 end-0 bg-success text-white px-3 py-1 fw-bold extra-small rounded-bottom-start shadow-sm">
+                            {{ plan.badge }}
+                        </div>
+                        {% else %}
+                        <div class="position-absolute top-0 end-0 bg-secondary bg-opacity-10 text-muted px-3 py-1 fw-bold extra-small rounded-bottom-start">
+                            {{ plan.badge }}
+                        </div>
+                        {% endif %}
+
+                        <div class="card-body p-4 p-lg-4.5 d-flex flex-column">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 40px; height: 40px; background: {{ plan.color }}15; color: {{ plan.color }};">
+                                    <i class="bi {{ plan.icon }} fs-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="fw-black mb-0 text-body">{{ plan.nombre }}</h4>
+                                    <small class="text-muted extra-small">{{ plan.subtitulo }}</small>
+                                </div>
+                            </div>
+
+                            <p class="text-muted small mt-2 mb-3" style="min-height: 40px;">
+                                {{ plan.descripcion }}
+                            </p>
+
+                            <!-- Precio Dinámico -->
+                            <div class="my-3 py-3 border-top border-bottom bg-body-tertiary rounded-3 px-3 text-center">
+                                <div class="price-mensual">
+                                    <span class="fs-1 fw-black text-body font-monospace">${{ "{:,.0f}".format(plan.precio_mensual).replace(',', '.') }}</span>
+                                    <span class="text-muted small">/ mes</span>
+                                    <div class="extra-small text-muted mt-0.5">Facturado mensualmente</div>
+                                </div>
+                                <div class="price-anual d-none">
+                                    <span class="fs-1 fw-black text-success font-monospace">${{ "{:,.0f}".format(plan.precio_anual).replace(',', '.') }}</span>
+                                    <span class="text-muted small">/ año</span>
+                                    <div class="extra-small text-success fw-bold mt-0.5"><i class="bi bi-tag-fill me-1"></i>{{ plan.ahorro_anual }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Funcionalidades -->
+                            <h6 class="fw-bold extra-small text-uppercase text-muted tracking-wider mb-2.5">¿Qué incluye?</h6>
+                            <ul class="list-unstyled d-flex flex-column gap-2 mb-4 flex-fill small">
+                                {% for item in plan.caracteristicas %}
+                                <li class="d-flex align-items-start gap-2">
+                                    <i class="bi bi-check-circle-fill text-success mt-0.5 flex-shrink-0"></i>
+                                    <span>{{ item }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+
+                            <!-- Botón de Acción a WhatsApp -->
+                            <a href="https://wa.me/573000000000?text=Hola!%20Estoy%20interesado%20en%20adquirir%20el%20{{ plan.nombre|urlencode }}%20de%20EcoSistem%20para%20mi%20negocio"
+                               target="_blank"
+                               class="btn btn-lg rounded-pill fw-bold w-100 py-2.5 d-flex align-items-center justify-content-center gap-2 shadow-sm {% if plan.destacado %}btn-success text-white{% else %}btn-outline-success{% endif %}"
+                               {% if plan.destacado %}style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;"{% endif %}>
+                                <i class="bi bi-whatsapp"></i>
+                                <span>Adquirir {{ plan.nombre }}</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- TARJETA DEL KIT DE ARRANQUE / SETUP FEE OPCIONAL -->
+            <div class="mt-5">
+                <div class="card border-0 rounded-4 shadow-lg overflow-hidden position-relative kit-arranque-card">
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="row align-items-center g-4">
+                            <div class="col-lg-8">
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold extra-small text-uppercase mb-2 shadow-sm">
+                                    <i class="bi bi-stars me-1"></i>SERVICIO EXTRA RECOMENDADO
+                                </span>
+                                <h3 class="fw-black mb-2 text-body">¿Quieres que dejemos todo listo por ti? "Kit Arranque Fácil"</h3>
+                                <p class="text-muted mb-3" style="font-size: 1rem; line-height: 1.6;">
+                                    Sabemos que tienes poco tiempo en el vivero. Si lo deseas, nos encargamos de tomar fotos a tus primeras 30 plantas, subir tu logo, configurar tu catálogo en internet y darte una capacitación 1-a-1 de 60 minutos para que empieces a facturar desde el día 1.
+                                </p>
+                                <div class="d-flex flex-wrap gap-3 small fw-bold">
+                                    <span class="d-flex align-items-center gap-1.5 text-body"><i class="bi bi-check-circle-fill text-success"></i>Carga de primeras 30 plantas</span>
+                                    <span class="d-flex align-items-center gap-1.5 text-body"><i class="bi bi-check-circle-fill text-success"></i>Configuración de WhatsApp</span>
+                                    <span class="d-flex align-items-center gap-1.5 text-body"><i class="bi bi-check-circle-fill text-success"></i>Capacitación guiada 1-a-1</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 text-lg-end">
+                                <div class="p-3.5 rounded-4 shadow-sm border border-warning border-opacity-25 d-inline-block text-center w-100 kit-arranque-pricebox">
+                                    <small class="text-muted d-block text-uppercase extra-small fw-bold mb-1">Pago Único de Instalación</small>
+                                    <h2 class="fw-black text-warning font-monospace mb-1">$190.000 <small class="fs-6 text-muted">COP</small></h2>
+                                    <small class="text-muted extra-small d-block mb-2">Sin costos ocultos ni mensualidades extra</small>
+                                    <a href="https://wa.me/573000000000?text=Hola!%20Quiero%20el%20Kit%20de%20Arranque%20F%C3%A1cil%20para%20mi%20vivero" target="_blank"
+                                       class="btn btn-warning rounded-pill fw-bold text-dark w-100 py-2.5 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                        <i class="bi bi-tools"></i>
+                                        <span>Solicitar con mi Plan</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEDIOS DE PAGO COLOMBIA -->
+            <div class="mt-5 p-4 rounded-4 bg-body-tertiary border text-center">
+                <span class="extra-small text-muted fw-bold text-uppercase d-block mb-3">
+                    MEDIOS DE PAGO FÁCILES Y DIRECTOS EN COLOMBIA
+                </span>
+                <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
+                    <span class="badge bg-purple-subtle text-purple border px-3 py-2 rounded-pill fs-6 fw-bold">
+                        <i class="bi bi-phone-fill me-1"></i> Nequi
+                    </span>
+                    <span class="badge bg-danger-subtle text-danger border px-3 py-2 rounded-pill fs-6 fw-bold">
+                        <i class="bi bi-phone-fill me-1"></i> Daviplata
+                    </span>
+                    <span class="badge bg-warning-subtle text-warning-emphasis border px-3 py-2 rounded-pill fs-6 fw-bold">
+                        <i class="bi bi-bank me-1"></i> Bancolombia
+                    </span>
+                    <span class="badge bg-info-subtle text-info-emphasis border px-3 py-2 rounded-pill fs-6 fw-bold">
+                        <i class="bi bi-credit-card me-1"></i> PSE / Transferencia
+                    </span>
+                    <span class="badge bg-success-subtle text-success border px-3 py-2 rounded-pill fs-6 fw-bold">
+                        <i class="bi bi-cash me-1"></i> Efectivo / Contraentrega
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PREGUNTAS FRECUENTES (FAQ) -->
+    <section class="py-5 bg-body-tertiary border-top">
+        <div class="container max-w-3xl">
+            <div class="text-center mb-5">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 extra-small fw-bold font-monospace mb-2">
+                    RESUELVE TUS DUDAS
+                </span>
+                <h3 class="fw-black text-body">Preguntas Frecuentes</h3>
+            </div>
+
+            <div class="accordion accordion-flush rounded-4 overflow-hidden border shadow-sm" id="accordionFaq">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            ¿Necesito saber de sistemas o tener un computador muy potente?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#accordionFaq">
+                        <div class="accordion-body text-muted small" style="line-height: 1.6;">
+                            No. El sistema funciona en la nube, lo que significa que puedes usarlo desde cualquier celular, tablet o computador sencillo con conexión a internet. Su diseño está pensado para que cualquier persona que sepa usar WhatsApp pueda manejarlo sin problema.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            ¿Hay contrato de permanencia o cláusulas de amarre?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                        <div class="accordion-body text-muted small">
+                            Ninguno. Pagas mes a mes o año a año. Si en algún momento no deseas continuar, simplemente no renuevas y tus datos siguen protegidos. Creemos en retenerte por la calidad de nuestro servicio, no por un contrato obligatorio.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            ¿Cómo funciona el catálogo web y los pedidos a WhatsApp?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                        <div class="accordion-body text-muted small">
+                            Tu vivero o finca tendrá un enlace propio (ejemplo: <code>ecosistem.com/tienda/tu-vivero</code>) que puedes poner en tu Instagram, Facebook o estado de WhatsApp. Tus clientes ven tus plantas con fotos, eligen lo que quieren, llenan sus datos y al dar clic en "Comprar" se abre WhatsApp con el pedido detallado listo para que lo confirmes.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            ¿Cómo me entregan mi usuario y cómo se paga?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                        <div class="accordion-body text-muted small">
+                            Nos escribes por WhatsApp, activamos tu empresa en menos de 10 minutos con tu nombre y logo, y te generamos tu recibo oficial de suscripción. Puedes pagar fácilmente por Nequi, Daviplata o transferencia Bancolombia.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BANNER FINAL CTA -->
+    <section class="py-5 text-center text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #042f2e 0%, #064e3b 100%);">
+        <div class="container py-4">
+            <h2 class="display-6 fw-black mb-3">¿Listo para llevar tu vivero al siguiente nivel?</h2>
+            <p class="lead text-white-50 mx-auto col-lg-7 mb-4">
+                Hablemos por WhatsApp. Te mostramos una demostración personalizada en 5 minutos sin ningún compromiso.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="https://wa.me/573000000000?text=Hola!%20Quiero%20una%20demostraci%C3%B3n%20personalizada%20de%20EcoSistem" target="_blank"
+                   class="btn btn-warning btn-lg rounded-pill px-4 py-2.5 fw-bold text-dark shadow-lg d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-whatsapp"></i>
+                    <span>Escribir al WhatsApp del Fundador</span>
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-bold">
+                    <span>Acceso Clientes Registrados</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<style>
+.text-gradient-emerald {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.billing-toggle.active {
+    background-color: var(--bs-primary, #10b981) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+.billing-toggle {
+    background: transparent;
+    border: none;
+    color: var(--bs-secondary-color, #64748b);
+    transition: all 0.2s ease;
+}
+.plan-card {
+    border: 1px solid var(--bs-border-color, rgba(255,255,255,0.08)) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.plan-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.12) !important;
+}
+.plan-featured {
+    border: 2px solid #10b981 !important;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.22) !important;
+    transform: scale(1.02);
+}
+.plan-featured:hover {
+    transform: scale(1.02) translateY(-6px);
+}
+
+/* Kit de Arranque con Soporte 100% Light y Dark Theme */
+.kit-arranque-card {
+    background: linear-gradient(135deg, rgba(254, 243, 199, 0.9) 0%, rgba(255, 251, 235, 0.9) 100%);
+    border: 1px solid #fde68a !important;
+}
+.kit-arranque-pricebox {
+    background: #ffffff;
+}
+[data-bs-theme="dark"] .kit-arranque-card {
+    background: linear-gradient(135deg, #1f1b14 0%, #112019 100%) !important;
+    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+[data-bs-theme="dark"] .kit-arranque-pricebox {
+    background: rgba(0, 0, 0, 0.45) !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.bg-purple-subtle {
+    background-color: rgba(139, 92, 246, 0.15);
+}
+.text-purple {
+    color: #8b5cf6;
+}
+.pulse-btn {
+    animation: pulseGlow 2.5s infinite;
+}
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+    70% { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+</style>
+
+<script>
+function setBillingCycle(ciclo) {
+    const btnM = document.getElementById('btnBillingMensual');
+    const btnA = document.getElementById('btnBillingAnual');
+    const pricesM = document.querySelectorAll('.price-mensual');
+    const pricesA = document.querySelectorAll('.price-anual');
+
+    if (ciclo === 'anual') {
+        btnM.classList.remove('active');
+        btnA.classList.add('active');
+        pricesM.forEach(el => el.classList.add('d-none'));
+        pricesA.forEach(el => el.classList.remove('d-none'));
+    } else {
+        btnA.classList.remove('active');
+        btnM.classList.add('active');
+        pricesA.forEach(el => el.classList.add('d-none'));
+        pricesM.forEach(el => el.classList.remove('d-none'));
+    }
+}
+</script>
+{% endblock %}

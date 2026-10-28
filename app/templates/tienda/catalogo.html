@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo Digital — {{ empresa.nombre }}</title>
+
+    <!-- PWA & Mobile Web App Capabilities -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ empresa.nombre }}">
+
+    <!-- Hojas de Estilo Premium & Tipografía Moderna -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary-color: {{ empresa.color_tema or '#059669' }};
+            --primary-dark: #064e3b;
+            --accent-color: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.35);
+            --dark-color: #0b1320;
+            --light-bg: #f8fafc;
+            --surface-card: #ffffff;
+            --border-subtle: rgba(226, 232, 240, 0.9);
+            --shadow-float: 0 20px 45px -15px rgba(11, 19, 32, 0.08);
+            --shadow-card: 0 4px 18px -2px rgba(15, 23, 42, 0.06);
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--light-bg);
+            color: #334155;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        main {
+            flex: 1 0 auto;
+        }
+
+        footer {
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+
+        h1, h2, h3, h4, h5, .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* 1. NAVBAR SUPERIOR DEL CATÁLOGO */
+        .catalog-navbar {
+            background: rgba(11, 19, 32, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+            z-index: 1030;
+        }
+
+        .back-link {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.88rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-link:hover {
+            color: #34d399;
+            transform: translateX(-3px);
+        }
+
+        /* 2. HEADER HERO DEL CATÁLOGO */
+        .catalog-hero {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 45%, #0b1320 100%);
+            color: white;
+            padding: 50px 0 42px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .catalog-hero::before {
+            content: '';
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            top: -120px;
+            right: -60px;
+            filter: blur(70px);
+            pointer-events: none;
+        }
+
+        .catalog-hero::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, transparent 70%);
+            bottom: -80px;
+            left: 5%;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        .catalog-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            padding: 0.4rem 1.15rem;
+            border-radius: 9999px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .catalog-inventory-badge {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            font-weight: 700;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 8px 24px !important;
+            border-radius: 9999px;
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        /* 3. TOOLBAR: PESTAÑAS, BUSCADOR Y ORDENAMIENTO */
+        .catalog-toolbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 57px;
+            z-index: 1020;
+            flex-shrink: 0;
+            padding: 14px 0;
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+        }
+
+        .category-tab {
+            padding: 9px 20px;
+            border-radius: 9999px;
+            border: 1.5px solid #e2e8f0;
+            background-color: white;
+            font-weight: 700;
+            font-size: 0.86rem;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .category-tab:hover {
+            background-color: #f8fafc;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+
+        .category-tab.active {
+            background-color: #064e3b;
+            color: white;
+            border-color: #064e3b;
+            box-shadow: 0 4px 14px rgba(6, 78, 59, 0.25);
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 9999px;
+            border: 1.5px solid #e2e8f0;
+            padding: 6px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            display: flex;
+            align-items: center;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-container:focus-within {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .sort-select {
+            border-radius: 9999px;
+            border: 1.5px solid #cbd5e1;
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: #1e293b;
+            padding: 8px 40px 8px 18px !important;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .sort-select:focus {
+            border-color: #10b981;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        /* 4. TARJETAS DE PRODUCTO DE ALTO NIVEL */
+        .product-card {
+            border: 1px solid var(--border-subtle);
+            border-radius: 1.35rem;
+            background-color: #ffffff;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: var(--shadow-card);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-float);
+            border-color: rgba(16, 185, 129, 0.45);
+        }
+
+        .product-img-wrapper {
+            height: 230px;
+            position: relative;
+            overflow: hidden;
+            border-top-left-radius: 1.35rem;
+            border-top-right-radius: 1.35rem;
+            background-color: #f1f5f9;
+        }
+
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.08);
+        }
+
+        /* PLACEHOLDERS BOTÁNICOS ARTÍSTICOS */
+        .art-placeholder-plant {
+            background: linear-gradient(145deg, #064e3b 0%, #065f46 50%, #10b981 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .art-placeholder-plant::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+        }
+
+        .art-placeholder-insumo {
+            background: linear-gradient(145deg, #0369a1 0%, #0284c7 50%, #38bdf8 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .art-placeholder-pot {
+            background: linear-gradient(145deg, #b45309 0%, #d97706 50%, #fbbf24 100%);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .art-bubble {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin-bottom: 0.6rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: transform 0.4s ease;
+        }
+
+        .product-card:hover .art-bubble {
+            transform: scale(1.12) rotate(6deg);
+        }
+
+        .placeholder-caption-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.32);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-badge-type {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            border-radius: 9999px;
+            padding: 4px 12px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+
+        .product-badge-stock {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            border-radius: 9999px;
+            padding: 3px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: monospace;
+            background: rgba(11, 19, 32, 0.85);
+            color: #ffffff;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 2;
+        }
+
+        .btn-quickview {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e293b;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transform: scale(0.85);
+            transition: all 0.25s ease;
+            z-index: 3;
+            cursor: pointer;
+        }
+
+        .product-card:hover .btn-quickview {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .btn-quickview:hover {
+            background: #064e3b;
+            color: white;
+        }
+
+        .product-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.35rem;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 3rem;
+            transition: color 0.2s ease;
+        }
+
+        .product-card:hover .product-title {
+            color: #059669;
+        }
+
+        .product-subtitle {
+            font-size: 0.85rem;
+            color: #64748b;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 1.1rem;
+            height: 1.15rem;
+        }
+
+        /* CONTROL DE CANTIDAD EN LA TARJETA (AMPLIO Y CÓMODO) */
+        .card-qty-stepper {
+            display: inline-flex;
+            align-items: center;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 9999px;
+            background: #f8fafc;
+            padding: 3px 6px;
+            height: 42px;
+        }
+
+        .card-qty-stepper button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.15s ease;
+        }
+
+        .card-qty-stepper button:hover {
+            background: #064e3b;
+            color: #ffffff;
+            border-color: #064e3b;
+        }
+
+        .card-qty-stepper input {
+            width: 36px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: #0f172a;
+            pointer-events: none;
+        }
+
+        .btn-add-cart-pro {
+            height: 42px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            font-weight: 800;
+            font-size: 0.92rem;
+            padding: 0 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+            cursor: pointer;
+        }
+
+        .btn-add-cart-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(16, 185, 129, 0.5);
+            color: white;
+        }
+
+        .btn-add-cart-pro:active {
+            transform: scale(0.96);
+        }
+
+        /* 5. CARRITO FLOTANTE Y DRAWER LATERAL */
+        .cart-trigger {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 50px;
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5);
+            border: none;
+            cursor: pointer;
+            z-index: 1040;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .cart-trigger:hover {
+            transform: scale(1.06) translateY(-3px);
+            box-shadow: 0 16px 36px rgba(16, 185, 129, 0.6);
+        }
+
+        .cart-drawer {
+            position: fixed;
+            top: 0;
+            right: -480px;
+            width: 100%;
+            max-width: 460px;
+            height: 100vh;
+            background: white;
+            z-index: 1060;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.25);
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-drawer.open {
+            right: 0;
+        }
+
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(11, 19, 32, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 1050;
+            display: none;
+        }
+
+        .cart-overlay.show {
+            display: block;
+        }
+
+        .checkout-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f1f5f9;
+            border-radius: 9999px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .checkout-steps span.active {
+            color: #059669;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .qty-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* MODAL DE VISTA RÁPIDA */
+        .quickview-modal-content {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            overflow: hidden;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.25);
+        }
+
+        .quickview-img-wrapper {
+            height: 380px;
+            background: #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quickview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. NAVBAR DEDICADA DEL CATÁLOGO -->
+    <nav class="navbar navbar-expand-lg catalog-navbar py-2.5 sticky-top">
+        <div class="container" style="max-width: 1300px;">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ url_for('tienda.index', empresa_id=empresa.id) }}" class="back-link">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                    <span class="d-none d-sm-inline">Volver a la Web Principal</span>
+                </a>
+                <span class="text-white-50 d-none d-sm-inline">|</span>
+                <a class="navbar-brand d-flex align-items-center gap-2.5 text-white fw-bold py-0" href="{{ url_for('tienda.index', empresa_id=empresa.id) }}">
+                    {% if empresa.logo_url %}
+                    <img src="{{ url_for('static', filename=empresa.logo_url) }}" alt="{{ empresa.nombre }}"
+                         class="rounded-circle border border-2 border-white border-opacity-75 shadow-sm" style="width: 48px; height: 48px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
+                        <i class="bi bi-flower1 fs-5"></i>
+                    </div>
+                    {% endif %}
+                    <span class="fs-6 brand-font text-white">{{ empresa.nombre }}</span>
+                </a>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <button id="btnInstallPwaPublic" class="btn btn-outline-light btn-sm rounded-pill px-2.5 py-1 fw-bold d-none align-items-center gap-1 text-white extra-small" style="border-color: rgba(52, 211, 153, 0.4); background: rgba(16, 185, 129, 0.1);">
+                    <i class="bi bi-phone text-success"></i>
+                    <span class="d-none d-sm-inline">App Móvil</span>
+                </button>
+
+                <button onclick="toggleAIChat()" class="btn btn-outline-light btn-sm rounded-pill px-2.5 py-1 fw-bold d-inline-flex align-items-center gap-1.5 text-white extra-small" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(6, 26, 18, 0.7); backdrop-filter: blur(8px);">
+                    <span class="spinner-grow spinner-grow-sm text-success" style="width: 7px; height: 7px;"></span>
+                    <i class="bi bi-robot text-success"></i>
+                    <span>Asesor IA</span>
+                </button>
+
+                {% set tel_wa = (empresa.whatsapp_pedidos or empresa.telefono or '')|replace(' ', '')|replace('+', '')|replace('-', '') %}
+                <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}&text=¡Hola%20{{ empresa.nombre|urlencode }}!%20Tengo%20una%20consulta%20sobre%20su%20cat%C3%A1logo%20digital."
+                   target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-2 text-white border-success">
+                    <i class="bi bi-whatsapp text-success"></i>
+                    <span class="d-none d-md-inline">WhatsApp</span>
+                </a>
+
+                <button class="btn btn-success btn-sm rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-1.5 shadow-sm" id="btnOpenCartTop">
+                    <i class="bi bi-bag-check-fill"></i>
+                    <span>Carrito (<span id="cartCountTop">0</span>)</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. CABECERA HERO DEL CATÁLOGO -->
+    <header class="catalog-hero">
+        <div class="container" style="max-width: 1300px;">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8 text-center text-lg-start">
+                    <div class="mb-2">
+                        <span class="catalog-badge">
+                            <i class="bi bi-patch-check-fill text-success"></i> CATÁLOGO OFICIAL &bull; DISPONIBILIDAD EN TIEMPO REAL
+                        </span>
+                    </div>
+                    <h1 class="fw-black text-white mb-2" style="font-size: clamp(2rem, 3.5vw, 2.9rem); letter-spacing: -1px; line-height: 1.2;">
+                        Catálogo Digital de Plantas & Insumos
+                    </h1>
+                    <p class="text-white text-opacity-80 mb-0 fs-6" style="max-width: 720px; line-height: 1.6;">
+                        Explora plántulas forestales, frutales injertados, ornamentales y artículos de jardinería con inventario al día. Puedes seleccionar cantidades, añadirlas al carrito y tramitar tu pedido directo a nuestro WhatsApp comercial.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-center text-lg-end">
+                    <div class="d-inline-flex flex-column align-items-center align-items-lg-end">
+                        <div class="catalog-inventory-badge mb-2 d-inline-flex align-items-center gap-2" style="font-size: 0.88rem;">
+                            <span class="text-white fw-bold">🌱 {{ plantas|length }} Plantas</span>
+                            <span class="text-white-50 mx-1">&bull;</span>
+                            <span class="text-white fw-bold">📦 {{ productos|length }} Artículos</span>
+                        </div>
+                        <div class="text-white text-opacity-80 small d-flex align-items-center gap-2 justify-content-center justify-content-lg-end">
+                            <span class="spinner-grow spinner-grow-sm text-success" style="width: 8px; height: 8px;" role="status"></span>
+                            <span>Stock sincronizado con vivero físico</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. BARRA DE HERRAMIENTAS: PESTAÑAS, BUSCADOR Y ORDENAMIENTO -->
+    <section class="catalog-toolbar">
+        <div class="container" style="max-width: 1300px;">
+            <div class="row g-3 align-items-center">
+                <!-- Pestañas por Categoría -->
+                <div class="col-lg-5 col-md-6">
+                    <div class="d-flex flex-wrap gap-2" id="filterTabs">
+                        <div class="category-tab active" data-category="todos">
+                            <span>🌸 Todos</span>
+                            <span class="badge bg-white text-dark rounded-pill font-monospace" style="font-size: 0.72rem;">{{ plantas|length + productos|length }}</span>
+                        </div>
+                        <div class="category-tab" data-category="plantas">
+                            <span>🌿 Plántulas</span>
+                            <span class="badge bg-light text-dark rounded-pill font-monospace" style="font-size: 0.72rem;">{{ plantas|length }}</span>
+                        </div>
+                        <div class="category-tab" data-category="productos">
+                            <span>📦 Insumos & Macetas</span>
+                            <span class="badge bg-light text-dark rounded-pill font-monospace" style="font-size: 0.72rem;">{{ productos|length }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buscador Instantáneo -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="search-container">
+                        <i class="bi bi-search text-muted me-2"></i>
+                        <input type="text" id="searchInput" class="form-control border-0 p-1 text-dark"
+                               placeholder="Buscar por especie, nombre común..." autocomplete="off">
+                        <button type="button" class="btn btn-sm btn-link text-muted p-0" id="clearSearchBtn" style="display: none;">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selector de Ordenamiento -->
+                <div class="col-lg-3 col-md-12 text-lg-end">
+                    <div class="d-flex align-items-center justify-content-lg-end gap-2">
+                        <span class="small text-muted fw-bold d-none d-sm-inline">Ordenar:</span>
+                        <select id="sortSelect" class="form-select form-select-sm sort-select w-auto">
+                            <option value="default">⭐ Recomendados</option>
+                            <option value="price-asc">💲 Menor Precio</option>
+                            <option value="price-desc">💰 Mayor Precio</option>
+                            <option value="name-asc">🔤 Nombre (A - Z)</option>
+                            <option value="stock-desc">📦 Mayor Stock</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. GRILLA PRINCIPAL DE PRODUCTOS -->
+    <main class="container my-5" style="max-width: 1300px;">
+        <div class="row g-4" id="productsGrid">
+
+            <!-- PLANTAS & ÁRBOLES -->
+            {% for lote in plantas %}
+            {% set precio_lote = lote.especie.precio_venta_sugerido or 0 %}
+            <div class="col-12 col-md-6 col-lg-4 product-item"
+                 data-category="plantas"
+                 data-name="{{ lote.especie.nombre_comun | lower }} {{ (lote.especie.nombre_cientifico or '') | lower }}"
+                 data-price="{{ precio_lote }}"
+                 data-stock="{{ lote.cantidad_actual }}">
+                <article class="product-card">
+                    <div class="product-img-wrapper">
+                        <!-- Botón Vista Rápida -->
+                        <button class="btn-quickview qv-trigger" title="Vista Rápida"
+                                data-id="{{ lote.id }}"
+                                data-type="lote"
+                                data-nombre="{{ lote.especie.nombre_comun }}"
+                                data-cientifico="{{ lote.especie.nombre_cientifico or 'Variedad vivero seleccionada' }}"
+                                data-precio="{{ precio_lote }}"
+                                data-stock="{{ lote.cantidad_actual }}"
+                                data-img="{% if lote.especie.imagen_url %}{{ url_for('static', filename=lote.especie.imagen_url) }}{% endif %}"
+                                data-tipo="Plántula Forestal / Frutal"
+                                data-desc="Material vegetal propagado en vivero con sustratos enriquecidos, raíces vigorosas y alta adaptabilidad agronómica.">
+                            <i class="bi bi-eye"></i>
+                        </button>
+
+                        {% if lote.especie.imagen_url %}
+                        <img src="{{ url_for('static', filename=lote.especie.imagen_url) }}" alt="{{ lote.especie.nombre_comun }}" class="product-img">
+                        {% else %}
+                        <div class="art-placeholder-plant">
+                            <div class="art-bubble">
+                                <i class="bi bi-flower1"></i>
+                            </div>
+                            <span class="placeholder-caption-pill">
+                                🌱 Plántula Seleccionada
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Badges Flotantes -->
+                        <span class="product-badge-type bg-success text-white">
+                            🌿 Planta Viva
+                        </span>
+                    </div>
+
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h5 class="product-title" title="{{ lote.especie.nombre_comun }}">
+                            {{ lote.especie.nombre_comun }}
+                        </h5>
+                        <p class="product-subtitle fst-italic" title="{{ lote.especie.nombre_cientifico }}">
+                            {{ lote.especie.nombre_cientifico or 'Variedad vivero seleccionada' }}
+                        </p>
+
+                        <!-- Fila 1: Precio y Disponibilidad con Espacio Holgado -->
+                        <div class="d-flex align-items-baseline justify-content-between mb-3 pt-3 border-top">
+                            <div>
+                                {% if empresa.mostrar_precios_web %}
+                                <span class="text-muted extra-small d-block text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 0.72rem;">Precio Unitario</span>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="fs-4 fw-black text-success font-monospace">${{ "{:,.0f}".format(precio_lote) }}</span>
+                                    <span class="text-muted extra-small">COP</span>
+                                </div>
+                                {% else %}
+                                <span class="badge bg-light text-dark border px-2.5 py-1.5 fw-bold">Consultar Precio</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted extra-small d-block fw-semibold" style="font-size: 0.72rem;">Inventario</span>
+                                {% if lote.cantidad_actual > 20 %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                    {{ "{:g}".format(lote.cantidad_actual) }} disp.
+                                </span>
+                                {% elif lote.cantidad_actual > 0 %}
+                                <span class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-50 rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                    Últimas {{ "{:g}".format(lote.cantidad_actual) }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                    Agotado
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Fila 2: Control de Cantidad y Botón de Acción a Ancho Completo -->
+                        <div class="d-flex align-items-center gap-2 pt-1">
+                            <div class="card-qty-stepper flex-shrink-0" id="stepper_lote_{{ lote.id }}">
+                                <button type="button" onclick="cambiarStepper('input_lote_{{ lote.id }}', -1)" title="Menos">−</button>
+                                <input type="text" id="input_lote_{{ lote.id }}" value="1" readonly>
+                                <button type="button" onclick="cambiarStepper('input_lote_{{ lote.id }}', 1)" title="Más">+</button>
+                            </div>
+
+                            <button class="btn btn-success rounded-pill flex-grow-1 py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2 add-to-cart-btn shadow-sm border-0"
+                                    data-id="{{ lote.id }}"
+                                    data-type="lote"
+                                    data-nombre="{{ lote.especie.nombre_comun }}"
+                                    data-precio="{{ precio_lote }}"
+                                    data-stock="{{ lote.cantidad_actual }}"
+                                    data-stepper-id="input_lote_{{ lote.id }}"
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.92rem;">
+                                <i class="bi bi-cart-plus fs-5"></i>
+                                <span>Añadir al Carrito</span>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+
+            <!-- INSUMOS Y MERCANCÍA -->
+            {% for prod in productos %}
+            {% set precio_prod = prod.precio_venta or 0 %}
+            <div class="col-12 col-md-6 col-lg-4 product-item"
+                 data-category="productos"
+                 data-name="{{ prod.nombre | lower }}"
+                 data-price="{{ precio_prod }}"
+                 data-stock="{{ prod.cantidad_actual }}">
+                <article class="product-card">
+                    <div class="product-img-wrapper">
+                        <!-- Botón Vista Rápida -->
+                        <button class="btn-quickview qv-trigger" title="Vista Rápida"
+                                data-id="{{ prod.id }}"
+                                data-type="insumo"
+                                data-nombre="{{ prod.nombre }}"
+                                data-cientifico="{{ prod.tipo or 'Insumo de Cultivo' }}"
+                                data-precio="{{ precio_prod }}"
+                                data-stock="{{ prod.cantidad_actual }}"
+                                data-img="{% if prod.imagen_url %}{{ url_for('static', filename=prod.imagen_url) }}{% endif %}"
+                                data-tipo="{{ prod.tipo or 'Insumo' }}"
+                                data-desc="{{ prod.descripcion or 'Insumo seleccionado de calidad para garantizar la nutrición y soporte adecuado de tus plantas.' }}">
+                            <i class="bi bi-eye"></i>
+                        </button>
+
+                        {% if prod.imagen_url %}
+                        <img src="{{ url_for('static', filename=prod.imagen_url) }}" alt="{{ prod.nombre }}" class="product-img">
+                        {% elif 'maceta' in (prod.nombre|lower) or 'matera' in (prod.nombre|lower) %}
+                        <div class="art-placeholder-pot">
+                            <div class="art-bubble">
+                                <i class="bi bi-flower2"></i>
+                            </div>
+                            <span class="placeholder-caption-pill">
+                                🏺 Matera / Maceta
+                            </span>
+                        </div>
+                        {% else %}
+                        <div class="art-placeholder-insumo">
+                            <div class="art-bubble">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <span class="placeholder-caption-pill">
+                                📦 {{ prod.tipo or 'Insumo' }}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- Badges Flotantes -->
+                        <span class="product-badge-type bg-info text-dark">
+                            📦 {{ prod.tipo or 'Insumo' }}
+                        </span>
+                    </div>
+
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h5 class="product-title" title="{{ prod.nombre }}">
+                            {{ prod.nombre }}
+                        </h5>
+                        <p class="product-subtitle" title="{{ prod.descripcion or 'Materia prima y complementos de cultivo' }}">
+                            {{ prod.descripcion or 'Materia prima y complementos de cultivo' }}
+                        </p>
+
+                        <!-- Fila 1: Precio y Disponibilidad con Espacio Holgado -->
+                        <div class="d-flex align-items-baseline justify-content-between mb-3 pt-3 border-top">
+                            <div>
+                                {% if empresa.mostrar_precios_web %}
+                                <span class="text-muted extra-small d-block text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 0.72rem;">Precio Unitario</span>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="fs-4 fw-black text-success font-monospace">${{ "{:,.0f}".format(precio_prod) }}</span>
+                                    <span class="text-muted extra-small">COP</span>
+                                </div>
+                                {% else %}
+                                <span class="badge bg-light text-dark border px-2.5 py-1.5 fw-bold">Consultar Precio</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted extra-small d-block fw-semibold" style="font-size: 0.72rem;">Inventario</span>
+                                {% if prod.cantidad_actual > 10 %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                    {{ "{:g}".format(prod.cantidad_actual) }} disp.
+                                </span>
+                                {% elif prod.cantidad_actual > 0 %}
+                                <span class="badge bg-warning bg-opacity-15 text-dark border border-warning border-opacity-50 rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                    Últimas {{ "{:g}".format(prod.cantidad_actual) }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2.5 py-1 font-monospace fw-bold">
+                                    Agotado
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Fila 2: Control de Cantidad y Botón de Acción a Ancho Completo -->
+                        <div class="d-flex align-items-center gap-2 pt-1">
+                            <div class="card-qty-stepper flex-shrink-0" id="stepper_prod_{{ prod.id }}">
+                                <button type="button" onclick="cambiarStepper('input_prod_{{ prod.id }}', -1)" title="Menos">−</button>
+                                <input type="text" id="input_prod_{{ prod.id }}" value="1" readonly>
+                                <button type="button" onclick="cambiarStepper('input_prod_{{ prod.id }}', 1)" title="Más">+</button>
+                            </div>
+
+                            <button class="btn btn-success rounded-pill flex-grow-1 py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2 add-to-cart-btn shadow-sm border-0"
+                                    data-id="{{ prod.id }}"
+                                    data-type="insumo"
+                                    data-nombre="{{ prod.nombre }}"
+                                    data-precio="{{ precio_prod }}"
+                                    data-stock="{{ prod.cantidad_actual }}"
+                                    data-stepper-id="input_prod_{{ prod.id }}"
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 0.92rem;">
+                                <i class="bi bi-cart-plus fs-5"></i>
+                                <span>Añadir al Carrito</span>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- Alerta Sin Resultados -->
+        <div id="noProductsAlert" class="text-center py-5 my-5" style="display: none;">
+            <div class="text-muted mb-3" style="font-size: 3.5rem;"><i class="bi bi-search"></i></div>
+            <h4 class="fw-bold text-dark">No encontramos productos con tu búsqueda</h4>
+            <p class="text-muted">Intenta buscar con otra palabra clave o explora todas las categorías.</p>
+            <button class="btn btn-outline-success rounded-pill px-4" onclick="restablecerFiltros()">
+                Ver Todo el Catálogo
+            </button>
+        </div>
+    </main>
+
+    <!-- 5. FOOTER CORPORATIVO DEL CATÁLOGO -->
+    <footer class="py-5 text-white mt-auto" style="background-color: #0b1320; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+        <div class="container text-center text-md-start" style="max-width: 1300px;">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-6">
+                    <h4 class="fw-black mb-1 brand-font text-white">{{ empresa.nombre }}</h4>
+                    <p class="text-white-50 small mb-0">{{ empresa.slogan or 'Cultivamos vida y reforestación con la más alta calidad genética.' }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-inline-flex gap-2">
+                        {% if empresa.instagram_url %}
+                        <a href="{{ empresa.instagram_url }}" target="_blank" class="btn btn-outline-light rounded-circle p-2" style="width: 40px; height: 40px;" title="Instagram"><i class="bi bi-instagram"></i></a>
+                        {% endif %}
+                        {% if empresa.facebook_url %}
+                        <a href="{{ empresa.facebook_url }}" target="_blank" class="btn btn-outline-light rounded-circle p-2" style="width: 40px; height: 40px;" title="Facebook"><i class="bi bi-facebook"></i></a>
+                        {% endif %}
+                        {% if empresa.tiktok_url %}
+                        <a href="{{ empresa.tiktok_url }}" target="_blank" class="btn btn-outline-light rounded-circle p-2" style="width: 40px; height: 40px;" title="TikTok"><i class="bi bi-tiktok"></i></a>
+                        {% endif %}
+                        <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}" target="_blank" class="btn btn-success rounded-circle p-2" style="width: 40px; height: 40px;" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary my-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-white-50 gap-2">
+                <span>© {{ datetime.now().year }} {{ empresa.nombre }}. Todos los derechos reservados.</span>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('tienda.index', empresa_id=empresa.id) }}" class="text-white-50 text-decoration-none">
+                        <i class="bi bi-house me-1"></i> Web Principal
+                    </a>
+                    <a href="https://api.whatsapp.com/send?phone={{ tel_wa }}" target="_blank" class="text-white-50 text-decoration-none">
+                        <i class="bi bi-whatsapp text-success me-1"></i> WhatsApp Asesor
+                    </a>
+                </div>
+                <span>Potenciado con tecnología <strong>EcoSistem Pro</strong></span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 6. MODAL DE VISTA RÁPIDA (QUICK VIEW) -->
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content quickview-modal-content">
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-5">
+                            <div class="quickview-img-wrapper" id="qvImgWrapper">
+                                <img src="" id="qvImg" class="quickview-img" alt="Producto">
+                                <div id="qvPlaceholder" class="art-placeholder-plant h-100 d-none">
+                                    <div class="art-bubble">
+                                        <i class="bi bi-flower1"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-white mb-0" id="qvPlaceholderTitle"></h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-7 p-4 p-md-5 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold px-3 py-1 rounded-pill extra-small" id="qvBadgeTipo">
+                                        Planta Viva
+                                    </span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <h3 class="fw-black text-dark mb-1" id="qvNombre"></h3>
+                                <p class="text-muted fst-italic small mb-3" id="qvCientifico"></p>
+
+                                <div class="mb-3">
+                                    <span class="text-secondary extra-small fw-bold d-block">Precio Sugerido:</span>
+                                    <span class="fs-3 fw-black text-success font-monospace" id="qvPrecio"></span>
+                                </div>
+
+                                <div class="p-3 rounded-3 bg-light mb-4">
+                                    <small class="text-secondary fw-bold d-block mb-1">Información de Vivero:</small>
+                                    <p class="text-muted small mb-0" id="qvDesc"></p>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-3">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <span class="small fw-bold text-dark">Disponibilidad:</span>
+                                    <span class="badge bg-dark rounded-pill font-monospace" id="qvStock"></span>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-success rounded-pill flex-grow-1 py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                            id="qvAddToCartBtn">
+                                        <i class="bi bi-bag-plus-fill fs-5"></i>
+                                        <span>Añadir al Carrito</span>
+                                    </button>
+                                    <a href="#" target="_blank" id="qvWhatsAppBtn" class="btn btn-outline-success rounded-circle p-2.5 d-flex align-items-center justify-content-center"
+                                       title="Preguntar por WhatsApp">
+                                        <i class="bi bi-whatsapp fs-5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. CARRITO FLOTANTE Y DRAWER LATERAL -->
+    <button class="cart-trigger" id="cartTrigger">
+        <i class="bi bi-bag-check-fill fs-5"></i>
+        <span>Mi Carrito</span>
+        <span class="badge bg-white text-dark rounded-pill font-monospace" id="cartCountBadge">0</span>
+    </button>
+
+    <div class="cart-overlay" id="cartOverlay"></div>
+
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="p-4 border-bottom bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-bag-check-fill text-success fs-4"></i>
+                    <h5 class="fw-black mb-0 text-dark">Tu Carrito de Pedido</h5>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary rounded-circle" id="closeCartBtn">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Pasos de Compra -->
+            <div class="checkout-steps">
+                <span class="active"><i class="bi bi-1-circle-fill me-1"></i> Carrito</span>
+                <span class="text-muted"><i class="bi bi-chevron-right"></i></span>
+                <span class="text-muted"><i class="bi bi-2-circle me-1"></i> Datos</span>
+                <span class="text-muted"><i class="bi bi-chevron-right"></i></span>
+                <span class="text-muted"><i class="bi bi-3-circle me-1"></i> WhatsApp</span>
+            </div>
+        </div>
+
+        <div class="p-4 flex-grow-1 overflow-auto" id="cartItemsList">
+            <!-- Ítems inyectados dinámicamente por JavaScript -->
+        </div>
+
+        <div class="p-4 border-top bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-secondary fw-bold">Subtotal Estimado:</span>
+                <span class="fs-4 fw-black text-success font-monospace" id="cartTotalPrice">$0</span>
+            </div>
+            <div class="small text-muted mb-3 d-flex align-items-center gap-1.5">
+                <i class="bi bi-truck text-success"></i>
+                <span>Envíos coordinados directamente con el vivero</span>
+            </div>
+
+            <!-- Formulario de Checkout Multi-Pasarela Futurista -->
+            <form id="checkoutForm" onsubmit="enviarPedidoCheckout(event)">
+                <div class="mb-2">
+                    <label class="form-label extra-small fw-bold text-uppercase text-muted mb-1">1. Tus Datos de Entrega</label>
+                    <input type="text" id="clienteNombre" class="form-control form-control-sm rounded-pill mb-1.5" placeholder="Tu Nombre Completo *" required>
+                    <input type="tel" id="clienteTelefono" class="form-control form-control-sm rounded-pill mb-1.5" placeholder="Tu Celular / WhatsApp *" required>
+                    <input type="text" id="clienteDireccion" class="form-control form-control-sm rounded-pill" placeholder="Ciudad / Dirección de Entrega *" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label extra-small fw-bold text-uppercase text-muted mb-1.5">2. Selecciona Método de Pago</label>
+                    <div class="d-grid gap-1.5" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <button type="button" class="btn btn-sm btn-outline-success payment-tab-btn active p-1 text-center rounded-3 extra-small fw-bold" data-method="nequi_qr" onclick="seleccionarMetodoPago('nequi_qr')">
+                            <i class="bi bi-qr-code-scan d-block fs-6 mb-0.5"></i>
+                            <span>Nequi / Davi</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success payment-tab-btn p-1 text-center rounded-3 extra-small fw-bold" data-method="pse_transf" onclick="seleccionarMetodoPago('pse_transf')">
+                            <i class="bi bi-bank d-block fs-6 mb-0.5"></i>
+                            <span>PSE / Transf</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success payment-tab-btn p-1 text-center rounded-3 extra-small fw-bold" data-method="whatsapp" onclick="seleccionarMetodoPago('whatsapp')">
+                            <i class="bi bi-whatsapp d-block fs-6 mb-0.5"></i>
+                            <span>WhatsApp</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Contenedor Dinámico: Nequi / Daviplata QR -->
+                <div id="panelNequiQR" class="payment-method-panel p-2.5 rounded-3 mb-3 border" style="background: rgba(16, 185, 129, 0.06); border-color: rgba(16, 185, 129, 0.3) !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="badge bg-dark text-success font-monospace extra-small px-2 py-1 border border-success">
+                            <i class="bi bi-lightning-charge-fill me-1"></i>QR DINÁMICO ACTIVO
+                        </span>
+                        <span class="extra-small text-muted">Total exacto en COP</span>
+                    </div>
+                    <div class="text-center py-1">
+                        <img id="qrImgDinamico" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=vivero_pago_{{ empresa.id }}" 
+                             alt="QR Nequi Daviplata" class="img-fluid rounded-3 border border-2 border-white shadow-sm" style="width: 140px; height: 140px; background: white; padding: 6px;">
+                        <div class="mt-2 d-flex align-items-center justify-content-center gap-1.5">
+                            <span class="fw-bold text-dark font-monospace small" id="lblTelPago">{{ tel_wa or empresa.telefono or '3000000000' }}</span>
+                            <button type="button" class="btn btn-sm btn-light border py-0 px-1.5 extra-small rounded-pill" onclick="copiarAlPortapapeles('{{ tel_wa or empresa.telefono }}', 'Número copiado')">
+                                <i class="bi bi-copy"></i> Copiar
+                            </button>
+                        </div>
+                        <small class="text-muted extra-small d-block mt-1">Escanea desde Nequi o Daviplata en tu celular</small>
+                    </div>
+                </div>
+
+                <!-- Contenedor Dinámico: PSE / Transferencia -->
+                <div id="panelPSE" class="payment-method-panel p-2.5 rounded-3 mb-3 border d-none" style="background: rgba(59, 130, 246, 0.06); border-color: rgba(59, 130, 246, 0.3) !important;">
+                    <div class="d-flex align-items-center gap-1.5 mb-1.5">
+                        <i class="bi bi-bank text-primary"></i>
+                        <strong class="small text-dark">Transferencia Bancaria / PSE</strong>
+                    </div>
+                    <div class="extra-small text-muted mb-1">
+                        <strong>Titular:</strong> {{ empresa.nombre }}<br>
+                        <strong>Cuenta de Ahorros / Llave:</strong> <span class="font-monospace text-dark fw-bold">{{ tel_wa or empresa.telefono or '000-000000-00' }}</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 extra-small rounded-pill" onclick="copiarAlPortapapeles('{{ tel_wa or empresa.telefono }}', 'Cuenta copiada')">
+                        <i class="bi bi-copy me-1"></i>Copiar Número de Cuenta
+                    </button>
+                </div>
+
+                <!-- Contenedor Dinámico: WhatsApp Directo -->
+                <div id="panelWhatsApp" class="payment-method-panel p-2.5 rounded-3 mb-3 border d-none" style="background: rgba(37, 211, 102, 0.06); border-color: rgba(37, 211, 102, 0.3) !important;">
+                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                        <i class="bi bi-whatsapp text-success"></i>
+                        <strong class="small text-dark">Coordinación por WhatsApp</strong>
+                    </div>
+                    <p class="extra-small text-muted mb-0">
+                        Tu pedido se enviará desglosado al chat oficial de nuestro vivero para cotizar flete y coordinar tu entrega personalizada.
+                    </p>
+                </div>
+
+                <button type="submit" id="btnSubmitPedido" class="btn btn-success rounded-pill w-100 py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                    <i class="bi bi-check-circle-fill fs-5" id="btnSubmitIcon"></i>
+                    <span id="btnSubmitText">Confirmar Pedido & Proceder</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE PAGO Y CONFIRMACIÓN FUTURISTA -->
+    <div class="modal fade" id="modalPagoExito" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden" style="background: #040f0b; color: white; border: 1px solid rgba(16, 185, 129, 0.4) !important;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4 text-center d-block position-relative">
+                    <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center mb-2 shadow" style="width: 58px; height: 58px; background: rgba(16, 185, 129, 0.2); border: 2px solid #10b981;">
+                        <i class="bi bi-check2-circle text-success fs-1"></i>
+                    </div>
+                    <h4 class="fw-black text-white mb-0 brand-font">¡Pedido Registrado con Éxito!</h4>
+                    <small class="text-success font-monospace" id="modalOrderNumber">#WEB-000000</small>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <span class="text-white-50 small d-block mb-1">Monto Total a Pagar</span>
+                        <div class="fs-2 fw-black text-success font-monospace" id="modalOrderTotal">$0 COP</div>
+                    </div>
+
+                    <div id="modalQrContainer" class="p-3 rounded-3 mb-3 border border-success border-opacity-25" style="background: rgba(6, 26, 18, 0.8);">
+                        <span class="badge bg-success bg-opacity-25 text-success mb-2 font-monospace extra-small">CÓDIGO QR DE PAGO INMEDIATO</span>
+                        <div>
+                            <img id="modalQrImg" src="" alt="QR" class="rounded-3 shadow" style="width: 170px; height: 170px; background: white; padding: 6px;">
+                        </div>
+                        <div class="mt-2 text-white-50 extra-small">
+                            Escanea con tu app Nequi o Daviplata al número:
+                            <strong class="text-white font-monospace d-block fs-6 mt-0.5" id="modalTelDisplay">{{ tel_wa or empresa.telefono }}</strong>
+                        </div>
+                    </div>
+
+                    <p class="small text-white-50 mb-0">
+                        Haz clic en el botón a continuación para abrir WhatsApp y adjuntar tu comprobante de pago o confirmar los detalles de despacho.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4 d-flex flex-column gap-2">
+                    <a id="modalWhatsAppBtn" href="#" target="_blank" class="btn btn-success rounded-pill w-100 py-2.5 fw-bold shadow d-flex align-items-center justify-content-center gap-2"
+                       style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                        <span>Enviar Comprobante por WhatsApp</span>
+                    </a>
+                    <button type="button" class="btn btn-link text-white-50 extra-small text-decoration-none" data-bs-dismiss="modal" onclick="limpiarYRecargar()">
+                        Continuar navegando en el catálogo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Bootstrap y Lógica Interactiva -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const empresaId = {{ empresa.id }};
+        const telVivero = "{{ tel_wa }}";
+        const cartKey = `vivero_cart_${empresaId}`;
+        let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+
+        const cartTrigger = document.getElementById('cartTrigger');
+        const btnOpenCartTop = document.getElementById('btnOpenCartTop');
+        const cartDrawer = document.getElementById('cartDrawer');
+        const cartOverlay = document.getElementById('cartOverlay');
+        const closeCartBtn = document.getElementById('closeCartBtn');
+        const cartItemsList = document.getElementById('cartItemsList');
+        const cartTotalPrice = document.getElementById('cartTotalPrice');
+        const cartCountBadge = document.getElementById('cartCountBadge');
+        const cartCountTop = document.getElementById('cartCountTop');
+
+        function guardarCarrito() {
+            localStorage.setItem(cartKey, JSON.stringify(cart));
+            actualizarBadges();
+        }
+
+        function actualizarBadges() {
+            const count = cart.reduce((acc, it) => acc + it.cantidad, 0);
+            if (cartCountBadge) cartCountBadge.textContent = count;
+            if (cartCountTop) cartCountTop.textContent = count;
+        }
+
+        actualizarBadges();
+
+        // Stepper en tarjetas
+        function cambiarStepper(inputId, delta) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            let val = parseInt(input.value) || 1;
+            val = Math.max(1, val + delta);
+            input.value = val;
+        }
+
+        // Filtro por pestañas, buscador y ordenamiento
+        const filterTabs = document.querySelectorAll('.category-tab');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const sortSelect = document.getElementById('sortSelect');
+        const productItems = document.querySelectorAll('.product-item');
+        const noProductsAlert = document.getElementById('noProductsAlert');
+        const productsGrid = document.getElementById('productsGrid');
+
+        let activeCategory = 'todos';
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeCategory = tab.getAttribute('data-category');
+                filtrarCatalogo();
+            });
+        });
+
+        function filtrarCatalogo() {
+            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            if (clearSearchBtn) {
+                clearSearchBtn.style.display = query ? 'inline-block' : 'none';
+            }
+
+            let visibles = 0;
+            productItems.forEach(item => {
+                const itemCat = item.getAttribute('data-category');
+                const itemName = item.getAttribute('data-name') || '';
+
+                const matchesCat = (activeCategory === 'todos' || itemCat === activeCategory);
+                const matchesSearch = (!query || itemName.includes(query));
+
+                if (matchesCat && matchesSearch) {
+                    item.style.display = 'block';
+                    visibles++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (noProductsAlert) {
+                noProductsAlert.style.display = visibles === 0 ? 'block' : 'none';
+            }
+        }
+
+        if (searchInput) searchInput.addEventListener('input', filtrarCatalogo);
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                filtrarCatalogo();
+                searchInput.focus();
+            });
+        }
+
+        function restablecerFiltros() {
+            if (searchInput) searchInput.value = '';
+            filterTabs.forEach(t => t.classList.remove('active'));
+            const todosTab = document.querySelector('.category-tab[data-category="todos"]');
+            if (todosTab) todosTab.classList.add('active');
+            activeCategory = 'todos';
+            filtrarCatalogo();
+        }
+
+        // Ordenamiento dinámico
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                const criteria = sortSelect.value;
+                const itemsArray = Array.from(productItems);
+
+                itemsArray.sort((a, b) => {
+                    const priceA = parseFloat(a.getAttribute('data-price') || '0');
+                    const priceB = parseFloat(b.getAttribute('data-price') || '0');
+                    const nameA = (a.getAttribute('data-name') || '').toLowerCase();
+                    const nameB = (b.getAttribute('data-name') || '').toLowerCase();
+                    const stockA = parseFloat(a.getAttribute('data-stock') || '0');
+                    const stockB = parseFloat(b.getAttribute('data-stock') || '0');
+
+                    if (criteria === 'price-asc') return priceA - priceB;
+                    if (criteria === 'price-desc') return priceB - priceA;
+                    if (criteria === 'name-asc') return nameA.localeCompare(nameB);
+                    if (criteria === 'stock-desc') return stockB - stockA;
+                    return 0; // default
+                });
+
+                itemsArray.forEach(item => productsGrid.appendChild(item));
+            });
+        }
+
+        // Toggle del Carrito
+        function toggleCart() {
+            if (!cartDrawer) return;
+            cartDrawer.classList.toggle('open');
+            cartOverlay.classList.toggle('show');
+            if (cartDrawer.classList.contains('open')) renderCart();
+        }
+
+        if (cartTrigger) cartTrigger.addEventListener('click', toggleCart);
+        if (btnOpenCartTop) btnOpenCartTop.addEventListener('click', toggleCart);
+        if (closeCartBtn) closeCartBtn.addEventListener('click', toggleCart);
+        if (cartOverlay) cartOverlay.addEventListener('click', toggleCart);
+
+        // Agregar al carrito desde tarjeta con soporte de cantidad
+        document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                const type = btn.getAttribute('data-type');
+                const nombre = btn.getAttribute('data-nombre');
+                const precio = parseFloat(btn.getAttribute('data-precio') || '0');
+                const stock = parseFloat(btn.getAttribute('data-stock') || '0');
+                const stepperId = btn.getAttribute('data-stepper-id');
+                const qtyToAdd = stepperId ? (parseInt(document.getElementById(stepperId)?.value) || 1) : 1;
+
+                const idx = cart.findIndex(i => i.id == id && i.type == type);
+                if (idx > -1) {
+                    if (cart[idx].cantidad + qtyToAdd > stock) {
+                        Swal.fire({ icon: 'warning', title: 'Stock Límite', text: `Solo hay ${stock} unidades disponibles.`, confirmButtonColor: '#059669' });
+                        return;
+                    }
+                    cart[idx].cantidad += qtyToAdd;
+                } else {
+                    if (qtyToAdd > stock) {
+                        Swal.fire({ icon: 'warning', title: 'Stock Límite', text: `Solo hay ${stock} unidades disponibles.`, confirmButtonColor: '#059669' });
+                        return;
+                    }
+                    cart.push({ id, type, nombre, precio, stock, cantidad: qtyToAdd });
+                }
+
+                guardarCarrito();
+
+                // Animación y confirmación elegante
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2"></i> ¡Listo!';
+                btn.style.background = '#047857';
+                setTimeout(() => {
+                    btn.innerHTML = origHtml;
+                    btn.style.background = '';
+                }, 1400);
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `+${qtyToAdd} ${nombre} en tu carrito`,
+                    showConfirmButton: false,
+                    timer: 1600
+                });
+            });
+        });
+
+        // Quick View Modal
+        let quickViewModalInstance = null;
+        let currentQvItem = null;
+
+        document.querySelectorAll('.qv-trigger').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                abrirQuickView({
+                    id: btn.getAttribute('data-id'),
+                    type: btn.getAttribute('data-type'),
+                    nombre: btn.getAttribute('data-nombre'),
+                    cientifico: btn.getAttribute('data-cientifico'),
+                    precio: parseFloat(btn.getAttribute('data-precio') || '0'),
+                    stock: parseFloat(btn.getAttribute('data-stock') || '0'),
+                    img: btn.getAttribute('data-img') || '',
+                    tipo: btn.getAttribute('data-tipo'),
+                    desc: btn.getAttribute('data-desc')
+                });
+            });
+        });
+
+        function abrirQuickView(item) {
+            currentQvItem = item;
+            if (!quickViewModalInstance) {
+                quickViewModalInstance = new bootstrap.Modal(document.getElementById('quickViewModal'));
+            }
+
+            document.getElementById('qvNombre').textContent = item.nombre;
+            document.getElementById('qvCientifico').textContent = item.cientifico;
+            document.getElementById('qvBadgeTipo').textContent = item.tipo;
+            document.getElementById('qvPrecio').textContent = item.precio > 0 ? '$' + item.precio.toLocaleString('es-CO') : 'Consultar';
+            document.getElementById('qvStock').textContent = `${item.stock} disponibles`;
+            document.getElementById('qvDesc').textContent = item.desc;
+
+            const qvImg = document.getElementById('qvImg');
+            const qvPlaceholder = document.getElementById('qvPlaceholder');
+            const qvPlaceholderTitle = document.getElementById('qvPlaceholderTitle');
+
+            if (item.img) {
+                qvImg.src = item.img;
+                qvImg.classList.remove('d-none');
+                qvPlaceholder.classList.add('d-none');
+            } else {
+                qvImg.classList.add('d-none');
+                qvPlaceholder.classList.remove('d-none');
+                qvPlaceholderTitle.textContent = item.nombre;
+            }
+
+            // WhatsApp link directo para esta especie
+            const qvWhatsAppBtn = document.getElementById('qvWhatsAppBtn');
+            const msg = `¡Hola! Me gustaría cotizar la especie "${item.nombre}" (${item.cientifico}).`;
+            qvWhatsAppBtn.href = `https://api.whatsapp.com/send?phone=${telVivero}&text=${encodeURIComponent(msg)}`;
+
+            // Botón añadir
+            const qvAddToCartBtn = document.getElementById('qvAddToCartBtn');
+            qvAddToCartBtn.onclick = () => {
+                const idx = cart.findIndex(i => i.id == item.id && i.type == item.type);
+                if (idx > -1) {
+                    if (cart[idx].cantidad + 1 > item.stock) {
+                        Swal.fire({ icon: 'warning', title: 'Stock Límite', text: `Solo hay ${item.stock} unidades disponibles.` });
+                        return;
+                    }
+                    cart[idx].cantidad++;
+                } else {
+                    cart.push({ id: item.id, type: item.type, nombre: item.nombre, precio: item.precio, stock: item.stock, cantidad: 1 });
+                }
+                guardarCarrito();
+                quickViewModalInstance.hide();
+                toggleCart();
+            };
+
+            quickViewModalInstance.show();
+        }
+
+        // Renderizado del Carrito
+        function renderCart() {
+            if (!cartItemsList) return;
+            cartItemsList.innerHTML = '';
+
+            if (cart.length === 0) {
+                cartItemsList.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-cart-x fs-1 mb-2 d-block text-secondary"></i>
+                        <p class="mb-0 fw-bold text-dark">Tu carrito está vacío</p>
+                        <small>Selecciona plantas o artículos del catálogo para agregarlos.</small>
+                    </div>`;
+                if (cartTotalPrice) cartTotalPrice.textContent = '$0';
+                return;
+            }
+
+            let total = 0;
+            cart.forEach((it, idx) => {
+                const sub = it.cantidad * it.precio;
+                total += sub;
+                const div = document.createElement('div');
+                div.className = 'd-flex justify-content-between align-items-center mb-3 pb-3 border-bottom';
+                div.innerHTML = `
+                    <div style="max-width: 62%;">
+                        <strong class="d-block text-dark text-truncate">${it.nombre}</strong>
+                        <small class="text-muted font-monospace">${it.precio > 0 ? '$' + it.precio.toLocaleString('es-CO') + ' c/u' : 'Por cotizar'}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="qty-btn" onclick="cambiarCant(${idx}, -1)">-</button>
+                        <span class="font-monospace fw-bold">${it.cantidad}</span>
+                        <button class="qty-btn" onclick="cambiarCant(${idx}, 1)">+</button>
+                        <button class="btn btn-sm btn-link text-danger p-0 ms-1" onclick="removerItem(${idx})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>`;
+                cartItemsList.appendChild(div);
+            });
+
+            if (cartTotalPrice) cartTotalPrice.textContent = '$' + total.toLocaleString('es-CO');
+            actualizarQRDinamico(total);
+        }
+
+        let metodoPagoActual = 'nequi_qr';
+
+        function seleccionarMetodoPago(metodo) {
+            metodoPagoActual = metodo;
+            document.querySelectorAll('.payment-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-method') === metodo) {
+                    btn.classList.add('active', 'btn-success');
+                    btn.classList.remove('btn-outline-success');
+                } else {
+                    btn.classList.remove('active', 'btn-success');
+                    btn.classList.add('btn-outline-success');
+                }
+            });
+
+            const panelNequi = document.getElementById('panelNequiQR');
+            const panelPSE = document.getElementById('panelPSE');
+            const panelWA = document.getElementById('panelWhatsApp');
+
+            if (panelNequi) panelNequi.classList.toggle('d-none', metodo !== 'nequi_qr');
+            if (panelPSE) panelPSE.classList.toggle('d-none', metodo !== 'pse_transf');
+            if (panelWA) panelWA.classList.toggle('d-none', metodo !== 'whatsapp');
+
+            const btnText = document.getElementById('btnSubmitText');
+            const btnIcon = document.getElementById('btnSubmitIcon');
+            if (btnText && btnIcon) {
+                if (metodo === 'nequi_qr') {
+                    btnText.textContent = 'Pagar con QR Nequi / Generar Pedido';
+                    btnIcon.className = 'bi bi-qr-code-scan fs-5';
+                } else if (metodo === 'pse_transf') {
+                    btnText.textContent = 'Confirmar Transferencia Bancaria';
+                    btnIcon.className = 'bi bi-bank fs-5';
+                } else {
+                    btnText.textContent = 'Confirmar y Enviar a WhatsApp';
+                    btnIcon.className = 'bi bi-whatsapp fs-5';
+                }
+            }
+        }
+
+        function copiarAlPortapapeles(texto, msgOk = 'Copiado al portapapeles') {
+            if (!texto) return;
+            navigator.clipboard.writeText(texto).then(() => {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: msgOk,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }).catch(() => {
+                prompt('Copia manualmente:', texto);
+            });
+        }
+
+        function actualizarQRDinamico(total) {
+            const qrImg = document.getElementById('qrImgDinamico');
+            if (qrImg) {
+                const qrPayload = encodeURIComponent(`nequi://${telVivero}?amount=${total}&ref=VIVERO_${empresaId}`);
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${qrPayload}`;
+            }
+        }
+
+        function cambiarCant(idx, delta) {
+            if (!cart[idx]) return;
+            const nueva = cart[idx].cantidad + delta;
+            if (nueva <= 0) {
+                cart.splice(idx, 1);
+            } else if (nueva > cart[idx].stock) {
+                Swal.fire({ icon: 'warning', title: 'Stock Límite', text: `Solo hay ${cart[idx].stock} unidades disponibles.`, confirmButtonColor: '#059669' });
+                return;
+            } else {
+                cart[idx].cantidad = nueva;
+            }
+            guardarCarrito();
+            renderCart();
+        }
+
+        function removerItem(idx) {
+            cart.splice(idx, 1);
+            guardarCarrito();
+            renderCart();
+        }
+
+        // Checkout multi-pasarela futurista
+        async function enviarPedidoCheckout(e) {
+            e.preventDefault();
+            if (cart.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Carrito Vacío', text: 'Agrega al menos una planta o producto antes de enviar tu pedido.' });
+                return;
+            }
+
+            const nombre = document.getElementById('clienteNombre').value.trim();
+            const tel = document.getElementById('clienteTelefono').value.trim();
+            const dir = document.getElementById('clienteDireccion').value.trim();
+
+            Swal.fire({
+                title: 'Generando tu pedido...',
+                text: 'Registrando la orden en el vivero...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res = await fetch(`/tienda/${empresaId}/pedido`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre,
+                        telefono: tel,
+                        direccion: dir,
+                        metodo_pago: metodoPagoActual,
+                        items: cart
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    const ordenTotal = data.total || cart.reduce((acc, it) => acc + (it.cantidad * it.precio), 0);
+                    const numeroFactura = data.numero_factura || `#WEB-${Date.now()}`;
+                    const whatsappUrl = data.whatsapp_url;
+
+                    cart = [];
+                    guardarCarrito();
+                    renderCart();
+                    toggleCart();
+
+                    if (metodoPagoActual === 'nequi_qr' || metodoPagoActual === 'pse_transf') {
+                        // Modal Futurista de Pago con QR y Resumen
+                        document.getElementById('modalOrderNumber').textContent = numeroFactura;
+                        document.getElementById('modalOrderTotal').textContent = '$' + ordenTotal.toLocaleString('es-CO') + ' COP';
+                        
+                        const qrPayload = encodeURIComponent(`nequi://${telVivero}?amount=${ordenTotal}&ref=${numeroFactura}`);
+                        document.getElementById('modalQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrPayload}`;
+                        
+                        document.getElementById('modalWhatsAppBtn').href = whatsappUrl;
+
+                        const modal = new bootstrap.Modal(document.getElementById('modalPagoExito'));
+                        modal.show();
+                    } else {
+                        // WhatsApp Directo
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Pedido Registrado con Éxito!',
+                            text: 'Te redirigiremos a WhatsApp para enviar el detalle de tu compra directamente al asesor.',
+                            confirmButtonColor: '#059669',
+                            confirmButtonText: 'Abrir WhatsApp'
+                        }).then(() => {
+                            window.location.href = whatsappUrl;
+                        });
+                    }
+                } else {
+                    Swal.fire({ icon: 'error', title: 'No se pudo generar el pedido', text: data.error || 'Intenta nuevamente.' });
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Error de Conexión', text: 'Ocurrió un error procesando el pedido.' });
+            }
+        }
+
+        function limpiarYRecargar() {
+            window.location.reload();
+        }
+    </script>
+
+    <!-- Asistente de IA Agrónomo Virtual (Bio-AI Chat) -->
+    {% include 'tienda/_asistente_ia.html' %}
+
+    <!-- PWA Service Worker Registration & Deferred Prompt -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('PWA ServiceWorker activo en catálogo:', reg.scope))
+                    .catch(err => console.log('PWA SW error:', err));
+            });
+        }
+
+        let deferredPromptCatalogo = null;
+        const btnInstallCatalogo = document.getElementById('btnInstallPwaPublic');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPromptCatalogo = e;
+            if (btnInstallCatalogo) {
+                btnInstallCatalogo.classList.remove('d-none');
+                btnInstallCatalogo.classList.add('d-inline-flex');
+            }
+        });
+
+        if (btnInstallCatalogo) {
+            btnInstallCatalogo.addEventListener('click', async () => {
+                if (!deferredPromptCatalogo) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'App Web Progresiva',
+                        text: 'Puedes instalar la aplicación desde el menú de opciones de tu navegador ("Agregar a pantalla de inicio" o "Instalar app").',
+                        confirmButtonColor: '#10b981'
+                    });
+                    return;
+                }
+                deferredPromptCatalogo.prompt();
+                const { outcome } = await deferredPromptCatalogo.userChoice;
+                if (outcome === 'accepted') {
+                    btnInstallCatalogo.classList.add('d-none');
+                }
+                deferredPromptCatalogo = null;
+            });
+        }
+    </script>
+</body>
+</html>

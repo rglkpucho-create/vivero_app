@@ -1,0 +1,710 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Cabecera Ejecutiva de Orden */
+    .order-header-luxury {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.75rem;
+        padding: 2.25rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-bs-theme="light"] .order-header-luxury {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+    }
+
+    .order-header-luxury::after {
+        content: '';
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 240px;
+        height: 240px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(40px);
+        pointer-events: none;
+    }
+
+    /* Stepper de Progreso Logístico */
+    .stepper-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .step-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+    }
+
+    .step-active {
+        background: rgba(99, 102, 241, 0.25);
+        color: #818cf8;
+        border: 1px solid rgba(99, 102, 241, 0.4);
+    }
+
+    .step-completed {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .step-inactive {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Tarjetas Ejecutivas */
+    .card-workspace-luxury {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    [data-bs-theme="dark"] .card-workspace-luxury {
+        background-color: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .info-tile {
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.15rem;
+        padding: 1.25rem;
+        height: 100%;
+        transition: all 0.2s ease;
+    }
+
+    [data-bs-theme="dark"] .info-tile {
+        background-color: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .info-tile:hover {
+        border-color: rgba(99, 102, 241, 0.25);
+    }
+
+    /* Barra de Adición Rápida */
+    .procure-bar {
+        background: var(--bs-body-bg);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.06);
+    }
+
+    .quick-chip {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .quick-chip:hover {
+        transform: translateY(-2px);
+        background-color: rgba(99, 102, 241, 0.15) !important;
+        border-color: #6366f1 !important;
+    }
+
+    /* Total Display */
+    .total-display-luxury {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 1.75rem;
+        color: white;
+        height: 100%;
+        display: flex;
+        flex-column: column;
+        justify-content: space-between;
+    }
+
+    [data-bs-theme="light"] .total-display-luxury {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+
+    .dropdown-sugerencias {
+        z-index: 1050 !important;
+        max-height: 280px;
+        overflow-y: auto;
+    }
+</style>
+
+<div class="container-fluid py-4 mx-auto" style="max-width: 1350px;">
+
+    <!-- 1. CABECERA EJECUTIVA -->
+    <div class="order-header-luxury mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4 position-relative z-1">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <a href="{{ url_for('compras.lista_pedidos') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 extra-small fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" style="background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.2);" title="Ver Historial de Órdenes de Compra">
+                        <i class="bi bi-clock-history text-info"></i> Historial de Compras
+                    </a>
+                    <span class="text-white-50">•</span>
+                    <span class="badge font-monospace rounded-pill px-3 py-1 fw-bold
+                        {% if pedido.estado == 'Borrador' %}bg-warning bg-opacity-20 text-warning border border-warning border-opacity-25
+                        {% elif pedido.estado == 'Solicitado' %}bg-primary bg-opacity-20 text-primary border border-primary border-opacity-25
+                        {% elif pedido.estado == 'Recibido' %}bg-success bg-opacity-20 text-success border border-success border-opacity-25
+                        {% else %}bg-danger bg-opacity-20 text-danger border border-danger border-opacity-25{% endif %}">
+                        <i class="bi {% if pedido.estado == 'Recibido' %}bi-check-circle-fill{% elif pedido.estado == 'Solicitado' %}bi-truck{% elif pedido.estado == 'Borrador' %}bi-pencil-fill{% else %}bi-x-circle{% endif %} me-1"></i>
+                        {{ pedido.estado|upper }}
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-20 text-white-50 border border-secondary border-opacity-25 font-monospace rounded-pill px-2 py-1">
+                        REF: #{{ pedido.numero_orden }}
+                    </span>
+                </div>
+                
+                <h1 class="fw-black text-white mb-2" style="letter-spacing: -1px; font-size: 2.1rem;">
+                    Orden de Compra #{{ pedido.numero_orden }}
+                </h1>
+                
+                <!-- Stepper Logístico -->
+                <div class="stepper-container mt-2">
+                    <span class="step-pill {% if pedido.estado in ['Borrador', 'Solicitado', 'Recibido'] %}{% if pedido.estado == 'Borrador' %}step-active{% else %}step-completed{% endif %}{% else %}step-inactive{% endif %}">
+                        <i class="bi bi-1-circle"></i> 1. Preparación / Borrador
+                    </span>
+                    <i class="bi bi-chevron-right text-white-50 small"></i>
+                    <span class="step-pill {% if pedido.estado == 'Solicitado' %}step-active{% elif pedido.estado == 'Recibido' %}step-completed{% else %}step-inactive{% endif %}">
+                        <i class="bi bi-2-circle"></i> 2. Solicitado a Proveedor
+                    </span>
+                    <i class="bi bi-chevron-right text-white-50 small"></i>
+                    <span class="step-pill {% if pedido.estado == 'Recibido' %}step-completed{% else %}step-inactive{% endif %}">
+                        <i class="bi bi-3-circle"></i> 3. Recepción en Bodega
+                    </span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('compras.lista_pedidos') }}" class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" style="border-color: rgba(255,255,255,0.25);" title="Ver Historial de Compras">
+                    <i class="bi bi-clock-history text-info"></i> Historial de Compras
+                </a>
+                <a href="{{ url_for('compras.nuevo_pedido') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" style="border-color: rgba(16, 185, 129, 0.4);" title="Iniciar Nueva Orden de Compra">
+                    <i class="bi bi-plus-circle"></i> Nueva Compra
+                </a>
+                {% if pedido.estado == 'Borrador' and pedido.detalles %}
+                <form action="{{ url_for('compras.confirmar_pedido', pedido_id=pedido.id) }}" method="POST"
+                      onsubmit="return confirm('¿Confirmar pedido? Pasará a estado SOLICITADO y notificará la logística.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-lg hover-lift border-0"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                        <i class="bi bi-send-fill me-1"></i> Solicitar al Proveedor
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. DATOS DE LOGÍSTICA & TOTALIZADOR -->
+    <div class="row g-4 mb-4">
+        <!-- Tarjeta de Proveedor y Destino -->
+        <div class="col-lg-8">
+            <div class="card-workspace-luxury p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                    <h6 class="fw-bold text-body mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-alt-fill text-primary"></i> Información de Suministro & Despacho
+                    </h6>
+                    {% if pedido.estado == 'Borrador' %}
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-2 py-1 small">
+                        Modo Edición Automática
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if pedido.estado == 'Borrador' %}
+                <form action="{{ url_for('compras.actualizar_datos_pedido', pedido_id=pedido.id) }}" method="POST" id="formDatosPedido">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                Proveedor Asignado
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-0 text-primary"><i class="bi bi-building"></i></span>
+                                <select name="proveedor_id" onchange="this.form.submit()" class="form-select border-0 bg-body-tertiary fw-bold text-body shadow-sm">
+                                    {% for p in proveedores %}
+                                    <option value="{{ p.id }}" {% if p.id == pedido.proveedor_id %}selected{% endif %}>
+                                        {{ p.razon_social }} (NIT: {{ p.nit_rut }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                Sede / Bodega de Destino
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body-tertiary border-0 text-primary"><i class="bi bi-house-door"></i></span>
+                                <select name="sede_id" onchange="this.form.submit()" class="form-select border-0 bg-body-tertiary fw-bold text-body shadow-sm">
+                                    {% for s in sedes %}
+                                    <option value="{{ s.id }}" {% if pedido.sede_id == s.id %}selected{% endif %}>
+                                        {{ s.nombre }} ({{ s.tipo or 'Bodega' }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                Fecha de Pedido
+                            </label>
+                            <input type="date" name="fecha_solicitud" value="{{ pedido.fecha_solicitud }}" onchange="this.form.submit()"
+                                   class="form-control border-0 bg-body-tertiary fw-bold text-body shadow-sm">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-warning-emphasis text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                Fecha de Entrega Estimada
+                            </label>
+                            <input type="date" name="fecha_entrega_estimada" value="{{ pedido.fecha_entrega_estimada or '' }}" onchange="this.form.submit()"
+                                   class="form-control border-0 bg-body-tertiary fw-bold text-body shadow-sm">
+                        </div>
+                    </div>
+                </form>
+                {% else %}
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem;">Proveedor</span>
+                            <h6 class="fw-black text-body mb-1 d-flex align-items-center gap-2">
+                                <i class="bi bi-building text-primary"></i> {{ pedido.proveedor.razon_social }}
+                            </h6>
+                            <small class="text-muted font-monospace">NIT: {{ pedido.proveedor.nit_rut }}</small>
+                            {% if pedido.proveedor.telefono %}
+                            <div class="mt-1 small text-muted"><i class="bi bi-telephone me-1"></i>{{ pedido.proveedor.telefono }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem;">Sede Receptora</span>
+                            <h6 class="fw-black text-body mb-1 d-flex align-items-center gap-2">
+                                <i class="bi bi-house-door text-indigo"></i> {{ pedido.sede.nombre }}
+                            </h6>
+                            <small class="text-muted">{{ pedido.sede.ubicacion_geo or 'Sede principal' }}</small>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem;">Fecha de Emisión</span>
+                            <span class="fw-bold text-body fs-6"><i class="bi bi-calendar3 me-2 text-primary"></i>{{ pedido.fecha_solicitud }}</span>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="info-tile">
+                            <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem;">Entrega Estimada</span>
+                            <span class="fw-bold text-body fs-6"><i class="bi bi-clock-history me-2 text-warning"></i>{{ pedido.fecha_entrega_estimada or 'No especificada' }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Totalizador y Acciones -->
+        <div class="col-lg-4">
+            <div class="total-display-luxury d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-light border-opacity-10 pb-2">
+                        <span class="small fw-bold text-white-50 text-uppercase" style="letter-spacing: 0.5px;">Resumen Financiero</span>
+                        <span class="badge bg-white bg-opacity-10 text-white font-monospace rounded-pill px-2 py-0" style="font-size: 0.68rem;">COP</span>
+                    </div>
+                    
+                    <span class="small fw-bold text-white text-opacity-50 text-uppercase d-block mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">
+                        Total Estimado de Orden
+                    </span>
+                    <h2 class="display-5 fw-black text-white font-monospace mb-2" style="letter-spacing: -1px;">
+                        ${{ "{:,.0f}".format(pedido.total_estimado or 0) }}
+                    </h2>
+                    <small class="text-white-50 d-block mb-4" style="font-size: 0.8rem;">
+                        <i class="bi bi-boxes me-1"></i> {{ pedido.detalles|length }} producto(s) en la orden
+                    </small>
+                </div>
+
+                <div class="d-grid gap-2">
+                    {% if pedido.estado == 'Borrador' %}
+                        {% if pedido.detalles %}
+                        <form action="{{ url_for('compras.confirmar_pedido', pedido_id=pedido.id) }}" method="POST"
+                              onsubmit="return confirm('¿Confirmar orden para enviar a proveedor?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold w-100 shadow-lg py-2 border-0"
+                                    style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                                <i class="bi bi-send-fill me-1"></i> Confirmar y Solicitar
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ url_for('compras.cancelar_pedido', pedido_id=pedido.id) }}" method="POST"
+                              onsubmit="return confirm('¿Descartar este borrador?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-outline-danger rounded-pill fw-bold w-100 py-2 btn-sm">
+                                <i class="bi bi-trash me-1"></i> Descartar Borrador
+                            </button>
+                        </form>
+                    {% elif pedido.estado == 'Solicitado' %}
+                        <div class="badge bg-primary bg-opacity-25 text-white p-3 rounded-4 fs-6 fw-bold text-center mb-2 border border-primary border-opacity-25">
+                            <i class="bi bi-truck me-1"></i> Pedido en Tránsito
+                        </div>
+                        <p class="small text-white-50 text-center mb-0" style="font-size: 0.78rem;">
+                            Usa la tabla inferior para verificar y registrar la entrada de mercancía a bodega.
+                        </p>
+                    {% elif pedido.estado == 'Recibido' %}
+                        <div class="badge bg-success bg-opacity-25 text-success-emphasis p-3 rounded-4 fs-6 fw-bold text-center mb-0 border border-success border-opacity-25 text-white">
+                            <i class="bi bi-check2-all me-1"></i> Inventario Ingresado con Éxito
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BARRA DE ADICIÓN RÁPIDA DE INSUMOS (SOLO EN BORRADOR) -->
+    {% if pedido.estado == 'Borrador' %}
+    <div class="card-workspace-luxury p-4 mb-4">
+        <h6 class="fw-bold text-body mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-cart-plus-fill text-primary"></i> Agregar Insumos al Pedido
+        </h6>
+
+        <form action="{{ url_for('compras.agregar_item_pedido', pedido_id=pedido.id) }}" method="POST" id="formRapido" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5 position-relative">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Producto o Insumo
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-body-tertiary border-0 text-primary"><i class="bi bi-search"></i></span>
+                        <input type="text" id="buscador_insumo" name="codigo_barras"
+                               class="form-control bg-body-tertiary border-0 fw-bold text-body shadow-sm"
+                               placeholder="Escribe el nombre o escanea código de barras..." autofocus>
+                    </div>
+                    <input type="hidden" name="insumo_id" id="insumo_id_seleccionado">
+                    <div id="sugerencias_lista" class="dropdown-sugerencias position-absolute w-100 mt-1 bg-body rounded-4 shadow-lg border border-secondary border-opacity-25 d-none">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1 text-center w-100" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Cantidad
+                    </label>
+                    <input type="number" id="inputCantidad" name="cantidad" value="1" min="0.1" step="0.1" required
+                           class="form-control bg-body-tertiary border-0 text-center fw-bold text-body shadow-sm">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-secondary text-uppercase mb-1 text-center w-100" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Costo Unitario ($)
+                    </label>
+                    <input type="number" id="precio_input" name="precio_unitario" step="0.01" placeholder="Auto o manual"
+                           class="form-control bg-body-tertiary border-0 text-end font-monospace fw-bold text-body shadow-sm">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold py-2 shadow-sm d-flex justify-content-center align-items-center gap-2 border-0"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                        <i class="bi bi-plus-lg"></i> Agregar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opción de Embalaje Mayorista -->
+            <div class="d-flex align-items-center gap-3 mt-3 pt-2 border-top">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" name="es_caja" id="checkCaja" role="switch">
+                    <label class="form-check-label small fw-bold text-secondary text-uppercase" for="checkCaja" style="font-size: 0.75rem;">
+                        <i class="bi bi-box-seam me-1"></i> Compra por Bulto / Saco / Embalaje Mayorista
+                    </label>
+                </div>
+                <div id="divUnidadesCaja" class="d-none d-flex align-items-center gap-2 bg-body-tertiary rounded-pill px-3 py-1 border shadow-sm">
+                    <span class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Unidades por empaque:</span>
+                    <input type="number" name="unidades_por_caja" value="1" min="1"
+                           class="form-control form-control-sm border-0 bg-transparent text-center fw-bold text-primary p-0"
+                           style="width: 50px;">
+                </div>
+            </div>
+        </form>
+
+        <!-- Sugerencias Rápidas de Insumos Frecuentes -->
+        {% if insumos %}
+        <div class="mt-3 pt-2">
+            <span class="text-secondary small fw-bold text-uppercase d-block mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Insumos Disponibles en Catálogo (Clic para autocompletar):
+            </span>
+            <div class="d-flex flex-wrap gap-2">
+                {% for ins in insumos[:8] %}
+                <span class="badge bg-body-tertiary text-body border rounded-pill px-3 py-2 quick-chip"
+                      onclick="seleccionarItem({id: {{ ins.id }}, nombre: '{{ ins.nombre }}', costo: {{ ins.costo_promedio or 0 }}, unidad: '{{ ins.unidad.abreviatura if ins.unidad else 'Und' }}'})">
+                    <i class="bi bi-plus-circle me-1 text-primary"></i> {{ ins.nombre }} 
+                    <small class="text-muted font-monospace">(${{ "{:,.0f}".format(ins.costo_promedio or 0) }})</small>
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- 4. TABLA DE ÍTEMS DE LA ORDEN -->
+    <div class="card-workspace-luxury p-0 mb-4 overflow-hidden">
+        <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+            <h6 class="fw-bold text-body mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-list-check text-primary"></i> Detalle de Productos en la Orden
+            </h6>
+            <span class="badge bg-body-tertiary text-secondary border font-monospace rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                {{ pedido.detalles|length }} Registro(s)
+            </span>
+        </div>
+
+        {% if pedido.estado == 'Solicitado' %}
+        <form action="{{ url_for('compras.procesar_recepcion', pedido_id=pedido.id) }}" method="POST" id="formRecepcion">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        {% endif %}
+
+        {% if pedido.detalles %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-body-tertiary text-secondary small text-uppercase">
+                    <tr>
+                        <th class="px-4 py-3 border-0" style="font-size: 0.72rem; letter-spacing: 0.5px;">Producto / Insumo</th>
+                        <th class="px-3 py-3 text-center border-0" style="width: 140px; font-size: 0.72rem; letter-spacing: 0.5px;">Cant. Solicitada</th>
+                        {% if pedido.estado == 'Solicitado' %}
+                        <th class="px-3 py-3 text-center bg-primary bg-opacity-10 text-primary border-start border-end border-primary border-opacity-25" style="width: 160px; font-size: 0.72rem; letter-spacing: 0.5px;">
+                            Cant. a Recibir
+                        </th>
+                        {% elif pedido.estado == 'Recibido' %}
+                        <th class="px-3 py-3 text-center border-0" style="width: 140px; font-size: 0.72rem; letter-spacing: 0.5px;">Cant. Recibida</th>
+                        {% endif %}
+                        <th class="px-4 py-3 text-end border-0" style="width: 150px; font-size: 0.72rem; letter-spacing: 0.5px;">Costo Unit.</th>
+                        <th class="px-4 py-3 text-end border-0" style="width: 160px; font-size: 0.72rem; letter-spacing: 0.5px;">Subtotal</th>
+                        {% if pedido.estado == 'Borrador' %}
+                        <th class="px-3 py-3 border-0 text-center" style="width: 60px;"></th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in pedido.detalles %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-3 bg-body-tertiary text-primary p-2 d-flex align-items-center justify-content-center border" style="width: 42px; height: 42px;">
+                                    <i class="bi bi-box-seam fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-body mb-0">{{ detalle.insumo.nombre }}</h6>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <span class="badge bg-body-tertiary text-secondary border font-monospace" style="font-size: 0.7rem;">
+                                            {{ detalle.insumo.codigo or 'N/A' }}
+                                        </span>
+                                        <span class="small text-muted font-monospace">
+                                            {{ detalle.insumo.unidad.abreviatura if detalle.insumo.unidad else 'Und' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-3 py-3 text-center">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('compras.actualizar_item_pedido', detalle_id=detalle.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="number" name="cantidad" value="{{ detalle.cantidad_solicitada }}"
+                                       class="form-control form-control-sm text-center fw-bold border text-body bg-body-tertiary shadow-sm rounded-pill"
+                                       min="0.1" step="0.1" onchange="this.form.submit()">
+                                <input type="hidden" name="precio_unitario" value="{{ detalle.precio_unitario }}">
+                            </form>
+                            {% else %}
+                            <span class="fw-bold font-monospace text-body fs-6">{{ detalle.cantidad_solicitada }}</span>
+                            {% endif %}
+                        </td>
+
+                        {% if pedido.estado == 'Solicitado' %}
+                        <td class="px-3 py-2 text-center bg-primary bg-opacity-10 border-start border-end border-primary border-opacity-10">
+                            <input type="number" name="recibido_{{ detalle.id }}" value="{{ detalle.cantidad_solicitada }}"
+                                   class="form-control form-control-sm text-center fw-bold text-primary border-primary shadow-sm rounded-pill"
+                                   min="0" step="0.1">
+                        </td>
+                        {% elif pedido.estado == 'Recibido' %}
+                        <td class="px-3 py-3 text-center">
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 font-monospace fw-bold">
+                                {{ detalle.cantidad_recibida }}
+                            </span>
+                        </td>
+                        {% endif %}
+
+                        <td class="px-4 py-3 text-end">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('compras.actualizar_item_pedido', detalle_id=detalle.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="cantidad" value="{{ detalle.cantidad_solicitada }}">
+                                <div class="input-group input-group-sm justify-content-end">
+                                    <span class="input-group-text bg-transparent border-0 text-muted px-1">$</span>
+                                    <input type="number" name="precio_unitario" value="{{ detalle.precio_unitario }}"
+                                           class="form-control bg-body-tertiary border text-end font-monospace fw-bold text-body shadow-sm rounded-pill"
+                                           style="max-width: 110px;" step="0.01" onchange="this.form.submit()">
+                                </div>
+                            </form>
+                            {% else %}
+                            <span class="font-monospace text-body">${{ "{:,.0f}".format(detalle.precio_unitario) }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-4 py-3 text-end">
+                            <span class="fw-black text-body font-monospace fs-6">
+                                ${{ "{:,.0f}".format((detalle.cantidad_solicitada or 0) * (detalle.precio_unitario or 0)) }}
+                            </span>
+                        </td>
+
+                        {% if pedido.estado == 'Borrador' %}
+                        <td class="px-3 py-3 text-center">
+                            <form action="{{ url_for('compras.eliminar_item_pedido', detalle_id=detalle.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle" title="Quitar ítem">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pedido.estado == 'Solicitado' %}
+        <div class="bg-body-tertiary border-top p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <span class="text-secondary small">
+                <i class="bi bi-info-circle me-1"></i> Ajusta las cantidades físicas si el proveedor entregó un faltante o sobrante.
+            </span>
+            <button type="submit" form="formRecepcion" class="btn btn-success btn-lg rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2 border-0"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <i class="bi bi-box-arrow-in-down fs-5"></i> Guardar Entrada de Inventario en Bodega
+            </button>
+        </div>
+        </form>
+        {% endif %}
+
+        {% else %}
+        <!-- Estado Vacío del Carrito de Compras -->
+        <div class="text-center py-5">
+            <div class="rounded-circle p-4 mb-3 border shadow-sm bg-body-tertiary d-inline-block">
+                <i class="bi bi-cart-dash display-4 text-muted opacity-50"></i>
+            </div>
+            <h6 class="fw-bold text-body mb-1">Orden de Compra sin Productos</h6>
+            <p class="text-secondary small mb-3">Utiliza la barra de búsqueda superior o haz clic en los insumos rápidos para añadir ítems.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- SCRIPT DEL BUSCADOR DE INSUMOS -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputBuscador = document.getElementById('buscador_insumo');
+        const inputId = document.getElementById('insumo_id_seleccionado');
+        const inputPrecio = document.getElementById('precio_input');
+        const inputCantidad = document.getElementById('inputCantidad');
+        const listaSugerencias = document.getElementById('sugerencias_lista');
+        const checkCaja = document.getElementById('checkCaja');
+        const divCaja = document.getElementById('divUnidadesCaja');
+
+        if (checkCaja && divCaja) {
+            checkCaja.addEventListener('change', function () {
+                divCaja.classList.toggle('d-none', !this.checked);
+            });
+        }
+
+        if (!inputBuscador) return;
+
+        let timeoutId;
+        inputBuscador.addEventListener('input', function () {
+            const query = this.value.trim();
+            inputId.value = '';
+            clearTimeout(timeoutId);
+
+            if (query.length < 1) { 
+                listaSugerencias.classList.add('d-none'); 
+                return; 
+            }
+
+            timeoutId = setTimeout(() => {
+                fetch(`/api/insumos/buscar?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerencias.innerHTML = '';
+                        if (data.length > 0) {
+                            const listGroup = document.createElement('div');
+                            listGroup.className = 'list-group list-group-flush';
+
+                            data.forEach((item) => {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center';
+                                btn.innerHTML = `
+                                    <div>
+                                        <div class="fw-bold text-body">${item.nombre}</div>
+                                        <div class="text-muted small font-monospace">${item.codigo || 'Sin código'} • Stock actual: ${item.stock || 0} ${item.unidad || ''}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-body-tertiary text-primary border font-monospace px-2 py-1">$${(item.costo || 0).toLocaleString()}</span>
+                                    </div>
+                                `;
+                                btn.addEventListener('click', () => seleccionarItem(item));
+                                listGroup.appendChild(btn);
+                            });
+                            listaSugerencias.appendChild(listGroup);
+                            listaSugerencias.classList.remove('d-none');
+                        } else {
+                            listaSugerencias.classList.add('d-none');
+                        }
+                    });
+            }, 200);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (inputBuscador && e.target !== inputBuscador && !listaSugerencias.contains(e.target)) {
+                listaSugerencias.classList.add('d-none');
+            }
+        });
+    });
+
+    function seleccionarItem(item) {
+        const inputBuscador = document.getElementById('buscador_insumo');
+        const inputId = document.getElementById('insumo_id_seleccionado');
+        const inputPrecio = document.getElementById('precio_input');
+        const inputCantidad = document.getElementById('inputCantidad');
+        const listaSugerencias = document.getElementById('sugerencias_lista');
+
+        if (inputBuscador) inputBuscador.value = item.nombre;
+        if (inputId) inputId.value = item.id;
+        if (inputPrecio && item.costo > 0) inputPrecio.value = item.costo;
+        if (listaSugerencias) listaSugerencias.classList.add('d-none');
+        if (inputCantidad) {
+            inputCantidad.focus();
+            inputCantidad.select();
+        }
+    }
+</script>
+{% endblock %}

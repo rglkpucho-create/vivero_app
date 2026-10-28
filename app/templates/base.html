@@ -1,148 +1,60 @@
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoSistem | Gestión Agropecuaria</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-
+    <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EcoSistem">
     <style>
-        :root {
-            /* COLORES */
-            --light-bg: #f1f5f9;
-            --dark-bg: #0f172a;
-            --light-card: #ffffff;
-            --dark-card: #1e293b;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--light-bg);
-            color: #334155;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* NAVBAR ROBUSTO */
-        .navbar-custom {
-            background: #064e3b !important;
-            background: linear-gradient(180deg, #065f46 0%, #064e3b 100%) !important;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-            padding: 0.5rem 1rem;
-            min-height: 70px;
-        }
-
-        .navbar-brand {
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            font-size: 1.4rem;
-            color: white !important;
-        }
-
-        /* Enlaces del Menú */
-        .navbar-nav .nav-link {
-            color: rgba(255,255,255,0.85) !important;
-            font-weight: 500;
-            font-size: 0.95rem;
-            padding: 0.6rem 1.2rem !important;
-            border-radius: 8px;
-            margin: 0 4px;
-            transition: all 0.2s ease;
-            display: flex;
+        .navbar-custom .nav-link {
+            white-space: nowrap !important;
+            font-size: 0.86rem;
+            padding-left: 0.55rem !important;
+            padding-right: 0.55rem !important;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.3rem;
         }
-
-            .navbar-nav .nav-link:hover, .navbar-nav .nav-link.show {
-                background-color: rgba(255,255,255,0.15);
-                color: white !important;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
-
-        /* Dropdowns */
-        .dropdown-menu {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            padding: 0.5rem;
-            margin-top: 10px !important;
-            animation: slideUp 0.2s ease-out;
-            min-width: 220px;
-        }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-        }
-
-        /* MODO OSCURO */
-        [data-bs-theme="dark"] body {
-            background-color: var(--dark-bg) !important;
-            color: #e2e8f0;
-        }
-
-        [data-bs-theme="dark"] .card, [data-bs-theme="dark"] .lote-card, [data-bs-theme="dark"] .animal-card, [data-bs-theme="dark"] .kpi-card {
-            background-color: var(--dark-card) !important;
-            border-color: #334155 !important;
-            color: #e2e8f0;
-        }
-
-        [data-bs-theme="dark"] .text-dark {
-            color: #f1f5f9 !important;
-        }
-
-        [data-bs-theme="dark"] .text-muted {
-            color: #94a3b8 !important;
-        }
-
-        [data-bs-theme="dark"] .bg-light {
-            background-color: #334155 !important;
-        }
-
-        [data-bs-theme="dark"] .dropdown-menu {
-            background-color: var(--dark-card);
-            border: 1px solid #334155;
-        }
-
-        [data-bs-theme="dark"] .dropdown-item {
-            color: #cbd5e1;
-        }
-
-            [data-bs-theme="dark"] .dropdown-item:hover {
-                background-color: #334155;
-                color: white;
-            }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .navbar-custom .navbar-brand {
+            white-space: nowrap !important;
         }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
         <div class="container-fluid px-4">
 
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.dashboard') }}">
-                <div class="bg-white text-success rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;">
-                    <i class="bi bi-tree-fill" style="font-size: 1.2rem; color: #064e3b;"></i>
-                </div>
-                <span class="d-none d-md-inline">EcoSistem</span>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% if current_user.is_authenticated and current_user.es_superadmin and superadmin_selected_empresa_name == 'Todas las Empresas' %}{{ url_for('superadmin.lista_empresas') }}{% else %}{{ url_for('dashboard.dashboard') }}{% endif %}">
+                <img src="{% if current_user.is_authenticated and current_user.es_superadmin and empresa_activa and empresa_activa.logo_url %}{{ url_for('static', filename=empresa_activa.logo_url) }}{% elif empresa_activa and empresa_activa.logo_url %}{{ url_for('static', filename=empresa_activa.logo_url) }}{% elif current_user.is_authenticated and current_user.empresa and current_user.empresa.logo_url %}{{ url_for('static', filename=current_user.empresa.logo_url) }}{% else %}{{ url_for('static', filename='images/logo_ecosistem.svg') }}{% endif %}"
+                     class="rounded-circle shadow-sm border border-2 border-white border-opacity-25" style="width: 38px; height: 38px; object-fit: cover;"
+                     alt="Logo" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/logo_ecosistem.svg') }}'">
+                <span class="d-none d-md-inline fw-bold" style="letter-spacing: -0.5px;">
+                    {% if current_user.is_authenticated and current_user.es_superadmin and superadmin_selected_empresa_name != 'Todas las Empresas' and empresa_activa %}
+                        {{ empresa_activa.nombre }}
+                    {% elif current_user.is_authenticated and current_user.es_superadmin and superadmin_selected_empresa_name == 'Todas las Empresas' %}
+                        EcoSistem (Global)
+                    {% elif current_user.is_authenticated and current_user.empresa %}
+                        {{ current_user.empresa.nombre }}
+                    {% else %}
+                        EcoSistem
+                    {% endif %}
+                </span>
             </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -154,75 +66,258 @@
                 <ul class="navbar-nav mx-auto align-items-center">
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.dashboard') }}">
+                        <a class="nav-link {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}"
+                            href="{{ url_for('dashboard.dashboard') }}">
                             <i class="bi bi-house-door-fill"></i> Inicio
                         </a>
                     </li>
 
+                    {% set prod_routes = ['produccion.lista_lotes', 'produccion.nuevo_lote', 'produccion.ver_lote', 'produccion.lista_especies',
+                    'produccion.nueva_especie', 'produccion.editar_ficha_especie'] %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.lista_lotes') }}">
-                            <i class="bi bi-flower1"></i> Producción
+                        <a class="nav-link {% if request.endpoint in prod_routes %}active{% endif %}"
+                            href="{{ url_for('produccion.lista_lotes') }}">
+                            <i class="bi bi-flower1"></i> Cultivos
                         </a>
                     </li>
 
+                    {% set animal_routes = ['pecuario.lista_animales', 'pecuario.nuevo_animal', 'pecuario.ver_animal',
+                    'pecuario.lista_razas_animales', 'pecuario.nueva_raza_animal'] %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.lista_animales') }}">
+                        <a class="nav-link {% if request.endpoint in animal_routes %}active{% endif %}"
+                            href="{{ url_for('pecuario.lista_animales') }}">
                             <i class="bi bi-piggy-bank-fill"></i> Animales
                         </a>
                     </li>
 
+                    {% set inv_routes = ['inventario.lista_insumos', 'inventario.nuevo_insumo',
+                    'compras.lista_proveedores', 'compras.nuevo_proveedor', 'compras.lista_sedes',
+                    'compras.nueva_sede'] %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in inv_routes %}active{% endif %}"
+                            href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-box-seam-fill"></i> Inventario
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_insumos') }}"><i class="bi bi-box-seam text-warning"></i>Insumos</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_proveedores') }}"><i class="bi bi-truck text-info"></i>Proveedores</a></li>
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_sedes') }}"><i class="bi bi-geo-alt text-danger"></i>Sedes</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint in ['inventario.lista_insumos', 'inventario.nuevo_insumo'] %}active{% endif %}"
+                                    href="{{ url_for('inventario.lista_insumos') }}"><i
+                                        class="bi bi-box-seam text-warning"></i>Insumos</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint in ['compras.lista_proveedores', 'compras.nuevo_proveedor'] %}active{% endif %}"
+                                    href="{{ url_for('compras.lista_proveedores') }}"><i
+                                        class="bi bi-truck text-info"></i>Proveedores</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint in ['compras.lista_sedes', 'compras.nueva_sede'] %}active{% endif %}"
+                                    href="{{ url_for('compras.lista_sedes') }}"><i
+                                        class="bi bi-geo-alt text-danger"></i>Sedes</a></li>
+                        </ul>
+                    </li>
+
+                    {% set trans_routes = ['compras.lista_pedidos', 'compras.nuevo_pedido', 'compras.ver_pedido',
+                    'ventas.lista_ventas', 'ventas.nueva_venta', 'ventas.ver_venta', 'ventas.lista_clientes',
+                    'ventas.nuevo_cliente'] %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in trans_routes %}active{% endif %}"
+                            href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-currency-exchange"></i> Transacciones
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint in ['compras.nuevo_pedido', 'compras.ver_pedido'] %}active{% endif %}"
+                                    href="{{ url_for('compras.nuevo_pedido') }}"><i
+                                        class="bi bi-cart-plus text-primary me-2"></i>Compras</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint in ['ventas.nueva_venta', 'ventas.ver_venta'] %}active{% endif %}"
+                                    href="{{ url_for('ventas.nueva_venta') }}"><i
+                                        class="bi bi-cash-coin text-success me-2"></i>Ventas</a></li>
+                            <li><a class="dropdown-item fw-bold d-flex align-items-center justify-content-between {% if request.endpoint == 'ventas.lista_pedidos_web' %}active{% endif %}"
+                                    href="{{ url_for('ventas.lista_pedidos_web') }}">
+                                    <span><i class="bi bi-cart-check-fill text-warning me-2"></i>Pedidos Web</span>
+                                    {% if pedidos_web_pendientes_count > 0 %}
+                                    <span class="badge rounded-pill bg-danger" style="font-size: 0.72rem;">{{ pedidos_web_pendientes_count }}</span>
+                                    {% endif %}
+                                </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'ventas.lista_ventas' %}active{% endif %}"
+                                    href="{{ url_for('ventas.lista_ventas') }}"><i
+                                        class="bi bi-receipt text-success me-2"></i>Historial de Ventas</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'compras.lista_pedidos' %}active{% endif %}"
+                                    href="{{ url_for('compras.lista_pedidos') }}"><i
+                                        class="bi bi-clock-history text-primary me-2"></i>Historial de Compras</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint in ['ventas.lista_clientes', 'ventas.nuevo_cliente'] %}active{% endif %}"
+                                    href="{{ url_for('ventas.lista_clientes') }}"><i
+                                        class="bi bi-people text-info me-2"></i>Clientes</a></li>
+                        </ul>
+                    </li>
+
+                    {% set mo_routes = ['mano_obra.dashboard', 'mano_obra.lista_colaboradores', 'mano_obra.recibo_pago'] %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in mo_routes %}active{% endif %}"
+                            href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-people-fill text-warning"></i> Mano de Obra
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'mano_obra.dashboard' %}active{% endif %}"
+                                    href="{{ url_for('mano_obra.dashboard') }}">
+                                    <i class="bi bi-cash-stack text-success me-2"></i>Pagos y Jornales</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'mano_obra.lista_colaboradores' %}active{% endif %}"
+                                    href="{{ url_for('mano_obra.lista_colaboradores') }}">
+                                    <i class="bi bi-person-lines-fill text-info me-2"></i>Colaboradores</a></li>
                         </ul>
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-currency-exchange"></i> Transacciones
+                        <a class="nav-link dropdown-toggle text-nowrap d-inline-flex align-items-center gap-1.5 {% if (request.endpoint and request.endpoint.startswith('tienda.')) or request.endpoint == 'ventas.lista_pedidos_web' %}active{% endif %}"
+                            href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-globe2 text-info"></i>
+                            <span>Sitio Web</span>
+                            {% if pedidos_web_pendientes_count > 0 %}
+                            <span class="badge rounded-pill bg-danger" style="font-size: 0.68rem; padding: 0.25rem 0.45rem;">{{ pedidos_web_pendientes_count }}</span>
+                            {% endif %}
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_pedidos') }}"><i class="bi bi-cart-plus text-primary"></i>Compras</a></li>
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_ventas') }}"><i class="bi bi-cash-coin text-success"></i>Ventas</a></li>
+                            <li><a class="dropdown-item fw-bold d-flex align-items-center justify-content-between {% if request.endpoint == 'ventas.lista_pedidos_web' %}active{% endif %}"
+                                    href="{{ url_for('ventas.lista_pedidos_web') }}">
+                                    <span><i class="bi bi-inbox-fill text-warning me-2"></i>Pedidos Web</span>
+                                    {% if pedidos_web_pendientes_count > 0 %}
+                                    <span class="badge rounded-pill bg-danger">{{ pedidos_web_pendientes_count }}</span>
+                                    {% endif %}
+                                </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('main.lista_clientes') }}"><i class="bi bi-people text-info"></i>Clientes</a></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('tienda.configurar_tienda') }}">
+                                <i class="bi bi-sliders text-primary me-2"></i>Personalizar Mi Web</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('tienda.ver_mi_tienda', empresa_id=empresa_activa.id) if empresa_activa else url_for('tienda.ver_mi_tienda') }}" target="_blank">
+                                <i class="bi bi-browser-chrome text-info me-2"></i>Ver Mi Página Web ({% if empresa_activa %}{{ empresa_activa.nombre }}{% else %}Empresa Activa{% endif %})</a></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('tienda.ver_mi_catalogo', empresa_id=empresa_activa.id) if empresa_activa else url_for('tienda.ver_mi_catalogo') }}" target="_blank">
+                                <i class="bi bi-bag-check-fill text-success me-2"></i>Ver Mi Catálogo Digital</a></li>
                         </ul>
                     </li>
+
+                    {% if current_user.es_admin %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint and request.endpoint.startswith('admin.') %}active{% endif %}"
+                            href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-shield-lock-fill text-warning"></i> Admin
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_usuarios') }}"><i class="bi bi-people-fill text-primary"></i> Usuarios</a></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_roles') }}"><i class="bi bi-person-lines-fill text-success"></i> Roles</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_auditoria') }}"><i class="bi bi-journal-text text-danger"></i> Auditoría</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    {% if current_user.es_superadmin %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint and request.endpoint.startswith('superadmin.') %}active{% endif %}"
+                            href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-cpu-fill text-info"></i> SuperAdmin
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'superadmin.lista_empresas' %}active{% endif %}" href="{{ url_for('superadmin.lista_empresas') }}">
+                                <i class="bi bi-speedometer2 text-primary me-2"></i> Centro de Mando SaaS
+                            </a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'superadmin.lista_pagos_saas' %}active{% endif %}" href="{{ url_for('superadmin.lista_pagos_saas') }}">
+                                <i class="bi bi-credit-card-2-front-fill text-warning me-2"></i> Pagos & Suscripciones SaaS
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'superadmin.estadisticas_globales' %}active{% endif %}" href="{{ url_for('superadmin.estadisticas_globales') }}">
+                                <i class="bi bi-graph-up text-success me-2"></i> Estadísticas Globales
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
                 </ul>
                 {% endif %}
             </div>
 
             <div class="d-flex align-items-center gap-3">
+                {% if current_user.is_authenticated and current_user.es_superadmin %}
+                <form action="{{ url_for('superadmin.seleccionar_empresa_activa') }}" method="POST" class="d-flex align-items-center me-2 border border-info border-opacity-50 rounded-pill px-2 py-1 bg-dark bg-opacity-25" style="max-width: 250px;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <i class="bi bi-building text-info me-1 small"></i>
+                    <select name="superadmin_empresa_id" onchange="this.form.submit()" class="form-select form-select-sm border-0 bg-transparent text-info fw-bold py-0" style="box-shadow: none; font-size: 0.75rem; cursor: pointer; max-width: 180px;">
+                        <option value="todas" {% if superadmin_selected_empresa_name == 'Todas las Empresas' %}selected{% endif %}>🏢 Todas las Empresas</option>
+                        {% for emp in superadmin_empresas %}
+                        <option value="{{ emp.id }}" {% if superadmin_selected_empresa_name == emp.nombre %}selected{% endif %}>📍 {{ emp.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% endif %}
+
                 {% if current_user.is_authenticated %}
-                <button class="btn btn-link text-white p-0 opacity-75 hover-opacity-100" onclick="toggleTheme()" title="Cambiar Tema">
+                <button class="btn btn-link text-white p-0 opacity-75 hover-opacity-100" onclick="toggleTheme()"
+                    title="Cambiar Tema">
                     <i class="bi bi-moon-stars-fill fs-5" id="themeIcon"></i>
                 </button>
 
                 <div class="dropdown">
-                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                        <div class="bg-white text-success rounded-circle fw-bold d-flex align-items-center justify-content-center me-2 border border-2 border-success border-opacity-25" style="width: 38px; height: 38px;">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                        data-bs-toggle="dropdown">
+                        <div class="bg-body text-success rounded-circle fw-bold d-flex align-items-center justify-content-center me-2 border border-2 border-success border-opacity-25"
+                            style="width: 38px; height: 38px;">
                             {{ current_user.nombre_completo[0].upper() }}
                         </div>
-                        <span class="d-none d-lg-inline fw-bold small">{{ current_user.nombre_completo.split()[0] }}</span>
+                        <span class="d-none d-lg-inline fw-bold small">{{ current_user.nombre_completo.split()[0]
+                            }}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end mt-2">
-                        <li><span class="dropdown-item-text small text-muted">Rol: <strong>{{ current_user.rol.nombre }}</strong></span></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger fw-bold" href="{{ url_for('main.logout') }}">Cerrar Sesión</a></li>
+                        <li><span class="dropdown-item-text small text-muted">Rol: <strong>{{ current_user.rol.nombre if current_user.rol else ('SuperAdmin' if current_user.es_superadmin else 'Sin Rol')
+                                    }}</strong></span></li>
+                        {% if empresa_activa or (current_user.is_authenticated and current_user.empresa) %}
+                        {% set emp_info = empresa_activa or current_user.empresa %}
+                        <li><span class="dropdown-item-text small text-muted">Empresa: <strong>{{ emp_info.nombre }}</strong></span></li>
+                        <li><a class="dropdown-item fw-bold" href="{{ url_for('tienda.ver_mi_tienda') }}" target="_blank"><i class="bi bi-box-arrow-up-right text-success me-2"></i>Ver Mi Tienda Online</a></li>
+                        <li><a class="dropdown-item fw-bold" href="{{ url_for('tienda.configurar_tienda') }}"><i class="bi bi-gear-fill text-info me-2"></i>Configurar Mi Sitio</a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item fw-bold" href="{{ url_for('auth.planes') }}"><i class="bi bi-star-fill text-warning me-2"></i>Planes & Tarifas SaaS</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item text-danger fw-bold" href="{{ url_for('auth.logout') }}">Cerrar
+                                Sesión</a></li>
                     </ul>
                 </div>
                 {% else %}
-                <a class="btn btn-outline-light rounded-pill px-4 fw-bold" href="{{ url_for('main.login') }}">Acceder</a>
+                <div class="d-flex align-items-center gap-2">
+                    <a class="nav-link text-white fw-bold d-none d-sm-inline-flex align-items-center gap-1.5 px-3"
+                        href="{{ url_for('auth.planes') }}">
+                        <i class="bi bi-tag-fill text-warning"></i>
+                        <span>Planes & Precios</span>
+                    </a>
+                    <a class="btn btn-outline-light rounded-pill px-4 fw-bold"
+                        href="{{ url_for('auth.login') }}">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Acceder
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
     </nav>
+
+    {% if current_user.is_authenticated and current_user.es_superadmin and superadmin_selected_empresa_name != 'Todas las Empresas' and empresa_activa %}
+    <div class="py-2 px-4 d-flex flex-wrap justify-content-between align-items-center extra-small shadow-sm"
+         style="background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%); color: #fff;">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-warning text-dark fw-bold px-2 py-1"><i class="bi bi-tools me-1"></i>MODO SOPORTE TÉCNICO</span>
+            <span>Estás visualizando y administrando el vivero: <strong class="text-white text-decoration-underline">{{ empresa_activa.nombre }}</strong></span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('superadmin.lista_empresas') }}" class="btn btn-sm btn-outline-light rounded-pill py-0.5 px-3 extra-small fw-bold">
+                <i class="bi bi-speedometer2 me-1"></i>Centro de Mando SaaS
+            </a>
+            <a href="{{ url_for('superadmin.seleccionar_empresa_activa', superadmin_empresa_id='todas') }}" class="btn btn-sm btn-light text-primary rounded-pill py-0.5 px-3 extra-small fw-bold">
+                <i class="bi bi-x-circle me-1"></i>Salir a Modo Global
+            </a>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="container mt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -240,27 +335,47 @@
     <div class="pb-5">{% block content %}{% endblock %}</div>
 
     <footer class="text-center py-4 text-muted small mt-auto border-top" style="background-color: rgba(0,0,0,0.02);">
-        <p class="mb-0 fw-bold">&copy; {{ datetime.now().year }} EcoSistem v4.0</p>
+        <p class="mb-0 fw-bold">&copy; {{ datetime.now().year }}
+            {% if current_user.is_authenticated and current_user.empresa %}
+                {{ current_user.empresa.nombre }} | Powered by EcoSistem
+            {% else %}
+                EcoSistem v5.0
+            {% endif %}
+        </p>
         <p class="mb-0 opacity-75">Gestión Inteligente para el Campo</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>if (typeof lucide !== 'undefined') { lucide.createIcons(); }</script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    <!-- PWA Service Worker & Install Handler -->
     <script>
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        updateIcon(savedTheme);
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-bs-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateIcon(newTheme);
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js').catch(err => console.log('SW error:', err));
+            });
         }
-        function updateIcon(theme) {
-            const icon = document.getElementById('themeIcon');
-            if (icon) { icon.className = theme === 'dark' ? 'bi bi-sun-fill fs-5' : 'bi bi-moon-stars-fill fs-5'; }
-        }
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('btnInstalarPWA');
+            if (btn) {
+                btn.style.display = 'inline-flex';
+                btn.addEventListener('click', () => {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            btn.style.display = 'none';
+                        }
+                        deferredPrompt = null;
+                    });
+                });
+            }
+        });
     </script>
 </body>
+
 </html>

@@ -1,0 +1,123 @@
+{% if animales %}
+{% for animal in animales %}
+
+<div class="col-12 col-md-6 col-lg-4" style="animation: fadeIn 0.4s ease-out forwards; opacity: 0; animation-delay: {{ loop.index0 * 0.05 }}s;">
+    <a href="{{ url_for('pecuario.ver_animal', id=animal.id) }}" class="text-decoration-none text-body h-100 d-block">
+
+        <div class="lote-card">
+
+            <div class="img-zoom-wrapper">
+                {% if animal.imagen_url %}
+                <img src="{{ url_for('static', filename=animal.imagen_url) }}" alt="{{ animal.nombre }}">
+                {% elif animal.raza_rel and animal.raza_rel.imagen_url %}
+                <img src="{{ url_for('static', filename=animal.raza_rel.imagen_url) }}" alt="{{ animal.nombre }}">
+                {% else %}
+                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white"
+                    style="background: linear-gradient(135deg, {% if loop.index is odd %}#6366f1 0%, #8b5cf6 100%{% else %}#ec4899 0%, #d946ef 100%{% endif %});">
+                    <span class="opacity-50" style="font-size: 5rem;">
+                        {% if animal.especie == 'Bovino' %}🐮
+                        {% elif animal.especie == 'Porcino' %}🐷
+                        {% elif animal.especie == 'Avícola' %}🐔
+                        {% elif animal.especie == 'Caprino' %}🐐
+                        {% else %}🐾{% endif %}
+                    </span>
+                </div>
+                {% endif %}
+                <div class="img-overlay"></div>
+                <div class="badge-float badge-left shadow-sm">{{ animal.codigo }}</div>
+                <div class="badge-float badge-right">
+                    {% if animal.estado == 'Activo' %}
+                    <span class="badge bg-body text-success shadow-sm fw-bold">Activo</span>
+                    {% elif animal.estado == 'Enfermo' %}
+                    <span class="badge bg-body text-danger shadow-sm fw-bold">Enfermo</span>
+                    {% elif animal.estado == 'Cuarentena' %}
+                    <span class="badge bg-body text-warning shadow-sm fw-bold">Cuarentena</span>
+                    {% else %}
+                    <span class="badge bg-body text-secondary shadow-sm fw-bold">{{ animal.estado }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body position-relative pb-4 px-4 pt-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h5 class="fw-bolder mb-0 text-body" style="letter-spacing: -0.5px;">{{ animal.nombre }}</h5>
+                        <small class="text-muted fw-medium">{{ animal.raza or 'Raza no def.' }} • {{ animal.especie }}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        {% if animal.genero == 'Hembra' %}
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 mt-1">
+                            <i class="bi bi-gender-female me-1"></i>Hembra
+                        </span>
+                        {% else %}
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 mt-1">
+                            <i class="bi bi-gender-male me-1"></i>Macho
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mt-3 small fw-bold text-secondary bg-light rounded-pill px-3 py-2 border shadow-sm w-100">
+                    <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                    <span class="text-truncate">{{ animal.sede.nombre if animal.sede else 'Sin sede' }} &bull; {{ animal.ubicacion or 'Sin ubicación' }}</span>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 small fw-bold text-truncate" style="max-width: 180px;">
+                            <i class="bi bi-bullseye me-1"></i>{{ animal.proposito or 'General' }}
+                        </span>
+                        <span class="text-secondary small fw-bold font-monospace">
+                            <i class="bi bi-speedometer2 text-info me-1"></i>{{ animal.peso_actual }} kg
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-end mb-1">
+                        <div>
+                            <span class="small text-muted fw-bold text-uppercase d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">Población Activa</span>
+                            <span class="fs-5 fw-black text-body font-monospace">{{ animal.cantidad_actual }} <span class="fs-6 text-muted fw-normal">{{ 'unds' if animal.tipo == 'Grupal' else 'ejemplar' }}</span></span>
+                        </div>
+                        {% set pct = (animal.cantidad_actual / animal.cantidad_inicial * 100) if animal.cantidad_inicial and animal.cantidad_inicial > 0 else 100 %}
+                        <div class="text-end">
+                            <span class="badge {% if pct >= 95 %}bg-success{% elif pct >= 80 %}bg-warning{% else %}bg-danger{% endif %} bg-opacity-10 text-{% if pct >= 95 %}success{% elif pct >= 80 %}warning{% else %}danger{% endif %} border border-opacity-25 rounded-pill px-2 py-1 small fw-bold">
+                                {{ pct | int }}% Retención
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="progress shadow-sm mt-1"
+                        style="height: 5px; border-radius: 6px; background-color: rgba(100, 116, 139, 0.15);">
+                        <div class="progress-bar {% if pct >= 90 %}bg-success{% elif pct >= 75 %}bg-warning{% else %}bg-danger{% endif %}"
+                            role="progressbar" style="width: {{ pct | int }}%; border-radius: 6px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </a>
+</div>
+{% endfor %}
+
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+{% else %}
+<div class="col-12 text-center py-5">
+    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm border border-primary border-opacity-25"
+        style="width: 80px; height: 80px;">
+        <i class="bi bi-search display-4 opacity-75"></i>
+    </div>
+    <h3 class="fw-bold text-body">No se encontraron animales</h3>
+    <p class="text-muted">Intenta cambiar los filtros o registra uno nuevo.</p>
+</div>
+{% endif %}

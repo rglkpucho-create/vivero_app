@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado de Trazabilidad | {{ data.especie.nombre_comun if (tipo == 'lote' and data.especie) else (data.nombre or data.codigo_lote or data.codigo) }}</title>
+    
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        // Sincronización instantánea con el tema del usuario en EcoSistem o preferencia de sistema
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        })();
+    </script>
+
+    <style>
+        :root {
+            --eco-primary: #059669;
+            --eco-accent: #10b981;
+            --eco-dark: #064e3b;
+            --page-bg: #f8fafc;
+            --card-surface: #ffffff;
+            --card-border: rgba(0, 0, 0, 0.07);
+            --card-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.12);
+            --stat-bg: #f8fafc;
+            --stat-border: #e2e8f0;
+            --text-heading: #0f172a;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --timeline-line: #cbd5e1;
+            --timeline-card: #f8fafc;
+            --timeline-border: #e2e8f0;
+            --hero-bg: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%);
+            --hero-pattern: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.18) 0%, transparent 60%);
+        }
+
+        [data-bs-theme="dark"] {
+            --page-bg: #090e17;
+            --card-surface: #111827;
+            --card-border: rgba(255, 255, 255, 0.1);
+            --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            --stat-bg: #1e293b;
+            --stat-border: rgba(255, 255, 255, 0.08);
+            --text-heading: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            --timeline-line: #334155;
+            --timeline-card: #1a2234;
+            --timeline-border: rgba(255, 255, 255, 0.06);
+            --hero-bg: linear-gradient(135deg, #022c22 0%, #064e3b 60%, #047857 100%);
+            --hero-pattern: radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 60%);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--page-bg);
+            color: var(--text-body);
+            min-height: 100vh;
+            padding-bottom: 60px;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Botón Flotante para Alternar Modo Oscuro / Claro */
+        .btn-theme-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 7px 16px;
+            font-size: 0.85rem;
+            transition: all 0.25s ease;
+        }
+
+        [data-bs-theme="dark"] .btn-theme-toggle {
+            background: rgba(17, 24, 39, 0.7);
+            color: #f8fafc;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-theme-toggle:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.35);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        [data-bs-theme="dark"] .btn-theme-toggle:hover {
+            background: rgba(30, 41, 59, 0.9);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .hero-banner {
+            background: var(--hero-bg);
+            padding: 50px 20px 105px;
+            color: white;
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            text-align: center;
+            box-shadow: 0 12px 32px rgba(6, 78, 59, 0.22);
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--hero-pattern);
+            pointer-events: none;
+        }
+
+        .main-card {
+            margin-top: -75px;
+            background: var(--card-surface);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .product-avatar {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 26px;
+            border: 5px solid var(--card-surface);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+            margin-top: -70px;
+            background-color: var(--card-surface);
+            transition: transform 0.3s ease;
+        }
+
+        .product-avatar:hover {
+            transform: scale(1.04);
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+            font-weight: 800;
+            font-size: 0.8rem;
+            padding: 6px 18px;
+            border-radius: 9999px;
+            letter-spacing: 0.6px;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        [data-bs-theme="dark"] .verified-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .stat-card-pro {
+            background: var(--stat-bg);
+            border: 1px solid var(--stat-border);
+            padding: 14px 18px;
+            border-radius: 18px;
+            min-width: 140px;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .stat-card-pro:hover {
+            transform: translateY(-2px);
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        .timeline-wrapper {
+            position: relative;
+            padding-left: 32px;
+        }
+
+        .timeline-wrapper::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 12px;
+            bottom: 12px;
+            width: 2px;
+            background: var(--timeline-line);
+        }
+
+        .timeline-entry {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .timeline-node {
+            position: absolute;
+            left: -32px;
+            top: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #10b981;
+            color: #ffffff;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid var(--card-surface);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+        }
+
+        .timeline-content-card {
+            background: var(--timeline-card);
+            border: 1px solid var(--timeline-border);
+            border-radius: 16px;
+            padding: 14px 18px;
+            transition: all 0.2s ease;
+        }
+
+        .timeline-content-card:hover {
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        .evidence-photo {
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 10px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            border: 1px solid var(--stat-border);
+        }
+
+        .trust-banner {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px dashed rgba(16, 185, 129, 0.35);
+            border-radius: 14px;
+            padding: 12px 18px;
+            color: var(--text-body);
+            font-size: 0.82rem;
+        }
+
+        @media print {
+            .hero-banner { padding: 25px 10px; border-radius: 0; box-shadow: none; }
+            .btn-print-hide { display: none !important; }
+            body { padding-bottom: 0; background: #ffffff !important; color: #000000 !important; }
+            .main-card { box-shadow: none; border: 1px solid #ccc; margin-top: 0; background: #fff !important; }
+            .stat-card-pro, .timeline-content-card { background: #fafafa !important; border-color: #ddd !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BOTÓN FLOTANTE MODO OSCURO / CLARO -->
+    <div class="position-fixed top-0 end-0 p-3 btn-print-hide" style="z-index: 1050;">
+        <button type="button" class="btn btn-theme-toggle rounded-pill shadow-sm d-flex align-items-center gap-2" onclick="toggleCertificateTheme()" id="btnThemeToggle" title="Cambiar tema">
+            <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+            <span class="small fw-bold d-none d-sm-inline" id="themeText">Modo Oscuro</span>
+        </button>
+    </div>
+
+    <!-- HERO HEADER -->
+    <section class="hero-banner">
+        <div class="container position-relative" style="z-index: 2;">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-2 opacity-90">
+                <i class="bi bi-shield-fill-check fs-5 text-warning"></i>
+                <span class="text-uppercase fw-bold font-monospace small" style="letter-spacing: 2px;">EcoSistem Traceability Network</span>
+            </div>
+            <h1 class="display-6 fw-black mb-2" style="font-family: 'Outfit', sans-serif;">
+                {{ 'Certificado Oficial de Origen' if tipo == 'lote' else 'Pasaporte Zoosanitario Oficial' }}
+            </h1>
+            <p class="lead mb-0 opacity-90 fs-6">
+                {{ 'Transparencia botánica, pureza y trazabilidad verificada desde el cultivo.' if tipo == 'lote' else 'Pureza genética, trazabilidad zootécnica y sanidad animal verificada.' }}
+            </p>
+        </div>
+    </section>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <div class="main-card p-4 p-md-5 text-center">
+                    
+                    {% if tipo == 'lote' %}
+                        <!-- FOTO O AVATAR DE LA ESPECIE -->
+                        {% if data.especie and data.especie.imagen_url %}
+                        <img src="{{ url_for('static', filename=data.especie.imagen_url) }}" class="product-avatar mb-3" alt="{{ data.especie.nombre_comun }}">
+                        {% else %}
+                        <div class="product-avatar d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success mb-3">
+                            <i class="bi bi-flower1 display-4"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- SELLO DE CERTIFICACIÓN -->
+                        <div class="mb-3">
+                            <span class="verified-badge">
+                                <i class="bi bi-patch-check-fill fs-6"></i> ORIGEN Y CULTIVO VERIFICADO
+                            </span>
+                        </div>
+                        
+                        <!-- NOMBRE DEL CULTIVO -->
+                        <h2 class="fw-black mb-1" style="font-family: 'Outfit', sans-serif; color: var(--text-heading);">
+                            {{ data.especie.nombre_comun if data.especie else 'Lote de Cultivo' }}
+                        </h2>
+
+                        {% if data.especie and data.especie.nombre_cientifico %}
+                        <p class="fst-italic mb-3" style="font-size: 0.95rem; color: var(--text-muted);">
+                            <i class="bi bi-flower3 me-1 text-success"></i>{{ data.especie.nombre_cientifico }}
+                        </p>
+                        {% endif %}
+
+                        <!-- BADGES DE LOTE Y PROPÓSITO -->
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-4 flex-wrap">
+                            <span class="badge bg-dark text-white font-monospace px-3 py-2 rounded-pill shadow-sm">
+                                <i class="bi bi-upc-scan me-1"></i>Lote: {{ data.codigo_lote }}
+                            </span>
+                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background-color: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.82rem;">
+                                <i class="bi bi-tag-fill me-1"></i>{{ data.proposito }}
+                            </span>
+                            <span class="badge rounded-pill px-3 py-2 fw-bold font-monospace" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.8rem;">
+                                <i class="bi bi-fingerprint me-1"></i>ID #ECO-{{ '%05d' % data.id }}
+                            </span>
+                        </div>
+
+                        <!-- GRID DE ATRIBUTOS AGRONÓMICOS -->
+                        <div class="row g-2 justify-content-center mb-4">
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-calendar2-check text-success d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Fecha Siembra</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.fecha_siembra.strftime('%d %b, %Y') if data.fecha_siembra else 'N/A' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-building text-primary d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Sede / Vivero</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.sede.nombre if data.sede else (data.empresa.nombre if data.empresa else 'Vivero Central') }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-geo-alt text-danger d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Ubicación</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.ubicacion or 'Nave Principal' }}</span>
+                                </div>
+                            </div>
+                            {% if data.especie and data.especie.dias_ciclo_estimado %}
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-stopwatch text-warning d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Ciclo Estimado</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.especie.dias_ciclo_estimado }} Días</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- MICRO BANNER DE SEGURIDAD DIGITAL -->
+                        <div class="trust-banner text-start mb-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-lock-fill fs-5 text-success flex-shrink-0"></i>
+                            <div>
+                                <strong>Registro Oficial Certificado:</strong> Todos los eventos fitosanitarios y labores culturales quedan registrados de manera inmutable en la red EcoSistem.
+                            </div>
+                        </div>
+
+                        <!-- LÍNEA DE TIEMPO / HISTORIAL AGRONÓMICO DE VIDA -->
+                        <div class="text-start mt-4 pt-3 border-top">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h5 class="fw-bold mb-0 d-flex align-items-center gap-2" style="color: var(--text-heading);">
+                                    <i class="bi bi-clock-history text-success"></i> Historial Agronómico de Vida
+                                </h5>
+                                <span class="badge bg-body-tertiary text-secondary border font-monospace">{{ data.labores|length }} eventos registrados</span>
+                            </div>
+
+                            {% if data.labores %}
+                            <div class="timeline-wrapper">
+                                {% for labor in data.labores|reverse %}
+                                <div class="timeline-entry">
+                                    <div class="timeline-node">
+                                        {% if 'Riego' in labor.tipo_labor %}
+                                        <i class="bi bi-droplet-fill"></i>
+                                        {% elif 'Fertiliz' in labor.tipo_labor or 'Nutric' in labor.tipo_labor %}
+                                        <i class="bi bi-capsule"></i>
+                                        {% elif 'Poda' in labor.tipo_labor %}
+                                        <i class="bi bi-scissors"></i>
+                                        {% elif 'Fitosanitario' in labor.tipo_labor or 'Fumi' in labor.tipo_labor or 'Plaga' in labor.tipo_labor %}
+                                        <i class="bi bi-shield-shaded"></i>
+                                        {% elif 'Cosecha' in labor.tipo_labor %}
+                                        <i class="bi bi-basket-fill"></i>
+                                        {% else %}
+                                        <i class="bi bi-sprout-fill"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="timeline-content-card">
+                                        <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                            <h6 class="fw-bold mb-0" style="color: var(--text-heading);">
+                                                {{ labor.tipo_labor }}
+                                            </h6>
+                                            <small class="font-monospace fw-semibold text-muted" style="font-size: 0.78rem;">
+                                                <i class="bi bi-calendar-event me-1"></i>{{ labor.fecha.strftime('%d %b, %Y') }}
+                                            </small>
+                                        </div>
+                                        <p class="small mb-2" style="color: var(--text-body);">{{ labor.descripcion }}</p>
+                                        {% if labor.imagen_url %}
+                                        <img src="{{ url_for('static', filename=labor.imagen_url) }}" class="evidence-photo d-block" alt="Evidencia agronómica">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-sprout display-4 opacity-50 d-block mb-2"></i>
+                                <p class="small mb-0">Lote recién establecido. Se registrarán las labores a medida que avance el cultivo.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    {% else %}
+                        {# CERTIFICADO ANIMAL PECUARIO #}
+                        {% if data.imagen_url %}
+                        <img src="{{ url_for('static', filename=data.imagen_url) }}" class="product-avatar mb-3" alt="{{ data.nombre or data.codigo }}">
+                        {% elif data.raza_rel and data.raza_rel.imagen_url %}
+                        <img src="{{ url_for('static', filename=data.raza_rel.imagen_url) }}" class="product-avatar mb-3" alt="{{ data.nombre or data.codigo }}">
+                        {% else %}
+                        <div class="product-avatar d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary mb-3">
+                            <span class="display-3">
+                                {% if data.especie == 'Bovino' %}🐮{% elif data.especie == 'Avícola' %}🐔{% elif data.especie == 'Porcino' %}🐷{% elif data.especie == 'Equino' %}🐴{% elif data.especie == 'Ovino' %}🐑{% elif data.especie == 'Caprino' %}🐐{% else %}🐾{% endif %}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <!-- SELLO DE CERTIFICACIÓN ZOOSANITARIA -->
+                        <div class="mb-3">
+                            <span class="verified-badge" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; border-color: rgba(59, 130, 246, 0.35);">
+                                <i class="bi bi-patch-check-fill fs-6 text-primary"></i> REGISTRO ZOOSANITARIO & GENÉTICA VERIFICADA
+                            </span>
+                        </div>
+                        
+                        <!-- NOMBRE DEL ANIMAL O IDENTIFICACIÓN -->
+                        <h2 class="fw-black mb-1" style="font-family: 'Outfit', sans-serif; color: var(--text-heading);">
+                            {{ data.nombre or data.codigo }}
+                        </h2>
+                        
+                        <p class="mb-3" style="color: var(--text-muted); font-size: 0.95rem;">
+                            <i class="bi bi-tag-fill me-1 text-primary"></i>{{ data.especie }} &bull; Raza: <strong>{{ data.raza or (data.raza_rel.nombre if data.raza_rel else 'Estándar') }}</strong>
+                            {% if data.genero %}<span class="mx-1">•</span>{{ data.genero }}{% endif %}
+                        </p>
+
+                        <!-- BADGES DE TRAZABILIDAD Y PROPÓSITO -->
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-4 flex-wrap">
+                            <span class="badge bg-dark text-white font-monospace px-3 py-2 rounded-pill shadow-sm">
+                                <i class="bi bi-upc-scan me-1"></i>Arete/ID: {{ data.codigo }}
+                            </span>
+                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.35); font-size: 0.82rem;">
+                                <i class="bi bi-bullseye me-1"></i>{{ data.proposito }}
+                            </span>
+                            <span class="badge rounded-pill px-3 py-2 fw-bold font-monospace" style="background: rgba(99, 102, 241, 0.12); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.8rem;">
+                                <i class="bi bi-fingerprint me-1"></i>ID #PEC-{{ '%05d' % data.id }}
+                            </span>
+                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.8rem;">
+                                <i class="bi bi-activity me-1"></i>{{ data.estado or 'Activo' }}
+                            </span>
+                        </div>
+
+                        <!-- GRID DE ATRIBUTOS ZOOTÉCNICOS -->
+                        <div class="row g-2 justify-content-center mb-4">
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-calendar2-heart text-primary d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Fecha Ingreso</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.fecha_ingreso.strftime('%d %b, %Y') if data.fecha_ingreso else 'N/A' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-speedometer2 text-success d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Peso Actual</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.peso_actual or 0.0 }} <small class="text-muted fw-normal">Kg</small></span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-geo-alt text-danger d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Ubicación</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.ubicacion or 'Corral Principal' }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-3">
+                                <div class="stat-card-pro h-100">
+                                    <i class="bi bi-house-door text-warning d-block mb-1 fs-5"></i>
+                                    <small class="d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px; color: var(--text-muted);">Sede / Finca</small>
+                                    <span class="fw-bold fs-6" style="color: var(--text-heading);">{{ data.sede.nombre if data.sede else 'Finca Central' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MICRO BANNER DE SEGURIDAD DIGITAL -->
+                        <div class="trust-banner text-start mb-4 d-flex align-items-center gap-2" style="background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.35);">
+                            <i class="bi bi-shield-lock-fill fs-5 text-primary flex-shrink-0"></i>
+                            <div>
+                                <strong>Registro Zoosanitario Certificado:</strong> Todos los eventos veterinarios, vacunaciones y pesajes quedan certificados e inmutables en la red EcoSistem Ganadería.
+                            </div>
+                        </div>
+
+                        <!-- CRONOLOGÍA SANITARIA Y CUIDADOS -->
+                        <div class="text-start mt-4 pt-4 border-top">
+                            {% set eventos_lista = data.eventos_salud if data.eventos_salud else (data.eventos_sanitarios if data.eventos_sanitarios else []) %}
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h5 class="fw-bold mb-0 d-flex align-items-center gap-2" style="color: var(--text-heading);">
+                                    <i class="bi bi-heart-pulse-fill text-primary"></i> Cronología Sanitaria y Cuidados
+                                </h5>
+                                <span class="badge bg-body-tertiary text-secondary border font-monospace">{{ eventos_lista|length }} registros</span>
+                            </div>
+
+                            {% if eventos_lista %}
+                            <div class="timeline-wrapper">
+                                {% for evento in eventos_lista|reverse %}
+                                <div class="timeline-entry">
+                                    <div class="timeline-node" style="background: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);">
+                                        {% if 'Vacun' in evento.tipo %}
+                                        <i class="bi bi-shield-plus"></i>
+                                        {% elif 'Desparasit' in evento.tipo %}
+                                        <i class="bi bi-capsule"></i>
+                                        {% elif 'Chequeo' in evento.tipo or 'General' in evento.tipo %}
+                                        <i class="bi bi-clipboard2-pulse"></i>
+                                        {% elif 'Enfermedad' in evento.tipo or 'Tratamiento' in evento.tipo %}
+                                        <i class="bi bi-bandaid"></i>
+                                        {% elif 'Pesaje' in evento.tipo %}
+                                        <i class="bi bi-speedometer2"></i>
+                                        {% else %}
+                                        <i class="bi bi-heart-pulse"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="timeline-content-card">
+                                        <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                            <h6 class="fw-bold mb-0" style="color: var(--text-heading);">{{ evento.tipo }}</h6>
+                                            <small class="font-monospace fw-semibold text-muted" style="font-size: 0.78rem;">
+                                                <i class="bi bi-calendar-event me-1"></i>{{ evento.fecha.strftime('%d %b, %Y') if evento.fecha else 'N/A' }}
+                                            </small>
+                                        </div>
+                                        <p class="small mb-2" style="color: var(--text-body);">{{ evento.descripcion }}</p>
+                                        {% if evento.imagen_url %}
+                                        <img src="{{ url_for('static', filename=evento.imagen_url) }}" class="evidence-photo d-block" alt="Evidencia Sanitaria">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-shield-check display-4 opacity-50 d-block mb-2 text-primary"></i>
+                                <p class="small mb-0">Sin novedades clínicas. El animal se encuentra en óptimas condiciones bajo protocolo preventivo.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <!-- BOTONES DE ACCIÓN: IMPRIMIR Y COMPARTIR -->
+                    <div class="mt-4 pt-4 border-top d-flex flex-wrap justify-content-center gap-2 btn-print-hide">
+                        <button type="button" class="btn btn-dark rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" onclick="window.print()">
+                            <i class="bi bi-printer-fill"></i> Imprimir Certificado
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2" onclick="copiarEnlaceCertificado()" id="btnCopiarLink">
+                            <i class="bi bi-share-fill"></i> <span id="btnCopiarText">Compartir</span>
+                        </button>
+                    </div>
+
+                    <!-- PIE CON LOGO LIMPIO SVG -->
+                    <div class="mt-5 pt-4 border-top text-center">
+                        <img src="{{ url_for('static', filename='images/logo_ecosistem.svg') }}" 
+                             alt="EcoSistem" style="height: 32px; opacity: 0.85;"
+                             onerror="this.style.display='none'">
+                        <p class="small text-muted mt-2 mb-0" style="font-size: 0.75rem;">
+                            &copy; 2026 EcoSistem Agropecuaria — Red de Trazabilidad Transparente
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function updateCertificateThemeUI(theme) {
+            const icon = document.getElementById('themeIcon');
+            const text = document.getElementById('themeText');
+            if (theme === 'dark') {
+                if (icon) icon.className = 'bi bi-sun-fill text-warning';
+                if (text) text.textContent = 'Modo Claro';
+            } else {
+                if (icon) icon.className = 'bi bi-moon-stars-fill';
+                if (text) text.textContent = 'Modo Oscuro';
+            }
+        }
+
+        function toggleCertificateTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateCertificateThemeUI(newTheme);
+        }
+
+        function copiarEnlaceCertificado() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const btnText = document.getElementById('btnCopiarText');
+                const btn = document.getElementById('btnCopiarLink');
+                if (btnText) btnText.textContent = '¡Enlace Copiado!';
+                if (btn) btn.classList.replace('btn-outline-secondary', 'btn-success');
+                setTimeout(() => {
+                    if (btnText) btnText.textContent = 'Compartir';
+                    if (btn) btn.classList.replace('btn-success', 'btn-outline-secondary');
+                }, 2500);
+            }).catch(err => {
+                alert('URL del certificado: ' + window.location.href);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            updateCertificateThemeUI(currentTheme);
+        });
+    </script>
+</body>
+</html>

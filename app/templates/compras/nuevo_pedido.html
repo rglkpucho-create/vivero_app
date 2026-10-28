@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Estilos Premium para Formularios de Transacción */
+    .form-header-premium {
+        background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+        border-radius: 2rem;
+        padding: 3.5rem;
+        margin-bottom: -3rem;
+        color: white;
+        box-shadow: 0 20px 40px -10px rgba(67, 56, 202, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-form-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 2.5rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 10;
+    }
+
+    [data-bs-theme="dark"] .glass-form-card {
+        background: rgba(30, 41, 59, 0.7);
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .pos-search-premium {
+        background: #1e293b;
+        border-radius: 2rem;
+        padding: 2.5rem;
+        color: white;
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+    }
+</style>
+
+<div class="container py-4 max-w-7xl mx-auto" style="max-width: 1200px;">
+
+    <!-- 1. ENCABEZADO FORMULARIO PREMIUM -->
+    <div class="form-header-premium d-flex justify-content-between align-items-center mb-0">
+        <div>
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <span class="badge rounded-pill bg-white text-indigo fw-bold px-3 py-1 shadow-sm">NUEVO</span>
+                <span class="text-white text-opacity-75 font-monospace">ORDEN DE COMPRA #{{ pedido.numero_orden }}</span>
+            </div>
+            <h1 class="display-4 fw-black text-white mb-0" style="letter-spacing: -2px;">Registrar Compra</h1>
+        </div>
+        <div class="text-end">
+            <span class="d-block small fw-bold text-white text-opacity-50 text-uppercase tracking-widest mb-1">TOTAL ESTIMADO</span>
+            <span class="display-5 fw-black text-white font-monospace">${{ "{:,.0f}".format(pedido.total_estimado) }}</span>
+        </div>
+    </div>
+
+    <!-- CONFIGURACIÓN DEL PEDIDO (GLASS CARD) -->
+    <div class="glass-form-card mb-4">
+        <div class="card-body p-4 p-md-5">
+            <h6 class="fw-black text-primary text-uppercase mb-4 pb-2 border-bottom border-primary border-opacity-10" style="letter-spacing: 1.5px;">
+                <i class="bi bi-gear-fill me-2"></i> Configuración Logística
+            </h6>
+
+            {% if pedido.estado == 'Borrador' %}
+            <form action="{{ url_for('compras.actualizar_datos_pedido', pedido_id=pedido.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Proveedor</label>
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-0"><i class="bi bi-building text-primary"></i></span>
+                            <select name="proveedor_id" onchange="this.form.submit()" autofocus
+                                class="form-select border-0 fw-bold">
+                                {% for p in proveedores %}
+                                <option value="{{ p.id }}" {% if p.id==pedido.proveedor_id %}selected{% endif %}>{{
+                                    p.razon_social }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Sede Destino</label>
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-0"><i class="bi bi-truck text-primary"></i></span>
+                            <select name="sede_id" onchange="this.form.submit()"
+                                class="form-select border-0 fw-bold">
+                                {% for s in sedes %}
+                                <option value="{{ s.id }}" {% if pedido.sede_id==s.id %}selected{% endif %}>{{ s.nombre
+                                    }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Fecha Solicitud</label>
+                        <input type="date" name="fecha_solicitud" value="{{ pedido.fecha_solicitud }}"
+                            onchange="this.form.submit()"
+                            class="form-control form-control-lg border-0 shadow-sm fw-bold">
+                    </div>
+                </div>
+            </form>
+            {% else %}
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="p-4 bg-light bg-opacity-50 rounded-4 border border-white h-100">
+                        <span class="d-block small fw-black text-muted text-uppercase mb-1">PROVEEDOR</span>
+                        <h5 class="fw-black text-dark mb-0">{{ pedido.proveedor.razon_social }}</h5>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-4 bg-light bg-opacity-50 rounded-4 border border-white h-100">
+                        <span class="d-block small fw-black text-muted text-uppercase mb-1">SEDE DESTINO</span>
+                        <h5 class="fw-black text-dark mb-0">{{ pedido.sede.nombre if pedido.sede else 'Sin Asignar' }}</h5>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- LISTA DE PRODUCTOS (TABLA) -->
+    <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="px-4 py-3 border-0">Producto / Insumo</th>
+                        <th class="px-4 py-3 text-center border-0" style="width: 120px;">Cant.</th>
+                        <th class="px-4 py-3 text-end border-0" style="width: 160px;">Costo Unit.</th>
+                        <th class="px-4 py-3 text-end border-0" style="width: 160px;">Subtotal</th>
+                        <th class="px-4 py-3 border-0" style="width: 60px;"></th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for detalle in pedido.detalles %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center"
+                                    style="width: 35px; height: 35px;">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div>
+                                    <p class="fw-bold mb-0 text-dark">{{ detalle.insumo.nombre }}</p>
+                                    <p class="text-muted small mb-0 font-monospace">
+                                        SKU: {{ detalle.insumo.codigo or '---' }}
+                                        <span class="badge bg-light text-dark border ms-1">{{
+                                            detalle.insumo.unidad.abreviatura }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-4 py-3 text-center">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('compras.actualizar_item_pedido', detalle_id=detalle.id) }}"
+                                method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="number" name="cantidad" value="{{ detalle.cantidad_solicitada }}"
+                                    class="form-control form-control-sm text-center fw-bold bg-light border" min="0.1"
+                                    step="0.1" onchange="this.form.submit()">
+                                <input type="hidden" name="precio_unitario" value="{{ detalle.precio_unitario }}">
+                            </form>
+                            {% else %}
+                            <span class="fw-bold text-dark">{{ detalle.cantidad_solicitada }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-4 py-3 text-end">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('compras.actualizar_item_pedido', detalle_id=detalle.id) }}"
+                                method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="cantidad" value="{{ detalle.cantidad_solicitada }}">
+                                <input type="number" name="precio_unitario" value="{{ detalle.precio_unitario }}"
+                                    class="form-control form-control-sm text-end border-0 bg-transparent text-secondary fw-bold font-monospace"
+                                    step="0.01" onchange="this.form.submit()">
+                            </form>
+                            {% else %}
+                            <span class="font-monospace text-secondary">${{ "{:,.0f}".format(detalle.precio_unitario)
+                                }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-4 py-3 text-end">
+                            <span class="fw-bold text-dark font-monospace">${{
+                                "{:,.0f}".format(detalle.cantidad_solicitada * detalle.precio_unitario) }}</span>
+                        </td>
+
+                        <td class="px-4 py-3 text-center">
+                            {% if pedido.estado == 'Borrador' %}
+                            <form action="{{ url_for('compras.eliminar_item_pedido', detalle_id=detalle.id) }}"
+                                method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger border-0 rounded-circle"
+                                    title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-5 text-center text-muted">
+                            <i class="bi bi-cart-x display-4 d-block mb-3 opacity-25"></i>
+                            <p class="fw-medium mb-1">El carrito de compra está vacío.</p>
+                            <p class="small">Usa el buscador abajo para agregar productos.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- AGREGAR PRODUCTO (MODERNA SECCIÓN DE BÚSQUEDA) -->
+    {% if pedido.estado == 'Borrador' %}
+    <div class="pos-search-premium mb-5">
+        <h5 class="fw-black mb-4 d-flex align-items-center gap-2 text-primary">
+            <i class="bi bi-plus-circle-fill"></i> ABASCETECE TU STOCK
+        </h5>
+
+        <form action="{{ url_for('compras.agregar_item_pedido', pedido_id=pedido.id) }}" method="POST" id="formRapido"
+            autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="row g-3 align-items-end">
+                <div class="col-md-6 position-relative">
+                    <label class="form-label small fw-black text-uppercase text-white text-opacity-50 mb-2" style="letter-spacing: 1px;">Producto o Insumo</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white bg-opacity-10 border-0 text-primary"><i
+                                class="bi bi-qr-code-scan"></i></span>
+                        <input type="text" id="buscador_insumo" name="codigo_barras"
+                            class="form-control bg-white bg-opacity-10 text-white border-0 fw-bold"
+                            placeholder="Escribe el nombre o escanea..." autofocus>
+                    </div>
+
+                    <input type="hidden" name="insumo_id" id="insumo_id_seleccionado">
+                    <div id="sugerencias_lista"
+                        class="dropdown-sugerencias position-absolute w-100 mt-2 bg-body rounded-4 shadow-lg border-0 d-none">
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-black text-uppercase text-white text-opacity-50 mb-2">Cantidad</label>
+                    <input type="number" id="inputCantidad" name="cantidad" value="1" min="0.1" step="0.1" required
+                        class="form-control form-control-lg bg-white bg-opacity-10 text-white border-0 text-center fw-black">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label small fw-black text-uppercase text-white text-opacity-50 mb-2">Costo ($)</label>
+                    <input type="number" id="precio_input" name="precio_unitario" step="0.01" placeholder="Auto"
+                        class="form-control form-control-lg bg-white bg-opacity-10 text-white border-0 text-end fw-black font-monospace text-primary">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit"
+                        class="btn btn-primary btn-lg w-100 h-100 rounded-4 fw-black shadow-lg py-3 hover-lift border-0">
+                        AGREGAR <i class="bi bi-plus-lg fs-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 mt-4">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" name="es_caja" id="checkCaja" role="switch">
+                    <label class="form-check-label small fw-bold text-white text-opacity-50" for="checkCaja">ENTRADA POR CAJA/BULTO</label>
+                </div>
+                <div id="divUnidadesCaja" class="d-none animate-fade-in">
+                    <input type="number" name="unidades_por_caja" placeholder="Unds."
+                        class="form-control form-control-sm bg-white bg-opacity-10 text-white border-0 text-center fw-bold"
+                        style="width: 80px;">
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- BOTÓN CONFIRMAR FINAL -->
+    <div class="mt-5 text-end">
+        {% if pedido.detalles %}
+        <form action="{{ url_for('compras.confirmar_pedido', pedido_id=pedido.id) }}" method="POST"
+            onsubmit="return confirm('¿Confirmar pedido y enviar a estado Solicitado?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit"
+                class="btn btn-success btn-lg rounded-pill px-5 py-3 fw-bold shadow-lg d-inline-flex align-items-center gap-2 fs-5"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                Confirmar Solicitud de Pedido <i class="bi bi-check-circle-fill"></i>
+            </button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- SCRIPT DEL BUSCADOR MÁGICO -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputBuscador = document.getElementById('buscador_insumo');
+        const inputId = document.getElementById('insumo_id_seleccionado');
+        const inputPrecio = document.getElementById('precio_input');
+        const inputCantidad = document.getElementById('inputCantidad');
+        const listaSugerencias = document.getElementById('sugerencias_lista');
+        const formRapido = document.getElementById('formRapido');
+        const checkCaja = document.getElementById('checkCaja');
+        const divCaja = document.getElementById('divUnidadesCaja');
+
+        let selectedIndex = -1;
+
+        if (!inputBuscador) return;
+
+        checkCaja.addEventListener('change', function () {
+            if (this.checked) {
+                divCaja.classList.remove('d-none');
+                divCaja.querySelector('input').focus();
+            } else {
+                divCaja.classList.add('d-none');
+            }
+        });
+
+        // Foco
+        inputBuscador.focus();
+
+        let timeoutId;
+        inputBuscador.addEventListener('input', function () {
+            const query = this.value;
+            inputId.value = '';
+            selectedIndex = -1;
+            clearTimeout(timeoutId);
+
+            if (query.length < 2) {
+                listaSugerencias.classList.add('d-none');
+                return;
+            }
+
+            timeoutId = setTimeout(() => {
+                fetch(`/api/insumos/buscar?q=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        listaSugerencias.innerHTML = '';
+                        if (data.length > 0) {
+                            const listGroup = document.createElement('div');
+                            listGroup.className = 'list-group list-group-flush';
+
+                            data.forEach((item, index) => {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className = 'list-group-item list-group-item-action p-3 d-flex justify-content-between align-items-center suggestion-item';
+                                btn.innerHTML = `
+                                    <div>
+                                        <div class="fw-bold text-dark">${item.nombre}</div>
+                                        <div class="text-muted small font-monospace mt-1">${item.codigo || ''}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-light text-secondary border px-2 py-1">${item.unidad}</span>
+                                    </div>
+                                `;
+
+                                btn.addEventListener('click', () => seleccionarItem(item));
+                                listGroup.appendChild(btn);
+                            });
+                            listaSugerencias.appendChild(listGroup);
+                            listaSugerencias.classList.remove('d-none');
+                        } else {
+                            listaSugerencias.classList.add('d-none');
+                        }
+                    });
+            }, 200);
+        });
+
+        inputBuscador.addEventListener('keydown', function (e) {
+            const listGroup = listaSugerencias.querySelector('.list-group');
+            if (!listGroup) return;
+            const items = listGroup.children;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items);
+            } else if (e.key === 'Enter') {
+                if (selectedIndex > -1 && items[selectedIndex]) {
+                    e.preventDefault();
+                    items[selectedIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                listaSugerencias.classList.add('d-none');
+            }
+        });
+
+        function updateSelection(items) {
+            Array.from(items).forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function seleccionarItem(item) {
+            inputBuscador.value = item.nombre;
+            inputId.value = item.id;
+            if (item.costo > 0) inputPrecio.value = item.costo;
+
+            listaSugerencias.classList.add('d-none');
+            inputCantidad.focus();
+            inputCantidad.select();
+        }
+
+        document.addEventListener('click', function (e) {
+            if (e.target !== inputBuscador && e.target !== listaSugerencias) {
+                listaSugerencias.classList.add('d-none');
+            }
+        });
+    });
+</script>
+{% endblock %}

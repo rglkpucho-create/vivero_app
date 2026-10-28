@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Encabezado y Buscador -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0"><i class="bi bi-heptagon-half text-primary me-2"></i>Catálogo de Razas y
+                Fichas</h2>
+            <p class="text-muted small mb-0">Gestiona las fichas técnicas y estándares genéticos de tus animales.</p>
+        </div>
+
+        <div class="d-flex gap-2 flex-grow-1 flex-md-grow-0 justify-content-end">
+            <a href="{{ url_for('pecuario.nueva_raza_animal') }}"
+                class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center">
+                <i class="bi bi-plus-lg me-2"></i> <span class="d-none d-sm-inline">Registrar Ficha</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenedor del Grid -->
+    <div class="row g-4" id="razasGridContainer">
+        {% for raza in razas %}
+        <div class="col-md-6 col-lg-4 fade-in-item">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden hover-card">
+
+                <!-- Imagen de Cabecera -->
+                <div class="position-relative" style="height: 180px; overflow: hidden; background-color: #f8f9fa;">
+                    {% if raza.imagen_url %}
+                    <img src="{{ url_for('static', filename=raza.imagen_url) }}" class="w-100 h-100 object-fit-cover"
+                        alt="{{ raza.nombre }}">
+                    {% else %}
+                    <div
+                        class="d-flex align-items-center justify-content-center h-100 bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-box-seam display-1 opacity-50"></i>
+                    </div>
+                    {% endif %}
+
+                    <!-- Badge Especie -->
+                    <span
+                        class="badge bg-light text-dark border border-secondary border-opacity-25 shadow-sm position-absolute bottom-0 start-0 m-3 rounded-pill">
+                        {{ raza.especie }}
+                    </span>
+
+                    <!-- Menú Flotante -->
+                    <div class="dropdown position-absolute top-0 end-0 m-3">
+                        <button class="btn btn-light btn-sm rounded-circle shadow-sm" type="button"
+                            data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-3">
+                            <li>
+                                <a class="dropdown-item small py-2 fw-medium"
+                                    href="{{ url_for('pecuario.editar_raza_animal', id=raza.id) }}">
+                                    <i class="bi bi-pencil me-2 text-primary"></i> Editar Ficha
+                                </a>
+                            </li>
+                            <li>
+                                <form action="{{ url_for('pecuario.eliminar_raza_animal', id=raza.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <button type="submit" class="dropdown-item small text-danger py-2 fw-medium"
+                                        onclick="return confirm('¿Estás seguro de eliminar esta raza del catálogo? Todos los nuevos animales perderán este estándar.')">
+                                        <i class="bi bi-trash me-2"></i> Eliminar
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-1">{{ raza.nombre }}</h5>
+                    <p class="text-muted small mb-3"><i class="bi bi-bullseye me-1"></i> {{ raza.proposito_ideal or
+                        'Propósito N/A' }}</p>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="p-2 bg-light rounded-3 text-center border">
+                                <small class="d-block text-muted text-uppercase"
+                                    style="font-size: 0.65rem;">Rendimiento</small>
+                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ raza.rendimiento_est or
+                                    'N/A' }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 bg-light rounded-3 text-center border">
+                                <small class="d-block text-muted text-uppercase" style="font-size: 0.65rem;">Ciclo
+                                    Vital</small>
+                                <span class="fw-bold text-dark" style="font-size: 0.85rem;">{{ raza.ciclo_tecnico or
+                                    'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-top pt-3">
+                        <small class="text-uppercase text-muted fw-bold d-block mb-1" style="font-size: 0.65rem;"><i
+                                class="bi bi-journal-medical me-1"></i>Guía Técnica</small>
+                        <p class="text-muted small mb-0 text-truncate-3" style="line-height: 1.5;">
+                            {{ raza.cuidados_tecnicos or 'Sin matriz de cuidados.' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted opacity-25 mb-3"><i class="bi bi-inboxes display-1"></i></div>
+            <h4 class="text-dark fw-bold">Catálogo Vacío</h4>
+            <p class="text-muted">Aún no has registrado ninguna ficha técnica de animales o razas.</p>
+            <a href="{{ url_for('pecuario.nueva_raza_animal') }}"
+                class="btn btn-outline-primary rounded-pill mt-3">Registrar Primera Ficha</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+        z-index: 10;
+    }
+
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .fade-in-item {
+        animation: fadeIn 0.5s ease-out forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Dark Theme Support */
+    [data-bs-theme="dark"] .bg-light {
+        background-color: #1e293b !important;
+        border-color: #334155 !important;
+    }
+
+    [data-bs-theme="dark"] .text-dark {
+        color: #f8fafc !important;
+    }
+
+    [data-bs-theme="dark"] .hover-card {
+        background-color: #1e293b !important;
+    }
+</style>
+{% endblock %}

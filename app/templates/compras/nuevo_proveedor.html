@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .form-header-premium-supplier {
+        background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+        border-radius: 2rem;
+        padding: 3.5rem;
+        margin-bottom: -3rem;
+        color: white;
+        box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-form-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 2.5rem;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 10;
+        margin-top: 2rem;
+    }
+
+    [data-bs-theme="dark"] .glass-form-card {
+        background: rgba(30, 41, 59, 0.7);
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+</style>
+
+<div class="container py-4 max-w-5xl mx-auto" style="max-width: 900px;">
+    <!-- ENCABEZADO PREMIUM -->
+    <div class="form-header-premium-supplier">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <span class="badge rounded-pill bg-white text-indigo fw-bold px-3 py-1 shadow-sm">SUMINISTROS</span>
+            <span class="text-white text-opacity-75 font-monospace text-uppercase">{% if proveedor %}Editar{% else %}Nuevo{% endif %} Proveedor</span>
+        </div>
+        <h1 class="display-4 fw-black text-white mb-0" style="letter-spacing: -2px;">
+            {% if proveedor %}Actualizar Proveedor{% else %}Registrar Proveedor{% endif %}
+        </h1>
+    </div>
+
+    <!-- CARD FORMULARIO -->
+    <div class="glass-form-card">
+        <div class="card-body p-4 p-md-5">
+            <form method="POST"
+                action="{{ url_for('compras.nuevo_proveedor', proveedor_id=proveedor.id) if proveedor else url_for('compras.nuevo_proveedor') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-7">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Razón Social <span class="text-danger">*</span></label>
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-0 text-primary"><i class="bi bi-building"></i></span>
+                            <input type="text" name="razon_social" class="form-control border-0 fw-bold"
+                                value="{{ request.form.get('razon_social') or (proveedor.razon_social if proveedor else '') }}"
+                                required autofocus>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">NIT / RUT</label>
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-card-text"></i></span>
+                            <input type="text" name="nit_rut" class="form-control border-0 fw-bold"
+                                value="{{ request.form.get('nit_rut') or (proveedor.nit_rut if proveedor else '') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Nombre de Contacto</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-person"></i></span>
+                            <input type="text" name="contacto_nombre" class="form-control border-0 fw-bold"
+                                value="{{ request.form.get('contacto_nombre') or (proveedor.contacto_nombre if proveedor else '') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Teléfono</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-telephone"></i></span>
+                            <input type="text" name="telefono" class="form-control border-0 fw-bold"
+                                value="{{ request.form.get('telefono') or (proveedor.telefono if proveedor else '') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Correo Electrónico</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="email" class="form-control border-0 fw-bold"
+                                value="{{ request.form.get('email') or (proveedor.email if proveedor else '') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-black text-uppercase mb-2">Dirección Fiscal</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-0 text-muted"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" name="direccion" class="form-control border-0 fw-bold"
+                                value="{{ request.form.get('direccion') or (proveedor.direccion if proveedor else '') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-4 border-top border-primary border-opacity-10">
+                    <div>
+                        {% if proveedor %}
+                        <button type="button" class="btn btn-outline-danger rounded-pill px-4 fw-bold border-0" data-bs-toggle="modal"
+                            data-bs-target="#deleteModalInForm">
+                            <i class="bi bi-trash3 me-1"></i> Eliminar
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('compras.lista_proveedores') }}"
+                            class="btn btn-link text-muted fw-bold text-decoration-none py-2">Cancelar</a>
+                        <button type="submit" class="btn btn-indigo btn-lg rounded-pill px-5 shadow-lg fw-black hover-lift" 
+                            style="background-color: #4f46e5; border: none; color: white;">
+                            {% if proveedor %}ACTUALIZAR{% else %}GUARDAR PROVEEDOR{% endif %} <i class="bi bi-check-lg ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar en Formulario -->
+{% if proveedor %}
+<div class="modal fade" id="deleteModalInForm" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Eliminar a <strong>{{ proveedor.razon_social }}</strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{{ url_for('compras.eliminar_proveedor', proveedor_id=proveedor.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

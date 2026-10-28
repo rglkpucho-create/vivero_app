@@ -1,0 +1,732 @@
+{% extends 'base.html' %}
+
+{% block title %}Mano de Obra y Nómina — EcoSistem{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos Premium para Mano de Obra */
+    .labor-header-luxury {
+        background: linear-gradient(135deg, #064e3b 0%, #0f172a 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 2.25rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .labor-header-luxury::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .kpi-card-luxury {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .kpi-card-luxury:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .kpi-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .table-labor {
+        border-collapse: separate;
+        border-spacing: 0 0.85rem;
+    }
+
+    .table-labor tbody tr {
+        background-color: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        border-radius: 1.25rem;
+        transition: all 0.25s ease;
+    }
+
+    [data-bs-theme="dark"] .kpi-card-luxury,
+    [data-bs-theme="dark"] .filter-card-luxury,
+    [data-bs-theme="dark"] .table-labor tbody tr {
+        background-color: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    [data-bs-theme="dark"] .table-labor tbody tr:hover {
+        background-color: #1e293b !important;
+    }
+
+    .table-labor td,
+    .table-labor th {
+        border: none;
+        vertical-align: middle;
+        padding: 1.15rem 1.35rem;
+    }
+
+    .table-labor tbody tr td:first-child {
+        border-top-left-radius: 1.25rem;
+        border-bottom-left-radius: 1.25rem;
+    }
+
+    .table-labor tbody tr td:last-child {
+        border-top-right-radius: 1.25rem;
+        border-bottom-right-radius: 1.25rem;
+    }
+
+    .quick-labor-chip {
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+    }
+
+    .quick-labor-chip:hover {
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="container-fluid py-4 mx-auto" style="max-width: 1420px;">
+
+    <!-- CABECERA EJECUTIVA -->
+    <div class="labor-header-luxury mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4 position-relative z-1">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-people-fill me-1"></i> GESTIÓN DE PERSONAL & NÓMINA
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-20 text-white-50 border border-secondary border-opacity-25 font-monospace rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">
+                        FINCA / VIVERO
+                    </span>
+                </div>
+                <h1 class="fw-black text-white mb-1" style="letter-spacing: -1px; font-size: 2.2rem;">
+                    Control de Mano de Obra
+                </h1>
+                <p class="text-white-50 mb-0 fw-medium fs-6">
+                    Registro de jornales diarios, labores al destajo (guadaña, poda, embolse) y sueldos de empleados fijos.
+                </p>
+            </div>
+            
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('mano_obra.lista_colaboradores') }}"
+                   class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                   style="border-color: rgba(255,255,255,0.25);">
+                    <i class="bi bi-person-lines-fill text-info"></i>
+                    <span>Colaboradores</span>
+                </a>
+                <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-black d-flex align-items-center gap-2 shadow-lg border-0"
+                        data-bs-toggle="modal" data-bs-target="#modalNuevoPago"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="bi bi-plus-circle-fill fs-5"></i>
+                    <span>Registrar Labor / Pago</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIBBON DE KPIS -->
+    <div class="row g-3 mb-4">
+        <!-- KPI 1: Pagado en el Mes -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Pagado este Mes</span>
+                    <h3 class="fw-black mb-0 text-success font-monospace">${{ "{:,.0f}".format(kpi_pagado_mes or 0) }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Mano de obra liquidada</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Pendientes por Liquidar -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Por Liquidar</span>
+                    <h3 class="fw-black mb-0 text-warning font-monospace">${{ "{:,.0f}".format(kpi_pendiente_monto or 0) }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">{{ kpi_pendiente_conteo }} labor(es) pendientes</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Jornales del Mes -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                    <i class="bi bi-calendar2-check"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Jornales Pagados</span>
+                    <h3 class="fw-black mb-0 text-info font-monospace">{{ "{:g}".format(kpi_jornales_mes or 0) }} días</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Días de campo liquidados</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 4: Colaboradores Activos -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Equipo Activo</span>
+                    <h3 class="fw-black mb-0 text-primary font-monospace">{{ kpi_colaboradores_activos or 0 }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Trabajadores registrados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE FILTROS Y BÚSQUEDA -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 filter-card-luxury" style="background-color: var(--bs-card-bg);">
+        <form action="{{ url_for('mano_obra.dashboard') }}" method="GET" class="row g-2 align-items-center">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="q" value="{{ busqueda }}" class="form-control border-start-0 ps-0"
+                           placeholder="Buscar por labor, trabajador o # recibo..." />
+                </div>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <select name="modalidad" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todas las modalidades</option>
+                    <option value="Jornal" {% if filtro_modalidad == 'Jornal' %}selected{% endif %}>Jornal (Diario)</option>
+                    <option value="Destajo" {% if filtro_modalidad == 'Destajo' %}selected{% endif %}>Destajo / Tarea</option>
+                    <option value="Fijo" {% if filtro_modalidad == 'Fijo' %}selected{% endif %}>Sueldo Fijo</option>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <select name="estado" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    <option value="Pagado" {% if filtro_estado == 'Pagado' %}selected{% endif %}>Pagados</option>
+                    <option value="Pendiente" {% if filtro_estado == 'Pendiente' %}selected{% endif %}>Pendientes por Pagar</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-3">
+                <select name="trabajador_id" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos los trabajadores</option>
+                    {% for c in colaboradores %}
+                    <option value="{{ c.id }}" {% if filtro_trabajador|string == c.id|string %}selected{% endif %}>
+                        {{ c.nombre_completo }} ({{ c.cargo or c.modalidad }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12 col-md-1 d-flex gap-1">
+                <button type="submit" class="btn btn-primary rounded-pill w-100" title="Filtrar">
+                    <i class="bi bi-funnel-fill"></i>
+                </button>
+                {% if busqueda or filtro_estado or filtro_modalidad or filtro_trabajador %}
+                <a href="{{ url_for('mano_obra.dashboard') }}" class="btn btn-outline-secondary rounded-pill" title="Limpiar">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- LISTADO DE PAGOS Y LABORES -->
+    {% if pagos %}
+    <div class="table-responsive">
+        <table class="table table-labor">
+            <thead>
+                <tr class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.5px;">
+                    <th>Colaborador</th>
+                    <th>Fecha & Comprobante</th>
+                    <th>Labor / Actividad Realizada</th>
+                    <th>Liquidación Detallada</th>
+                    <th>Estado</th>
+                    <th class="text-end">Importe Total</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <!-- Colaborador -->
+                    <td>
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                                 style="width: 42px; height: 42px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);">
+                                {{ p.trabajador.nombre_completo[:2]|upper }}
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-body">{{ p.trabajador.nombre_completo }}</h6>
+                                <div class="d-flex align-items-center gap-1.5 mt-0.5">
+                                    <span class="badge rounded-pill extra-small px-2 py-0.5 font-monospace
+                                        {% if p.modalidad == 'Jornal' %}bg-info bg-opacity-10 text-info border border-info border-opacity-25
+                                        {% elif p.modalidad == 'Destajo' %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25
+                                        {% else %}bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25{% endif %}">
+                                        {{ p.modalidad }}
+                                    </span>
+                                    {% if p.trabajador.cargo %}
+                                    <small class="text-muted" style="font-size: 0.75rem;">• {{ p.trabajador.cargo }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Fecha & Recibo -->
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold text-body small">
+                                <i class="bi bi-calendar-event text-muted me-1"></i>
+                                {{ p.fecha_labor.strftime('%d %b, %Y') if p.fecha_labor else 'N/A' }}
+                            </span>
+                            <span class="text-muted font-monospace" style="font-size: 0.72rem;">
+                                {{ p.comprobante_numero }}
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Labor Realizada -->
+                    <td>
+                        <div>
+                            <span class="fw-bold text-body d-block">{{ p.labor_realizada }}</span>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                {% if p.lote %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+                                    <i class="bi bi-flower1 me-1"></i> Lote #{{ p.lote.id }} ({{ p.lote.especie.nombre_comun if p.lote.especie else 'Cultivo' }})
+                                </span>
+                                {% endif %}
+                                {% if p.sede %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
+                                    <i class="bi bi-geo-alt me-1"></i> {{ p.sede.nombre }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Liquidación Detallada -->
+                    <td>
+                        <div class="small">
+                            <span class="font-monospace fw-bold text-body">
+                                {{ "{:g}".format(p.cantidad) }} {{ p.unidad_medida }} × ${{ "{:,.0f}".format(p.tarifa_unitaria) }}
+                            </span>
+                            {% if p.bonificaciones > 0 %}
+                            <div class="text-success extra-small mt-0.5">
+                                + ${{ "{:,.0f}".format(p.bonificaciones) }} (Bonos/Extras)
+                            </div>
+                            {% endif %}
+                            {% if p.deducciones > 0 %}
+                            <div class="text-danger extra-small">
+                                - ${{ "{:,.0f}".format(p.deducciones) }} (Descuentos)
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <!-- Estado -->
+                    <td>
+                        {% if p.estado == 'Pagado' %}
+                        <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                            <i class="bi bi-check-circle-fill me-1"></i> PAGADO
+                        </span>
+                        <small class="d-block text-muted font-monospace mt-1" style="font-size: 0.72rem;">
+                            {{ p.metodo_pago }}
+                        </small>
+                        {% else %}
+                        <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">
+                            <i class="bi bi-hourglass-split me-1"></i> PENDIENTE
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Total -->
+                    <td class="text-end">
+                        <h5 class="fw-black font-monospace mb-0 text-success" style="font-size: 1.25rem;">
+                            ${{ "{:,.0f}".format(p.total_pagar or 0) }}
+                        </h5>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="text-center">
+                        <div class="d-inline-flex gap-1.5 align-items-center">
+                            <!-- Ver Recibo Imprimible -->
+                            <a href="{{ url_for('mano_obra.recibo_pago', pago_id=p.id) }}" target="_blank"
+                               class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1"
+                               title="Imprimir Comprobante de Pago" style="border-color: rgba(255,255,255,0.2);">
+                                <i class="bi bi-printer text-info"></i>
+                            </a>
+
+                            <!-- Si está pendiente, botón para liquidar rápido -->
+                            {% if p.estado == 'Pendiente' %}
+                            <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1"
+                                    data-bs-toggle="modal" data-bs-target="#modalLiquidar{{ p.id }}"
+                                    title="Liquidar / Marcar como Pagado">
+                                <i class="bi bi-cash-coin me-1"></i> Pagar
+                            </button>
+
+                            <!-- Modal Liquidar Rápido -->
+                            <div class="modal fade" id="modalLiquidar{{ p.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content rounded-4 border-0 shadow" style="background-color: var(--bs-card-bg);">
+                                        <form action="{{ url_for('mano_obra.marcar_pagado', pago_id=p.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <div class="modal-header border-bottom">
+                                                <h5 class="modal-title fw-bold">Liquidar Pago de Mano de Obra</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <p class="mb-2">¿Confirmas el pago a <strong>{{ p.trabajador.nombre_completo }}</strong> por la labor de <em>{{ p.labor_realizada }}</em>?</p>
+                                                <div class="p-3 rounded-3 bg-body-tertiary mb-3">
+                                                    <div class="d-flex justify-content-between mb-1">
+                                                        <span>Total a Pagar:</span>
+                                                        <strong class="text-success font-monospace fs-5">${{ "{:,.0f}".format(p.total_pagar) }}</strong>
+                                                    </div>
+                                                </div>
+                                                <label class="form-label fw-bold small">Método de Pago</label>
+                                                <select name="metodo_pago" class="form-select">
+                                                    <option value="Efectivo" selected>Efectivo</option>
+                                                    <option value="Nequi">Nequi</option>
+                                                    <option value="Daviplata">Daviplata</option>
+                                                    <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                                                </select>
+                                            </div>
+                                            <div class="modal-footer border-top">
+                                                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-success rounded-pill fw-bold">
+                                                    <i class="bi bi-check-lg me-1"></i> Confirmar Pago
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Eliminar -->
+                            <form action="{{ url_for('mano_obra.eliminar_pago', pago_id=p.id) }}" method="POST"
+                                  onsubmit="return confirm('¿Seguro que deseas eliminar este registro de mano de obra?');" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-link text-danger p-1" title="Eliminar registro">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4" style="background-color: var(--bs-card-bg);">
+        <div class="mx-auto mb-3 text-muted" style="font-size: 3.5rem;">
+            <i class="bi bi-people"></i>
+        </div>
+        <h4 class="fw-bold mb-1">No hay registros de mano de obra</h4>
+        <p class="text-muted mb-4">Registra los jornales de tu finca, labores de poda, guadaña o el pago de empleados fijos.</p>
+        <div>
+            <button type="button" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#modalNuevoPago">
+                <i class="bi bi-plus-circle me-1"></i> Registrar Primer Pago
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- =================================================================== -->
+<!-- MODAL: REGISTRAR NUEVA LABOR O PAGO DE MANO DE OBRA                  -->
+<!-- =================================================================== -->
+<div class="modal fade" id="modalNuevoPago" tabindex="-1" aria-labelledby="modalNuevoPagoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+            <form action="{{ url_for('mano_obra.nuevo_pago') }}" method="POST" id="formNuevoPago">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="modal-header border-bottom py-3 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-person-check fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-black mb-0" id="modalNuevoPagoLabel">Registrar Labor o Pago de Mano de Obra</h5>
+                            <small class="text-muted">Jornalero, destajo por tarea o empleado fijo</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+
+                        <!-- 1. Colaborador -->
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold small">Colaborador / Trabajador <span class="text-danger">*</span></label>
+                            <select name="trabajador_id" id="selectTrabajador" class="form-select" required onchange="actualizarTarifaColaborador()">
+                                <option value="" disabled selected>Selecciona un colaborador...</option>
+                                {% for c in colaboradores %}
+                                <option value="{{ c.id }}"
+                                        data-modalidad="{{ c.modalidad }}"
+                                        data-tarifa="{{ c.tarifa_base or 0 }}"
+                                        data-sede="{{ c.sede_id or '' }}">
+                                    {{ c.nombre_completo }} — {{ c.cargo or c.modalidad }} (Base: ${{ "{:,.0f}".format(c.tarifa_base or 0) }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- 2. Fecha de Labor -->
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small">Fecha de la Labor <span class="text-danger">*</span></label>
+                            <input type="date" name="fecha_labor" id="inputFechaLabor" class="form-control" required />
+                        </div>
+
+                        <!-- 3. Modalidad de Contrato / Pago -->
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Modalidad de Pago <span class="text-danger">*</span></label>
+                            <select name="modalidad" id="selectModalidad" class="form-select" required onchange="ajustarUnidadSegunModalidad()">
+                                <option value="Jornal" selected>Jornal (Por día)</option>
+                                <option value="Destajo">Destajo / Tarea (Por labor)</option>
+                                <option value="Fijo">Sueldo Fijo (Quincenal / Mensual)</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. Labor / Concepto -->
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold small">Labor o Concepto Realizado <span class="text-danger">*</span></label>
+                            <input type="text" name="labor_realizada" id="inputLaborRealizada" class="form-control"
+                                   placeholder="Ej: Guadañar potreros bajos, Poda de árboles, Sueldo 1ra Quincena..." required />
+                            <!-- Chips de selección rápida -->
+                            <div class="d-flex gap-1.5 flex-wrap mt-1.5">
+                                <span class="badge bg-body-secondary text-body border rounded-pill px-2.5 py-1 extra-small quick-labor-chip" onclick="setLabor('Guadaña y limpieza de potreros')">Guadaña</span>
+                                <span class="badge bg-body-secondary text-body border rounded-pill px-2.5 py-1 extra-small quick-labor-chip" onclick="setLabor('Poda y aporque de árboles')">Poda</span>
+                                <span class="badge bg-body-secondary text-body border rounded-pill px-2.5 py-1 extra-small quick-labor-chip" onclick="setLabor('Siembra y trasplante de plántulas')">Siembra</span>
+                                <span class="badge bg-body-secondary text-body border rounded-pill px-2.5 py-1 extra-small quick-labor-chip" onclick="setLabor('Embolse y llenado de sustrato')">Embolse</span>
+                                <span class="badge bg-body-secondary text-body border rounded-pill px-2.5 py-1 extra-small quick-labor-chip" onclick="setLabor('Fumigación y control fitosanitario')">Fumigación</span>
+                                <span class="badge bg-body-secondary text-body border rounded-pill px-2.5 py-1 extra-small quick-labor-chip" onclick="setLabor('Sueldo Quincenal de Nómina')">Sueldo Quincena</span>
+                            </div>
+                        </div>
+
+                        <!-- 5. Liquidación: Cantidad, Unidad, Tarifa -->
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Cantidad Realizada</label>
+                            <input type="number" step="0.25" min="0.25" name="cantidad" id="inputCantidad" class="form-control font-monospace" value="1.0" required oninput="calcularTotalModal()" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Unidad de Medida</label>
+                            <select name="unidad_medida" id="selectUnidadMedida" class="form-select">
+                                <option value="Días" selected>Días (Jornal)</option>
+                                <option value="Horas">Horas</option>
+                                <option value="Plantas/Árboles">Plantas / Árboles</option>
+                                <option value="Bolsas/Plántulas">Bolsas / Plántulas</option>
+                                <option value="Metros/Hectáreas">Metros / Hectáreas</option>
+                                <option value="Labor global">Labor Global / Contrato</option>
+                                <option value="Quincena">Quincena</option>
+                                <option value="Mes">Mes Completo</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Tarifa Unitaria ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="100" min="0" name="tarifa_unitaria" id="inputTarifaUnitaria" class="form-control font-monospace" value="0" required oninput="calcularTotalModal()" />
+                            </div>
+                        </div>
+
+                        <!-- 6. Bonificaciones y Deducciones -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-success">+ Bonificaciones / Extras ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-success bg-success bg-opacity-10 border-success border-opacity-25">$</span>
+                                <input type="number" step="100" min="0" name="bonificaciones" id="inputBonificaciones" class="form-control font-monospace" value="0" oninput="calcularTotalModal()" />
+                            </div>
+                            <small class="text-muted extra-small">Incentivo por rendimiento, alimentación o extras</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-danger">- Deducciones / Anticipos ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-danger bg-danger bg-opacity-10 border-danger border-opacity-25">$</span>
+                                <input type="number" step="100" min="0" name="deducciones" id="inputDeducciones" class="form-control font-monospace" value="0" oninput="calcularTotalModal()" />
+                            </div>
+                            <small class="text-muted extra-small">Adelantos de dinero, préstamos o descuentos</small>
+                        </div>
+
+                        <!-- 7. Total a Pagar Calculado -->
+                        <div class="col-12">
+                            <div class="p-3 rounded-4 d-flex justify-content-between align-items-center" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25);">
+                                <div>
+                                    <span class="small fw-bold text-uppercase d-block" style="color: #34d399; font-size: 0.72rem; letter-spacing: 0.5px;">Total a Pagar / Liquidación</span>
+                                    <small class="text-muted">(Cantidad × Tarifa) + Bonos - Deducciones</small>
+                                </div>
+                                <h3 class="fw-black font-monospace text-success mb-0" id="labelTotalCalculado">$0</h3>
+                            </div>
+                        </div>
+
+                        <!-- 8. Lote y Sede vinculados (Opcional) -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Cargar Costo a Lote de Cultivo (Opcional)</label>
+                            <select name="lote_id" class="form-select">
+                                <option value="">Sin lote específico (Gasto general de finca)</option>
+                                {% for l in lotes %}
+                                <option value="{{ l.id }}">
+                                    Lote #{{ l.id }} — {{ l.especie.nombre_comun if l.especie else 'Lote' }} (Cant: {{ l.cantidad_actual }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Sede / Finca</label>
+                            <select name="sede_id" id="selectSede" class="form-select">
+                                <option value="">Sede Principal</option>
+                                {% for s in sedes %}
+                                <option value="{{ s.id }}">{{ s.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- 9. Estado de Pago y Método -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Estado del Pago</label>
+                            <select name="estado" id="selectEstadoPago" class="form-select" onchange="toggleMetodoPago()">
+                                <option value="Pagado" selected>Pagado Inmediatamente</option>
+                                <option value="Pendiente">Dejar Pendiente por Pagar</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6" id="divMetodoPago">
+                            <label class="form-label fw-bold small">Método de Pago</label>
+                            <select name="metodo_pago" class="form-select">
+                                <option value="Efectivo" selected>Efectivo</option>
+                                <option value="Nequi">Nequi</option>
+                                <option value="Daviplata">Daviplata</option>
+                                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                            </select>
+                        </div>
+
+                        <!-- 10. Notas -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Observaciones / Notas Adicionales</label>
+                            <input type="text" name="notas" class="form-control" placeholder="Detalles de la labor, clima, potrero específico, etc." />
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top py-3 px-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow">
+                        <i class="bi bi-check-circle-fill me-1"></i> Guardar Registro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inicializar fecha de hoy en el modal
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputFecha = document.getElementById('inputFechaLabor');
+        if (inputFecha && !inputFecha.value) {
+            inputFecha.value = new Date().toISOString().split('T')[0];
+        }
+    });
+
+    function setLabor(texto) {
+        document.getElementById('inputLaborRealizada').value = texto;
+    }
+
+    function actualizarTarifaColaborador() {
+        const select = document.getElementById('selectTrabajador');
+        const opt = select.options[select.selectedIndex];
+        if (!opt) return;
+
+        const modalidad = opt.getAttribute('data-modalidad');
+        const tarifa = parseFloat(opt.getAttribute('data-tarifa') || '0');
+        const sede = opt.getAttribute('data-sede');
+
+        if (modalidad) {
+            document.getElementById('selectModalidad').value = modalidad;
+            ajustarUnidadSegunModalidad();
+        }
+        if (tarifa > 0) {
+            document.getElementById('inputTarifaUnitaria').value = tarifa;
+        }
+        if (sede) {
+            const selectSede = document.getElementById('selectSede');
+            if (selectSede) selectSede.value = sede;
+        }
+
+        calcularTotalModal();
+    }
+
+    function ajustarUnidadSegunModalidad() {
+        const mod = document.getElementById('selectModalidad').value;
+        const selectUnidad = document.getElementById('selectUnidadMedida');
+        if (mod === 'Jornal') {
+            selectUnidad.value = 'Días';
+        } else if (mod === 'Destajo') {
+            selectUnidad.value = 'Labor global';
+        } else if (mod === 'Fijo') {
+            selectUnidad.value = 'Quincena';
+        }
+        calcularTotalModal();
+    }
+
+    function toggleMetodoPago() {
+        const estado = document.getElementById('selectEstadoPago').value;
+        const divMetodo = document.getElementById('divMetodoPago');
+        if (divMetodo) {
+            divMetodo.style.display = (estado === 'Pagado') ? 'block' : 'none';
+        }
+    }
+
+    function calcularTotalModal() {
+        const cant = parseFloat(document.getElementById('inputCantidad').value || '0');
+        const tarifa = parseFloat(document.getElementById('inputTarifaUnitaria').value || '0');
+        const bonos = parseFloat(document.getElementById('inputBonificaciones').value || '0');
+        const deduc = parseFloat(document.getElementById('inputDeducciones').value || '0');
+
+        const subtotal = cant * tarifa;
+        const total = Math.max(0, subtotal + bonos - deduc);
+
+        const label = document.getElementById('labelTotalCalculado');
+        if (label) {
+            label.textContent = '$' + total.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+        }
+    }
+</script>
+{% endblock %}

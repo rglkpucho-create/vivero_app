@@ -8,10 +8,27 @@
         background-color: var(--bs-body-bg);
     }
 
+    /* BÚSQUEDA FLOTANTE (STICKY) */
+    .sticky-search {
+        position: sticky;
+        top: 85px;
+        z-index: 990;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease;
+    }
+
+    [data-bs-theme="dark"] .sticky-search {
+        background: rgba(30, 41, 59, 0.85) !important;
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
     /* 2. TARJETA CULTIVO */
     .lote-card {
         background-color: var(--bs-card-bg, white);
-        border: 1px solid rgba(0,0,0,0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
         border-radius: 1.5rem;
         overflow: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -21,26 +38,26 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
-        .lote-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary-color);
-        }
+    .lote-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+    }
 
     /* 3. IMAGEN CON ZOOM */
     .img-zoom-wrapper {
-        height: 220px; /* Alto fijo igual que animales */
+        height: 220px;
         position: relative;
         overflow: hidden;
         background-color: #e2e8f0;
     }
 
-        .img-zoom-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.6s ease;
-        }
+    .img-zoom-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
 
     .lote-card:hover .img-zoom-wrapper img {
         transform: scale(1.10);
@@ -49,7 +66,7 @@
     .img-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 60%);
         pointer-events: none;
     }
 
@@ -59,12 +76,12 @@
         top: 15px;
         z-index: 10;
         backdrop-filter: blur(4px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .badge-left {
         left: 15px;
-        background: rgba(255,255,255,0.95);
+        background: rgba(255, 255, 255, 0.95);
         color: #1e293b;
         font-weight: 800;
         border-radius: 30px;
@@ -76,19 +93,19 @@
         right: 15px;
     }
 
-    /* 4. BUSCADOR DE ALTO CONTRASTE (Copiado exacto de Animales) */
+    /* 4. BUSCADOR DE ALTO CONTRASTE */
     .input-contrast {
-        background-color: #f1f5f9 !important; /* Gris claro forzado */
-        border: 2px solid #cbd5e1 !important; /* Borde gris visible */
+        background-color: #f1f5f9 !important;
+        border: 2px solid #cbd5e1 !important;
         color: #334155;
         font-weight: 500;
     }
 
-        .input-contrast:focus {
-            background-color: #fff !important;
-            border-color: var(--primary-color) !important;
-            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
-        }
+    .input-contrast:focus {
+        background-color: #fff !important;
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.15);
+    }
 
     .input-group-text-contrast {
         background-color: #e2e8f0 !important;
@@ -127,86 +144,157 @@
             <h1 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Cultivos en Producción</h1>
             <p class="text-muted mb-0">Gestiona tus lotes de siembra y seguimiento.</p>
         </div>
-        <a href="{{ url_for('main.nuevo_lote') }}" class="btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold"
-           style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
-            <i class="bi bi-plus-lg me-2"></i>Nueva Siembra
-        </a>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('produccion.lista_especies') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm fw-bold">
+                <i class="bi bi-journal-richtext me-1"></i> Catálogo de Cultivos
+            </a>
+            <div class="btn-group p-1 bg-body-tertiary rounded-pill border" role="group">
+                <a href="{{ url_for('produccion.lista_lotes') }}" 
+                   class="btn btn-sm rounded-pill px-3 fw-bold {% if vista != 'informativa' %}btn-primary shadow-sm{% else %}text-muted{% endif %}">
+                    <i class="bi bi-grid-fill me-1"></i> Tarjetas
+                </a>
+                <a href="{{ url_for('produccion.lista_lotes', vista='informativa') }}" 
+                   class="btn btn-sm rounded-pill px-3 fw-bold {% if vista == 'informativa' %}btn-primary shadow-sm{% else %}text-muted{% endif %}">
+                    <i class="bi bi-info-circle-fill me-1"></i> Resumen
+                </a>
+            </div>
+            <a href="{{ url_for('produccion.nuevo_lote') }}" class="btn btn-success btn-lg rounded-pill px-4 shadow-sm fw-bold"
+                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none;">
+                <i class="bi bi-plus-lg me-2"></i>Nueva Siembra
+            </a>
+        </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-5 rounded-4 overflow-hidden">
+    <div class="card sticky-search shadow-sm mb-5 rounded-4 overflow-hidden">
         <div class="card-body p-4">
             <div class="row g-3 align-items-center">
-
+                <input type="hidden" id="vistaActual" value="{{ vista or 'tarjetas' }}">
                 <div class="col-lg-5">
                     <div class="input-group">
-                        <span class="input-group-text input-group-text-contrast rounded-start-pill ps-3"><i class="bi bi-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control input-contrast border-start-0 rounded-end-pill py-2" placeholder="Buscar especie, código..." autocomplete="off">
+                        <span class="input-group-text input-group-text-contrast rounded-start-pill ps-3"><i
+                                class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput"
+                            class="form-control input-contrast border-start-0 rounded-end-pill py-2"
+                            placeholder="Buscar especie, código..." value="{{ request.args.get('q', '') }}" autocomplete="off" autofocus>
                     </div>
                 </div>
 
                 <div class="col-lg-3">
-                    <select class="form-select input-contrast rounded-pill py-2" id="filtroSede" onchange="filtrarLotes()">
+                    <select class="form-select input-contrast rounded-pill py-2" id="filtroSede">
                         <option value="" selected>📍 Todas las Sedes</option>
                         {% for s in sedes %}
-                        <option value="{{ s.id }}">{{ s.nombre }}</option>
+                        <option value="{{ s.id }}" {% if request.args.get('sede_id')|int == s.id %}selected{% endif %}>{{ s.nombre }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="col-lg-3">
-                    <select class="form-select input-contrast rounded-pill py-2" id="filtroProposito" onchange="filtrarLotes()">
+                    <select class="form-select input-contrast rounded-pill py-2" id="filtroProposito">
                         <option value="" selected>🎯 Todo (Vivero y Finca)</option>
-                        <option value="Venta Plantula">🏪 Vivero (Venta)</option>
-                        <option value="Produccion Fruto">🌳 Cultivo (Finca)</option>
+                        <option value="Venta Plantula" {% if request.args.get('proposito') == 'Venta Plantula' %}selected{% endif %}>🏪 Vivero (Venta)</option>
+                        <option value="Produccion Fruto" {% if request.args.get('proposito') == 'Produccion Fruto' %}selected{% endif %}>🌳 Cultivo (Finca)</option>
                     </select>
                 </div>
 
                 <div class="col-lg-1 text-center">
-                    <div id="loadingIndicator" class="spinner-border spinner-border-sm text-success" role="status" style="display: none;"></div>
+                    <div id="loadingIndicator" class="spinner-border spinner-border-sm text-success" role="status"
+                        style="display: none;"></div>
                 </div>
             </div>
         </div>
     </div>
 
+    {% if vista == 'informativa' %}
+    <!-- VISTA INFORMATIVA (Resumen por Sede) -->
+    <div class="row g-4" id="contenedorLotes">
+        {% for sede_nombre, especies in resumen_sedes.items() %}
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white py-3 px-4 border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i>{{ sede_nombre }}</h4>
+                        {% set total_sede = especies.values() | sum %}
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold shadow-sm">
+                            Total: {{ total_sede }} Plantas
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for esp_nombre, cantidad in especies.items() %}
+                        <div class="list-group-item py-3 px-4 d-flex justify-content-between align-items-center bg-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3">
+                                    <i class="bi bi-flower1"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold">{{ esp_nombre }}</h6>
+                                    <small class="text-muted">Estado: En Crecimiento / Producción</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fs-4 fw-black text-primary">{{ "{:,.0f}".format(cantidad) }}</span>
+                                <small class="text-muted ms-1 fw-bold">Unid.</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 py-5 text-center">
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <i class="bi bi-info-circle display-5"></i>
+            </div>
+            <h4 class="fw-bold">Sin datos para resumir</h4>
+            <p class="text-muted">No se encontraron lotes activos para mostrar el resumen.</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- VISTA NORMAL (Tarjetas) -->
     <div class="row g-4" id="contenedorLotes">
         {% include 'parciales/items_lotes.html' %}
     </div>
+    {% endif %}
 
 </div>
 
 <script>
-    let timeoutId;
-    const searchInput = document.getElementById('searchInput');
-    const filtroSede = document.getElementById('filtroSede');
-    const filtroProposito = document.getElementById('filtroProposito');
-    const contenedorLotes = document.getElementById('contenedorLotes');
-    const loadingIndicator = document.getElementById('loadingIndicator');
+    document.addEventListener('DOMContentLoaded', function() {
+        let timeoutId;
+        const searchInput = document.getElementById('searchInput');
+        const filtroSede = document.getElementById('filtroSede');
+        const filtroProposito = document.getElementById('filtroProposito');
+        const contenedor = document.getElementById('contenedorLotes');
+        const loading = document.getElementById('loadingIndicator');
+        const vista = document.getElementById('vistaActual').value;
 
-    function filtrarLotes() {
-        loadingIndicator.style.display = 'inline-block';
-        contenedorLotes.style.opacity = '0.5';
+        function filtrar() {
+            loading.style.display = 'inline-block';
+            const q = searchInput.value;
+            const sede_id = filtroSede.value;
+            const proposito = filtroProposito.value;
 
-        const query = searchInput.value;
-        const sedeId = filtroSede.value;
-        const proposito = filtroProposito.value;
+            fetch(`{{ url_for('produccion.lista_lotes') }}?q=${encodeURIComponent(q)}&sede_id=${sede_id}&proposito=${encodeURIComponent(proposito)}&vista=${vista}&ajax=1`)
+                .then(r => r.text())
+                .then(html => {
+                    contenedor.innerHTML = html;
+                    loading.style.display = 'none';
+                })
+                .catch(() => { loading.style.display = 'none'; });
+        }
 
-        fetch(`{{ url_for('main.lista_lotes') }}?q=${query}&sede_id=${sedeId}&proposito=${proposito}&ajax=1`)
-            .then(response => response.text())
-            .then(html => {
-                contenedorLotes.innerHTML = html;
-                contenedorLotes.style.opacity = '1';
-                loadingIndicator.style.display = 'none';
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                loadingIndicator.style.display = 'none';
-                contenedorLotes.style.opacity = '1';
-            });
-    }
+        // Auto-submit en selects
+        filtroSede.addEventListener('change', filtrar);
+        filtroProposito.addEventListener('change', filtrar);
 
-    searchInput.addEventListener('input', function() {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(filtrarLotes, 300);
+        // Debounce en texto
+        searchInput.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(filtrar, 300);
+        });
     });
 </script>
 {% endblock %}

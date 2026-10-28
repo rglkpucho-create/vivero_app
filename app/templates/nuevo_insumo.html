@@ -4,9 +4,10 @@
 <div class="row justify-content-center py-4">
     <div class="col-lg-8">
         <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="card-header bg-white p-4 border-bottom border-slate-100">
+            <div class="card-header bg-body p-4 border-bottom border-slate-100">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="bg-indigo-600 text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                    <div class="bg-indigo-600 text-white rounded-circle p-2 d-flex align-items-center justify-content-center"
+                        style="width: 48px; height: 48px;">
                         <i class="bi bi-{{ 'pencil-square' if insumo else 'plus-lg' }} fs-4"></i>
                     </div>
                     <div>
@@ -15,38 +16,48 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card-body p-5">
                 <form method="POST" enctype="multipart/form-data">
-                    
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
                     <!-- DATOS BÁSICOS -->
-                    <h6 class="text-uppercase text-primary fw-bold mb-3 ls-1" style="font-size: 0.75rem;">Información General</h6>
+                    <h6 class="text-uppercase text-primary fw-bold mb-3 ls-1" style="font-size: 0.75rem;">Información
+                        General</h6>
                     <div class="row g-3 mb-5">
                         <div class="col-md-8">
                             <label class="form-label fw-bold">Nombre del Producto</label>
-                            <input type="text" name="nombre" class="form-control form-control-lg bg-light" value="{{ insumo.nombre if insumo else '' }}" required placeholder="Ej: Matera de Barro N12">
+                            <input type="text" name="nombre" class="form-control form-control-lg bg-body"
+                                value="{{ insumo.nombre if insumo else '' }}" required autofocus
+                                placeholder="Ej: Matera de Barro N12">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Código / SKU</label>
                             <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-upc"></i></span>
-                                <input type="text" name="codigo" class="form-control bg-light border-start-0" value="{{ insumo.codigo if insumo else '' }}" placeholder="Opcional">
+                                <span class="input-group-text bg-body border-end-0"><i class="bi bi-upc"></i></span>
+                                <input type="text" name="codigo" class="form-control bg-body border-start-0"
+                                    value="{{ insumo.codigo if insumo else '' }}" placeholder="Opcional">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Tipo / Categoría</label>
-                            <select name="tipo" class="form-select form-select-lg bg-light">
-                                <option value="Insumo" {% if insumo and insumo.tipo == 'Insumo' %}selected{% endif %}>Insumo Agrícola</option>
-                                <option value="Herramienta" {% if insumo and insumo.tipo == 'Herramienta' %}selected{% endif %}>Herramienta</option>
-                                <option value="Matera" {% if insumo and insumo.tipo == 'Matera' %}selected{% endif %}>Matera / Envase</option>
-                                <option value="Producto Comercial" {% if insumo and insumo.tipo == 'Producto Comercial' %}selected{% endif %}>Producto Comercial</option>
+                            <select name="tipo" class="form-select form-select-lg bg-body">
+                                <option value="Insumo" {% if insumo and insumo.tipo=='Insumo' %}selected{% endif %}>
+                                    Insumo Agrícola</option>
+                                <option value="Herramienta" {% if insumo and insumo.tipo=='Herramienta' %}selected{%
+                                    endif %}>Herramienta</option>
+                                <option value="Matera" {% if insumo and insumo.tipo=='Matera' %}selected{% endif %}>
+                                    Matera / Envase</option>
+                                <option value="Producto Comercial" {% if insumo and insumo.tipo=='Producto Comercial'
+                                    %}selected{% endif %}>Producto Comercial</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Unidad de Medida</label>
-                            <select name="unidad_id" class="form-select form-select-lg bg-light">
+                            <select name="unidad_id" class="form-select form-select-lg bg-body">
                                 {% for u in unidades %}
-                                <option value="{{ u.id }}" {% if insumo and insumo.unidad_medida_id == u.id %}selected{% endif %}>{{ u.nombre }} ({{ u.abreviatura }})</option>
+                                <option value="{{ u.id }}" {% if insumo and insumo.unidad_medida_id==u.id %}selected{%
+                                    endif %}>{{ u.nombre }} ({{ u.abreviatura }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -54,44 +65,56 @@
 
                     <!-- GESTIÓN DE INVENTARIO (COLAPSABLE) -->
                     <div class="mb-5">
-                        <button class="btn btn-warning bg-opacity-25 w-100 text-start p-3 rounded-4 d-flex align-items-center justify-content-between border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock" aria-expanded="false" aria-controls="collapseStock" style="background-color: #fff3cd;">
+                        <button
+                            class="btn border border-warning border-opacity-25 w-100 text-start p-3 rounded-4 d-flex align-items-center justify-content-between shadow-sm"
+                            type="button" data-bs-toggle="collapse" data-bs-target="#collapseStock"
+                            aria-expanded="false" aria-controls="collapseStock">
                             <div class="d-flex align-items-center">
-                                <div class="bg-warning text-dark rounded-circle p-1 me-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px;">
+                                <div class="bg-warning text-dark rounded-circle p-1 me-3 d-flex align-items-center justify-content-center shadow-sm"
+                                    style="width: 32px; height: 32px;">
                                     <i class="bi bi-box-seam-fill"></i>
                                 </div>
                                 <div>
-                                    <h6 class="text-dark fw-bold mb-0">Gestión de Stock</h6>
+                                    <h6 class="fw-bold mb-0 text-body">Gestión de Stock</h6>
                                     <small class="text-muted">Clic para ajustar inventario inicial o manual.</small>
                                 </div>
                             </div>
-                            <i class="bi bi-chevron-down text-dark"></i>
+                            <i class="bi bi-chevron-down text-body"></i>
                         </button>
 
                         <div class="collapse mt-2" id="collapseStock">
-                            <div class="card card-body border-0 bg-light rounded-4 p-4 shadow-inner">
+                            <div
+                                class="card card-body border border-secondary border-opacity-25 bg-body rounded-4 p-4 shadow-sm">
                                 <div class="row g-3">
                                     <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Cantidad en Bodega</label>
-                                        <input type="number" name="stock_inicial" class="form-control form-control-lg border-2 border-warning text-center fw-bold fs-4 text-dark" 
-                                               value="{{ insumo.cantidad_actual if insumo else 0 }}" min="0" step="0.01">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Cantidad en
+                                            Bodega</label>
+                                        <input type="number" name="stock_inicial"
+                                            class="form-control form-control-lg border-2 border-warning text-center fw-bold fs-4 text-dark"
+                                            value="{{ insumo.cantidad_actual if insumo else 0 }}" min="0" step="0.01">
                                         <div class="form-text small">Puedes editar esto directamente.</div>
                                     </div>
-                                    
+
                                     <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Costo Promedio ($)</label>
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Costo Promedio
+                                            ($)</label>
                                         <div class="input-group input-group-lg">
-                                            <span class="input-group-text bg-white border-end-0 text-muted">$</span>
-                                            <input type="number" name="costo_inicial" class="form-control border-start-0 text-end fw-bold" 
-                                                   value="{{ insumo.costo_promedio if insumo else 0 }}" min="0" step="0.01"
-                                                   {% if insumo %}readonly title="Calculado automáticamente"{% endif %}>
+                                            <span class="input-group-text bg-body border-end-0 text-muted">$</span>
+                                            <input type="number" name="costo_inicial"
+                                                class="form-control border-start-0 text-end fw-bold"
+                                                value="{{ insumo.costo_promedio if insumo else 0 }}" min="0" step="0.01"
+                                                {% if insumo %}readonly title="Calculado automáticamente" {% endif %}>
                                         </div>
-                                        {% if insumo %}<div class="form-text small">Calculado por sistema.</div>{% endif %}
+                                        {% if insumo %}<div class="form-text small">Calculado por sistema.</div>{% endif
+                                        %}
                                     </div>
 
                                     {% if insumo %}
                                     <div class="col-md-4">
-                                        <label class="form-label fw-bold text-muted small text-uppercase">Motivo del Cambio</label>
-                                        <input type="text" name="motivo_ajuste" class="form-control form-control-lg" placeholder="Ej: Conteo, Rotura...">
+                                        <label class="form-label fw-bold text-muted small text-uppercase">Motivo del
+                                            Cambio</label>
+                                        <input type="text" name="motivo_ajuste" class="form-control form-control-lg"
+                                            placeholder="Ej: Conteo, Rotura...">
                                         <div class="form-text small text-danger">Obligatorio si cambias stock.</div>
                                     </div>
                                     {% endif %}
@@ -100,22 +123,41 @@
                         </div>
                     </div>
 
-                    <!-- CONTROL DE ALERTAS -->
-                    <h6 class="text-uppercase text-primary fw-bold mb-3 ls-1" style="font-size: 0.75rem;">Configuración</h6>
+                    <!-- CONFIGURACIÓN COMERCIAL Y ALERTAS -->
+                    <h6 class="text-uppercase text-primary fw-bold mb-3 ls-1" style="font-size: 0.75rem;">Configuración Comercial y Alertas
+                    </h6>
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Stock Mínimo (Alerta)</label>
-                            <input type="number" name="stock_minimo" class="form-control bg-light" value="{{ insumo.stock_minimo if insumo else '5' }}" min="0">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Precio de Venta ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-body text-muted">$</span>
+                                <input type="number" name="precio_venta" class="form-control bg-body text-end fw-bold text-dark"
+                                    value="{{ insumo.precio_venta if insumo else 0 }}" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-text small">Precio cargado en e-commerce y POS.</div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Stock Mínimo (Alerta)</label>
+                            <input type="number" name="stock_minimo" class="form-control bg-body"
+                                value="{{ insumo.stock_minimo if insumo else '5' }}" min="0">
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label fw-bold">Imagen Referencial</label>
-                            <input type="file" name="imagen" class="form-control bg-light">
+                            {% if insumo and insumo.imagen_url %}
+                            <div class="mb-2">
+                                <img src="{{ url_for('static', filename=insumo.imagen_url) }}" alt="Vista previa" class="rounded border shadow-sm" style="height: 60px; width: 60px; object-fit: cover;">
+                                <small class="text-muted d-block mt-1">Imagen actual</small>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="imagen" class="form-control bg-body">
                         </div>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5 border-top pt-4">
-                        <a href="{{ url_for('main.lista_insumos') }}" class="btn btn-light btn-lg px-4 border rounded-pill">Cancelar</a>
-                        <button type="submit" class="btn btn-dark btn-lg px-5 fw-bold shadow-lg rounded-pill transition-hover">
+                        <a href="{{ url_for('inventario.lista_insumos') }}"
+                            class="btn btn-light btn-lg px-4 border rounded-pill">Cancelar</a>
+                        <button type="submit"
+                            class="btn btn-dark btn-lg px-5 fw-bold shadow-lg rounded-pill transition-hover">
                             <i class="bi bi-save2 me-2"></i> Guardar Todo
                         </button>
                     </div>

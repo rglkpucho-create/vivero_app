@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recibo Oficial de Pago — {{ pago.numero_recibo }} — EcoSistem SaaS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            padding: 40px 15px;
+        }
+
+        .receipt-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            padding: 45px;
+            position: relative;
+        }
+
+        .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .watermark-paid {
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            font-size: 7rem;
+            font-weight: 900;
+            color: rgba(16, 185, 129, 0.07);
+            border: 8px solid rgba(16, 185, 129, 0.07);
+            padding: 10px 40px;
+            border-radius: 20px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+                border: none;
+                padding: 20px;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-container">
+        <!-- Marca de Agua -->
+        <div class="watermark-paid">PAGADO</div>
+
+        <!-- Barra de Botones no imprimible -->
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print pb-3 border-bottom">
+            <a href="{{ url_for('superadmin.control_empresa', id=empresa.id) }}" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
+                <i class="bi bi-arrow-left me-1"></i>Volver a Control de Empresa
+            </a>
+            <button onclick="window.print()" class="btn btn-primary rounded-pill btn-sm px-4 fw-bold shadow-sm">
+                <i class="bi bi-printer me-1"></i>Imprimir / Guardar en PDF
+            </button>
+        </div>
+
+        <!-- CABECERA DEL RECIBO -->
+        <div class="row align-items-center mb-4 pb-4 border-bottom">
+            <div class="col-sm-7">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                        <i class="bi bi-flower1 fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="brand-font fw-black mb-0 text-success">EcoSistem Cloud</h4>
+                        <small class="text-muted fw-bold">Plataforma Integral de Gestión Viveros & Agronegocios</small>
+                    </div>
+                </div>
+                <div class="mt-2 extra-small text-muted" style="font-size: 0.78rem;">
+                    <div>Licencias, Infraestructura y Soporte Tecnológico</div>
+                    <div>Email: soporte@ecosistem.com • Tel: +57 300 000 0000</div>
+                </div>
+            </div>
+
+            <div class="col-sm-5 text-sm-end mt-3 mt-sm-0">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold mb-2">
+                    <i class="bi bi-check-circle-fill me-1"></i>RECIBO OFICIAL DE PAGO
+                </span>
+                <h3 class="font-monospace fw-black mb-0 text-dark">{{ pago.numero_recibo }}</h3>
+                <small class="text-muted">Fecha de Emisión: <strong>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</strong></small>
+            </div>
+        </div>
+
+        <!-- DATOS DEL CLIENTE (EMPRESA BENEFICIARIA) -->
+        <div class="row g-3 mb-4 p-3 rounded-3 bg-light border">
+            <div class="col-sm-6">
+                <span class="text-muted extra-small text-uppercase fw-bold d-block mb-1">Cliente / Vivero Titular:</span>
+                <h5 class="fw-bold mb-1 text-dark">{{ empresa.nombre }}</h5>
+                {% if empresa.nit_rut %}<div class="small"><strong>NIT:</strong> {{ empresa.nit_rut }}</div>{% endif %}
+                {% if empresa.direccion %}<div class="small"><strong>Dirección:</strong> {{ empresa.direccion }}, {{ empresa.ciudad }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6 text-sm-end">
+                <span class="text-muted extra-small text-uppercase fw-bold d-block mb-1">Contacto Registrado:</span>
+                {% if empresa.telefono %}<div class="small"><strong>Teléfono:</strong> {{ empresa.telefono }}</div>{% endif %}
+                {% if empresa.email %}<div class="small"><strong>Email:</strong> {{ empresa.email }}</div>{% endif %}
+                <div class="small"><strong>ID Cliente:</strong> #{{ empresa.id }}</div>
+            </div>
+        </div>
+
+        <!-- TABLA DE CONCEPTOS FACTURADOS -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light extra-small text-uppercase">
+                    <tr>
+                        <th>Descripción del Servicio Tecnológico</th>
+                        <th class="text-center" style="width: 140px;">Meses</th>
+                        <th class="text-center" style="width: 220px;">Vigencia / Cobertura</th>
+                        <th class="text-end" style="width: 160px;">Valor Pagado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong class="d-block text-dark">{{ pago.concepto or ('Licencia Software ' ~ pago.plan) }}</strong>
+                            <small class="text-muted">
+                                Plan: {{ pago.plan }} • Acceso multiusuario, control de lotes, facturación POS, catálogo digital e IA Agrónomo.
+                            </small>
+                        </td>
+                        <td class="text-center fw-bold">{{ pago.meses_cobertura }} mes(es)</td>
+                        <td class="text-center font-monospace small">
+                            {{ pago.fecha_inicio.strftime('%d/%m/%Y') }} al {{ pago.fecha_fin.strftime('%d/%m/%Y') }}
+                        </td>
+                        <td class="text-end font-monospace fw-bold fs-6 text-dark">
+                            ${{ "{:,.0f}".format(pago.monto).replace(',', '.') }} COP
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <th colspan="3" class="text-end fw-bold">TOTAL PAGADO:</th>
+                        <th class="text-end font-monospace fs-5 fw-black text-success">
+                            ${{ "{:,.0f}".format(pago.monto).replace(',', '.') }} COP
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- DETALLES DE LA TRANSACCIÓN -->
+        <div class="row align-items-center mb-5 p-3 rounded-3 border" style="background-color: #fafbfc;">
+            <div class="col-md-7">
+                <div class="small"><strong>Medio de Pago:</strong> {{ pago.metodo_pago }}</div>
+                {% if pago.referencia %}<div class="small"><strong>Referencia de Transacción:</strong> <span class="font-monospace text-primary fw-bold">{{ pago.referencia }}</span></div>{% endif %}
+                <div class="small"><strong>Estado de la Licencia:</strong> <span class="text-success fw-bold">Vigente hasta el {{ pago.fecha_fin.strftime('%d/%m/%Y') }}</span></div>
+                {% if pago.notas %}<div class="extra-small text-muted mt-1"><strong>Observaciones:</strong> {{ pago.notas }}</div>{% endif %}
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0">
+                <span class="badge bg-success text-white px-3 py-1.5 font-monospace">TRANSACCIÓN VERIFICADA</span>
+            </div>
+        </div>
+
+        <!-- FIRMA Y PIE DE PÁGINA -->
+        <div class="row pt-4 mt-5 border-top text-center text-sm-start align-items-end">
+            <div class="col-sm-6">
+                <div class="border-top border-dark border-1 pt-2 d-inline-block" style="min-width: 220px;">
+                    <strong class="d-block text-dark">EcoSistem Software Solutions</strong>
+                    <small class="text-muted">Firma Autorizada y Sello Digital</small>
+                </div>
+            </div>
+            <div class="col-sm-6 text-sm-end mt-3 mt-sm-0 text-muted extra-small">
+                <div>Documento generado electrónicamente. Válido como soporte contable de suscripción SaaS.</div>
+                <div>ID Comprobante: {{ pago.id }} • Registrado por: {{ pago.registrado_por or 'SuperAdmin' }}</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

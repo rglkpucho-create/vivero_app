@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}Colaboradores y Personal — EcoSistem{% endblock %}
+
+{% block content %}
+<style>
+    .colab-header-luxury {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 2.25rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .colab-card {
+        background-color: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+    }
+
+    .colab-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    [data-bs-theme="dark"] .colab-card {
+        background-color: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .colab-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="container-fluid py-4 mx-auto" style="max-width: 1400px;">
+
+    <!-- CABECERA -->
+    <div class="colab-header-luxury mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4 position-relative z-1">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <a href="{{ url_for('mano_obra.dashboard') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 extra-small fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);">
+                        <i class="bi bi-arrow-left"></i> Mano de Obra
+                    </a>
+                    <span class="text-white-50">•</span>
+                    <span class="badge bg-info bg-opacity-20 text-info border border-info border-opacity-25 rounded-pill px-3 py-1 fw-bold font-monospace" style="font-size: 0.72rem;">
+                        DIRECTORIO DE TRABAJADORES
+                    </span>
+                </div>
+                <h1 class="fw-black text-white mb-1" style="letter-spacing: -1px; font-size: 2.2rem;">
+                    Colaboradores y Personal
+                </h1>
+                <p class="text-white-50 mb-0 fw-medium fs-6">
+                    Administra el equipo de trabajo de tu finca o vivero, sus cargos, tarifas de jornal y sueldos pactados.
+                </p>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold d-flex align-items-center gap-2 shadow-lg border-0"
+                        data-bs-toggle="modal" data-bs-target="#modalNuevoColaborador"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="bi bi-person-plus-fill fs-5"></i>
+                    <span>Nuevo Colaborador</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETAS DE COLABORADORES -->
+    {% if colaboradores %}
+    <div class="row g-4">
+        {% for c in colaboradores %}
+        <div class="col-md-6 col-lg-4">
+            <div class="colab-card position-relative">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="colab-avatar shadow-sm
+                            {% if c.modalidad == 'Jornal' %}bg-info bg-opacity-10 text-info border border-info border-opacity-25
+                            {% elif c.modalidad == 'Destajo' %}bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25
+                            {% else %}bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25{% endif %}">
+                            {{ c.nombre_completo[:2]|upper }}
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-body">{{ c.nombre_completo }}</h5>
+                            <span class="text-muted small">{{ c.cargo or 'Colaborador General' }}</span>
+                        </div>
+                    </div>
+
+                    {% if c.activo %}
+                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 extra-small px-2 py-1">
+                        Activo
+                    </span>
+                    {% else %}
+                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 extra-small px-2 py-1">
+                        Inactivo
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div class="border-top border-bottom py-2.5 my-3 small text-secondary">
+                    <div class="d-flex justify-content-between py-1">
+                        <span><i class="bi bi-card-text me-1 text-muted"></i> Documento:</span>
+                        <strong class="text-body font-monospace">{{ c.documento or 'Sin cédula' }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span><i class="bi bi-telephone me-1 text-muted"></i> Contacto:</span>
+                        <span class="text-body">{{ c.telefono or 'N/A' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span><i class="bi bi-briefcase me-1 text-muted"></i> Modalidad:</span>
+                        <span class="badge rounded-pill
+                            {% if c.modalidad == 'Jornal' %}bg-info bg-opacity-15 text-info
+                            {% elif c.modalidad == 'Destajo' %}bg-warning bg-opacity-15 text-warning
+                            {% else %}bg-primary bg-opacity-15 text-primary{% endif %}">
+                            {{ c.modalidad }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span><i class="bi bi-cash me-1 text-muted"></i> Tarifa Base:</span>
+                        <strong class="text-success font-monospace">${{ "{:,.0f}".format(c.tarifa_base or 0) }}</strong>
+                    </div>
+                    {% if c.sede %}
+                    <div class="d-flex justify-content-between py-1">
+                        <span><i class="bi bi-geo-alt me-1 text-muted"></i> Sede:</span>
+                        <span class="text-body">{{ c.sede.nombre }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if c.observaciones %}
+                <p class="text-muted extra-small mb-3" style="font-style: italic;">
+                    "{{ c.observaciones }}"
+                </p>
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                    <small class="text-muted extra-small font-monospace">
+                        {{ c.pagos|length }} pago(s) registrados
+                    </small>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1"
+                            data-bs-toggle="modal" data-bs-target="#modalEditarColaborador{{ c.id }}">
+                        <i class="bi bi-pencil me-1"></i> Editar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: EDITAR COLABORADOR -->
+        <div class="modal fade" id="modalEditarColaborador{{ c.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow" style="background-color: var(--bs-card-bg);">
+                    <form action="{{ url_for('mano_obra.editar_colaborador', trabajador_id=c.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="modal-header border-bottom py-3">
+                            <h5 class="modal-title fw-bold">Editar Colaborador</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">Nombre Completo</label>
+                                    <input type="text" name="nombre_completo" value="{{ c.nombre_completo }}" class="form-control" required />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Cédula / Documento</label>
+                                    <input type="text" name="documento" value="{{ c.documento or '' }}" class="form-control font-monospace" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Teléfono</label>
+                                    <input type="text" name="telefono" value="{{ c.telefono or '' }}" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Cargo u Oficio</label>
+                                    <input type="text" name="cargo" value="{{ c.cargo or '' }}" class="form-control" placeholder="Ej: Guadañador, Podador..." />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Modalidad</label>
+                                    <select name="modalidad" class="form-select">
+                                        <option value="Jornal" {% if c.modalidad == 'Jornal' %}selected{% endif %}>Jornal (Diario)</option>
+                                        <option value="Destajo" {% if c.modalidad == 'Destajo' %}selected{% endif %}>Destajo / Tarea</option>
+                                        <option value="Fijo" {% if c.modalidad == 'Fijo' %}selected{% endif %}>Sueldo Fijo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Tarifa Base ($)</label>
+                                    <input type="number" step="100" min="0" name="tarifa_base" value="{{ c.tarifa_base or 0 }}" class="form-control font-monospace" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">Sede / Finca</label>
+                                    <select name="sede_id" class="form-select">
+                                        <option value="">Ninguna / Principal</option>
+                                        {% for s in sedes %}
+                                        <option value="{{ s.id }}" {% if c.sede_id == s.id %}selected{% endif %}>{{ s.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch mt-2">
+                                        <input class="form-check-input" type="checkbox" name="activo" id="checkActivo{{ c.id }}" {% if c.activo %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold small" for="checkActivo{{ c.id }}">Colaborador Activo en el Vivero/Finca</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold small">Observaciones</label>
+                                    <input type="text" name="observaciones" value="{{ c.observaciones or '' }}" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top">
+                            <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary rounded-pill fw-bold">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4" style="background-color: var(--bs-card-bg);">
+        <div class="mx-auto mb-3 text-muted" style="font-size: 3.5rem;">
+            <i class="bi bi-people"></i>
+        </div>
+        <h4 class="fw-bold mb-1">Aún no hay colaboradores registrados</h4>
+        <p class="text-muted mb-4">Registra a los jornaleros, guadañadores, podadores o empleados de tu vivero o finca.</p>
+        <div>
+            <button type="button" class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#modalNuevoColaborador">
+                <i class="bi bi-person-plus-fill me-1"></i> Registrar Primer Colaborador
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- =================================================================== -->
+<!-- MODAL: NUEVO COLABORADOR                                            -->
+<!-- =================================================================== -->
+<div class="modal fade" id="modalNuevoColaborador" tabindex="-1" aria-labelledby="modalNuevoColaboradorLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: var(--bs-card-bg);">
+            <form action="{{ url_for('mano_obra.nuevo_colaborador') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="modal-header border-bottom py-3 px-4">
+                    <h5 class="modal-title fw-black" id="modalNuevoColaboradorLabel">Registrar Nuevo Colaborador</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Nombre Completo <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre_completo" class="form-control" placeholder="Ej: Pedro José Gómez" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Cédula / Documento</label>
+                            <input type="text" name="documento" class="form-control font-monospace" placeholder="C.C." />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Teléfono / WhatsApp</label>
+                            <input type="text" name="telefono" class="form-control" placeholder="300 123 4567" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Cargo u Oficio</label>
+                            <input type="text" name="cargo" class="form-control" placeholder="Ej: Guadañador, Podador, Encargado..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Modalidad de Contratación</label>
+                            <select name="modalidad" class="form-select">
+                                <option value="Jornal" selected>Jornal (Diario)</option>
+                                <option value="Destajo">Destajo / Tarea (Por labor)</option>
+                                <option value="Fijo">Sueldo Fijo (Quincenal / Mensual)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Tarifa Base ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="100" min="0" name="tarifa_base" class="form-control font-monospace" placeholder="60000" />
+                            </div>
+                            <small class="text-muted extra-small">Tarifa por día de jornal o sueldo base</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Sede / Finca</label>
+                            <select name="sede_id" class="form-select">
+                                <option value="">Sede Principal</option>
+                                {% for s in sedes %}
+                                <option value="{{ s.id }}">{{ s.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Observaciones</label>
+                            <input type="text" name="observaciones" class="form-control" placeholder="Habilidades, referencias, herramientas propias..." />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top py-3 px-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow">
+                        <i class="bi bi-check-lg me-1"></i> Guardar Colaborador
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

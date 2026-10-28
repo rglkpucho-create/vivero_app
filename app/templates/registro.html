@@ -8,6 +8,7 @@
                 <h3 class="text-center mb-4 text-success">Crear Nueva Cuenta</h3>
                 
                 <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Nombre Completo *</label>
                         <input type="text" name="nombre" class="form-control" required>
@@ -42,7 +43,7 @@
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-success btn-lg">Registrarse</button>
-                        <a href="{{ url_for('main.login') }}" class="btn btn-outline-secondary">Volver al Login</a>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">Volver al Login</a>
                     </div>
                 </form>
             </div>

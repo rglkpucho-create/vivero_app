@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Pedido Confirmado! | {{ empresa.nombre }}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #0f5132;
+            --accent-color: #10b981;
+            --light-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: #334155;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        h1, h2, h3, h4, h5, .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .success-card {
+            background-color: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        /* SVG CHECK ANIMADO */
+        .svg-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
+
+        .checkmark {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 2;
+            stroke: #10b981;
+            stroke-miterlimit: 10;
+            box-shadow: inset 0px 0px 0px #10b981;
+            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out 0s both;
+        }
+
+        .checkmark__circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #10b981;
+            fill: none;
+            animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .checkmark__check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke .3s cubic-bezier(0.65, 0, 0.45, 1) .8s forwards;
+        }
+
+        @keyframes stroke {
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes scale {
+            0%, 100% {
+                transform: none;
+            }
+            50% {
+                transform: scale3d(1.1, 1.1, 1);
+            }
+        }
+
+        @keyframes fill {
+            100% {
+                box-shadow: inset 0px 0px 0px 60px rgba(16, 185, 129, 0.1);
+            }
+        }
+
+        /* BOTÓN GLOW WHATSAPP */
+        .btn-whatsapp-glow {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.3);
+            border: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 700;
+        }
+
+        .btn-whatsapp-glow:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(37, 211, 102, 0.55);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container px-3">
+        <div class="success-card p-4 p-md-5 text-center">
+            
+            <!-- SVG Check Animado -->
+            <div class="svg-container mb-4">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                </svg>
+            </div>
+
+            <h2 class="fw-black text-success mb-2" style="letter-spacing: -1px;">¡Pedido Recibido!</h2>
+            <p class="text-secondary px-md-4 mb-4">
+                Gracias, <strong>{{ venta.cliente.nombre }}</strong>. Tu pedido ha sido enviado con éxito al panel de control privado de <strong>{{ empresa.nombre }}</strong> en estado de cotización/borrador.
+            </p>
+
+            <!-- Resumen Recibo -->
+            <div class="card bg-light border-0 rounded-4 p-4 text-start mb-5 shadow-inner">
+                <div class="d-flex justify-content-between border-bottom pb-2 mb-3">
+                    <span class="fw-bold text-dark">Nº Pedido:</span>
+                    <span class="font-monospace text-secondary fw-bold">#{{ venta.numero_factura }}</span>
+                </div>
+                
+                <h6 class="fw-bold text-uppercase text-secondary mb-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">Productos Solicitados:</h6>
+                
+                <div class="d-flex flex-column gap-2 mb-3 border-bottom pb-3">
+                    {% for d in venta.detalles %}
+                    <div class="d-flex justify-content-between text-dark">
+                        <span>
+                            {{ d.lote_origen.especie.nombre_comun if d.lote_id else d.insumo.nombre }}
+                            <strong class="text-secondary">x{{ d.cantidad | int }}</strong>
+                        </span>
+                        <span class="font-monospace fw-bold">${{ "{:,.0f}".format(d.subtotal) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="h5 mb-0 fw-bold">Total Estimado:</span>
+                    <span class="h4 mb-0 fw-black text-success font-monospace">${{ "{:,.0f}".format(venta.total) }}</span>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="d-flex flex-column gap-3 max-width-360 mx-auto">
+                <a href="{{ whatsapp_url }}" target="_blank" class="btn btn-whatsapp-glow btn-lg rounded-pill py-3 px-4 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-whatsapp fs-5"></i> Confirmar Pedido en WhatsApp
+                </a>
+                <p class="small text-muted mb-3"><i class="bi bi-info-circle me-1"></i> Es necesario hacer clic arriba para comunicarte de inmediato y coordinar el pago / entrega.</p>
+                <a href="{{ url_for('tienda.index', empresa_id=empresa.id) }}" class="btn btn-outline-secondary rounded-pill py-2.5">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al Catálogo
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

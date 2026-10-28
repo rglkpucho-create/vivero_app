@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background-color: var(--bs-body-bg);">
+            <div class="card-header bg-primary text-white p-4 border-0"
+                style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);">
+                <h4 class="fw-bold mb-1"><i class="bi bi-heptagon-half me-2"></i> {{ 'Editar Ficha Técnica' if edit_mode
+                    else 'Registrar Ficha/Raza Animal' }}</h4>
+                <p class="mb-0 opacity-75">Configura el estándar genético o cuidados técnicos para usar en la creación
+                    de animales.</p>
+            </div>
+            <div class="card-body p-5">
+
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                    <!-- SECCIÓN DE CARGA DE IMAGEN -->
+                    <div class="mb-5 text-center">
+                        <label class="d-block mb-2 fw-bold text-muted small text-uppercase">Imagen o Foto
+                            Referencial</label>
+                        <div class="image-upload-wrapper border rounded-3 bg-light d-flex align-items-center justify-content-center position-relative mx-auto"
+                            style="height: 180px; max-width: 300px; cursor: pointer; border-style: dashed !important; border-width: 2px; overflow: hidden;">
+
+                            <div class="text-center text-muted" id="uploadPlaceholder"
+                                style="{{ 'display:none;' if edit_mode and raza.imagen_url else '' }}">
+                                <i class="bi bi-cloud-arrow-up fs-1"></i>
+                                <p class="small mb-0 mt-2 fw-bold">Toca para cargar foto</p>
+                            </div>
+
+                            <img id="imagePreview"
+                                src="{{ url_for('static', filename=raza.imagen_url) if edit_mode and raza.imagen_url else '#' }}"
+                                class="{{ 'd-none' if not (edit_mode and raza.imagen_url) else '' }} w-100 h-100 object-fit-cover">
+
+                            <input type="file" name="foto" id="imagenInput"
+                                class="position-absolute top-0 start-0 w-100 h-100 opacity-0" accept="image/*"
+                                onchange="previewImage(this)" style="cursor: pointer;">
+                        </div>
+                    </div>
+
+                    <!-- CAMPOS PRINCIPALES -->
+                    <h6 class="fw-bolder text-primary border-bottom pb-2 mb-3"><i
+                            class="bi bi-card-heading me-2"></i>Información Principal</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Nombre / Raza <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control form-control-lg shadow-sm fw-medium"
+                                placeholder="Ej: Vaca Holstein" value="{{ raza.nombre if edit_mode else '' }}" required
+                                autofocus>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Familia / Especie <span
+                                    class="text-danger">*</span></label>
+                            <select name="especie" class="form-select form-select-lg shadow-sm fw-medium" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Bovino" {{ 'selected' if edit_mode and raza.especie=='Bovino' else '' }}>
+                                    Bovino (Vacas, Toros)</option>
+                                <option value="Porcino" {{ 'selected' if edit_mode and raza.especie=='Porcino' else ''
+                                    }}>Porcino (Cerdos)</option>
+                                <option value="Avícola" {{ 'selected' if edit_mode and raza.especie=='Avícola' else ''
+                                    }}>Avícola (Pollos, Gallinas)</option>
+                                <option value="Caprino/Ovino" {{ 'selected' if edit_mode and
+                                    raza.especie=='Caprino/Ovino' else '' }}>Caprino/Ovino (Cabras, Ovejas)</option>
+                                <option value="Equino" {{ 'selected' if edit_mode and raza.especie=='Equino' else '' }}>
+                                    Equino (Caballos)</option>
+                                <option value="Piscícola" {{ 'selected' if edit_mode and raza.especie=='Piscícola'
+                                    else '' }}>Piscícola (Peces)</option>
+                                <option value="Otro" {{ 'selected' if edit_mode and raza.especie=='Otro' else '' }}>Otro
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bolder text-info border-bottom pb-2 mb-3 mt-4"><i
+                            class="bi bi-graph-up-arrow me-2"></i>Proyección Técnica</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Propósito Ideal</label>
+                            <input type="text" name="proposito_ideal" class="form-control shadow-sm"
+                                placeholder="Ej: Producción Lechera, Engorde..."
+                                value="{{ raza.proposito_ideal if edit_mode else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Rendimiento Estimado</label>
+                            <input type="text" name="rendimiento_est" class="form-control shadow-sm"
+                                placeholder="Ej: 25 L/día, 1.2 kg/mes..."
+                                value="{{ raza.rendimiento_est if edit_mode else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Ciclo de Vida/Producción</label>
+                            <input type="text" name="ciclo_tecnico" class="form-control shadow-sm"
+                                placeholder="Ej: 305 días lactancia, 60 días engorde..."
+                                value="{{ raza.ciclo_tecnico if edit_mode else '' }}">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small">Cuidados y Guía Técnica (Opcional)</label>
+                            <textarea name="cuidados_tecnicos" class="form-control shadow-sm" rows="5"
+                                placeholder="Vacunación aftosa semestral, requerimiento alto en proteína, control de parásitos, etc.">{{ raza.cuidados_tecnicos if edit_mode else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- BOTONES -->
+                    <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                        <a href="{{ url_for('pecuario.lista_razas_animales') }}"
+                            class="btn btn-light rounded-pill px-4 fw-bold shadow-sm">Cancelar</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold py-2 shadow-sm fs-5">
+                            <i class="bi bi-check-circle me-2"></i> {{ 'Actualizar Ficha' if edit_mode else 'Crear Ficha
+                            Técnica' }}
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var preview = document.getElementById('imagePreview');
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                document.getElementById('uploadPlaceholder').style.display = 'none';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-4">
+        <h3 class="mb-1 fw-bold text-dark"><i class="bi bi-shield-check me-2 text-primary"></i>Bitácora de Auditoría</h3>
+        <p class="text-muted mb-0">Registro inmutable de acciones en el sistema</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Fecha/Hora</th>
+                        <th>Usuario</th>
+                        <th>Módulo</th>
+                        <th>Acción</th>
+                        <th>Detalle</th>
+                        <th class="pe-4 text-end">IP Origen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="ps-4 fw-medium text-muted">
+                            {{ log.fecha.strftime('%d/%m/%Y %H:%M:%S') if log.fecha else '-' }}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if log.usuario %}
+                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 0.7rem;">
+                                        {{ log.usuario.nombre_completo[0].upper() }}
+                                    </div>
+                                    <span class="fw-bold">{{ log.usuario.email.split('@')[0] }}</span>
+                                {% else %}
+                                    <span class="text-muted fst-italic">Sistema</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-secondary border">{{ log.modulo }}</span></td>
+                        <td>
+                            {% set color = 'secondary' %}
+                            {% if log.accion == 'CREAR' %}{% set color = 'success' %}
+                            {% elif log.accion == 'EDITAR' %}{% set color = 'warning' %}
+                            {% elif log.accion == 'ELIMINAR' %}{% set color = 'danger' %}
+                            {% elif log.accion == 'VENTA' %}{% set color = 'info' %}
+                            {% elif log.accion == 'COMPRA' %}{% set color = 'primary' %}
+                            {% elif log.accion == 'LOGIN' %}{% set color = 'dark' %}
+                            {% endif %}
+                            <span class="badge bg-{{ color }} rounded-pill" style="min-width: 70px;">{{ log.accion }}</span>
+                        </td>
+                        <td class="text-wrap" style="max-width: 300px;">{{ log.detalle }}</td>
+                        <td class="pe-4 text-end font-monospace text-muted small">{{ log.ip_origen or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center py-5 text-muted">No hay registros de auditoría aún.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

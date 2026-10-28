@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow border-0">
+            <div class="card-body p-5">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-success text-white rounded-3 p-3 me-3">
+                        <i class="bi bi-person-badge fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">{{ 'Editar' if usuario else 'Nuevo' }} Usuario</h4>
+                        <p class="text-muted mb-0">Gestión de accesos</p>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre Completo *</label>
+                        <input type="text" name="nombre_completo" class="form-control form-control-lg bg-light" value="{{ usuario.nombre_completo if usuario else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Correo Electrónico *</label>
+                        <input type="email" name="email" class="form-control form-control-lg bg-light" value="{{ usuario.email if usuario else '' }}" {% if usuario %}readonly{% else %}required{% endif %}>
+                        {% if usuario %}<small class="text-muted">El correo electrónico no se puede editar.</small>{% endif %}
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono</label>
+                            <input type="tel" name="telefono" class="form-control bg-light" value="{{ usuario.telefono if usuario else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Rol *</label>
+                            <select name="rol_id" class="form-select bg-light" required>
+                                <option value="">Seleccione...</option>
+                                {% for r in roles %}
+                                <option value="{{ r.id }}" {% if usuario and usuario.rol_id == r.id %}selected{% endif %}>{{ r.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Contraseña {% if not usuario %}*{% endif %}</label>
+                        <input type="password" name="password" class="form-control bg-light" {% if not usuario %}required{% endif %}>
+                        {% if usuario %}
+                        <small class="text-muted">Deje en blanco para mantener la contraseña actual.</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold">
+                            <i class="bi bi-save me-1"></i> Guardar Usuario
+                        </button>
+                        <a href="{{ url_for('admin.lista_usuarios') }}" class="btn btn-outline-secondary fw-bold">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

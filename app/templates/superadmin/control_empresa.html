@@ -1,0 +1,618 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb de Navegación -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('superadmin.lista_empresas') }}" class="text-decoration-none">Empresas Clientes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ empresa.nombre }}</li>
+        </ol>
+    </nav>
+
+    <!-- CABECERA PRINCIPAL DE LA EMPRESA (FICHA MAESTRA) -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    {% if empresa.logo_url %}
+                    <img src="{{ url_for('static', filename=empresa.logo_url) }}" alt="{{ empresa.nombre }}"
+                         class="rounded-circle shadow border border-2 border-primary border-opacity-25" style="width: 72px; height: 72px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-sm" style="width: 72px; height: 72px;">
+                        <i class="bi bi-building fs-1"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                            <h3 class="fw-black mb-0 text-body">{{ empresa.nombre }}</h3>
+                            {% if empresa.licencia_activa %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 font-monospace">
+                                <i class="bi bi-check-circle-fill me-1"></i>Licencia Activa
+                            </span>
+                            {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 font-monospace">
+                                <i class="bi bi-x-circle-fill me-1"></i>Licencia Suspendida
+                            </span>
+                            {% endif %}
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 small">
+                                ID #{{ empresa.id }}
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-0 d-flex flex-wrap align-items-center gap-3">
+                            <span><i class="bi bi-geo-alt me-1 text-danger"></i>{{ empresa.ciudad or 'Sin ciudad' }}</span>
+                            {% if empresa.nit_rut %}<span><i class="bi bi-card-text me-1 text-primary"></i>NIT: {{ empresa.nit_rut }}</span>{% endif %}
+                            {% if empresa.telefono %}<span><i class="bi bi-telephone me-1 text-success"></i>{{ empresa.telefono }}</span>{% endif %}
+                            {% if empresa.email %}<span><i class="bi bi-envelope me-1 text-info"></i>{{ empresa.email }}</span>{% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción de Alto Nivel -->
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('superadmin.seleccionar_empresa_activa', superadmin_empresa_id=empresa.id, redir='dashboard') }}" 
+                       class="btn btn-success rounded-pill fw-bold px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2"
+                       style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                        <span>Operar Empresa</span>
+                    </a>
+
+                    <a href="{{ url_for('tienda.index', empresa_id=empresa.id) }}" target="_blank" class="btn btn-outline-info rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-1.5" title="Abrir página web pública">
+                        <i class="bi bi-globe2"></i>
+                        <span class="d-none d-sm-inline">Web Pública</span>
+                    </a>
+
+                    <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}" target="_blank" class="btn btn-outline-success rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-1.5" title="Abrir catálogo digital">
+                        <i class="bi bi-bag-check"></i>
+                        <span class="d-none d-sm-inline">Catálogo</span>
+                    </a>
+
+                    <a href="{{ url_for('superadmin.editar_empresa', id=empresa.id) }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center gap-1.5">
+                        <i class="bi bi-pencil"></i>
+                        <span class="d-none d-sm-inline">Editar</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Fila de Registro & Tiempo como Cliente -->
+            <div class="mt-3 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2 small text-muted">
+                <div>
+                    <i class="bi bi-calendar-check text-primary me-1.5"></i>
+                    <strong>Fecha de Registro:</strong> 
+                    <span class="text-body fw-bold font-monospace">{{ empresa.fecha_registro.strftime('%d/%m/%Y a las %H:%M') if empresa.fecha_registro else 'Sin registro' }}</span>
+                    <span class="badge bg-light text-body border rounded-pill ms-2">Cliente hace {{ dias_cliente }} días</span>
+                </div>
+                <div>
+                    <i class="bi bi-shield-lock text-warning me-1.5"></i>
+                    <strong>Vencimiento de Suscripción:</strong> 
+                    <span class="text-body fw-bold font-monospace">{{ empresa.fecha_vencimiento.strftime('%d/%m/%Y') if empresa.fecha_vencimiento else 'Vitalicia (Sin límite)' }}</span>
+                    {% if dias_restantes is not none %}
+                        {% if dias_restantes > 15 %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-2">Al día ({{ dias_restantes }} días restantes)</span>
+                        {% elif dias_restantes >= 0 %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill ms-2">⚠️ Vence pronto ({{ dias_restantes }} días)</span>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill ms-2">🚨 Vencida hace {{ dias_restantes|abs }} días</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-2">Vitalicia</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETAS RESUMEN DE CONTROL FINANCIERO & OPERATIVO SAAS -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Recaudado -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Total Recaudado (LTV)</span>
+                <h3 class="fs-4 fw-black text-success font-monospace mb-1 mt-1">
+                    ${{ "{:,.0f}".format(total_recaudado).replace(',', '.') }}
+                </h3>
+                <small class="text-muted extra-small">{{ conteo_pagos }} pago(s) registrado(s)</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-cash-stack fs-1 text-success"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Plan y Suscripción -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Plan SaaS Actual</span>
+                <h3 class="fs-5 fw-black text-primary mb-1 mt-1 text-truncate">
+                    {{ empresa.plan_nombre or 'Plan Pro Vivero' }}
+                </h3>
+                <small class="text-muted extra-small">Ciclo: {{ empresa.ciclo_pago or 'Mensual' }}</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-award fs-1 text-primary"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Usuarios de la Empresa -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Equipo & Usuarios</span>
+                <h3 class="fs-4 fw-black text-info font-monospace mb-1 mt-1">
+                    {{ usuarios|length }} <span class="fs-6 fw-normal text-muted">usuario(s)</span>
+                </h3>
+                <small class="text-muted extra-small">Acceso a plataforma</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-people fs-1 text-info"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Actividad en Plataforma -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Inventario de Plantas</span>
+                <h3 class="fs-4 fw-black text-dark font-monospace mb-1 mt-1">
+                    {{ "{:,.0f}".format(total_plantas_vivas).replace(',', '.') }} <span class="fs-6 fw-normal text-muted">plántulas</span>
+                </h3>
+                <small class="text-muted extra-small">{{ total_lotes_plantas }} lote(s) en producción</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-flower1 fs-1 text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: HISTORIAL DE PAGOS DE LA SUSCRIPCIÓN -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-transparent border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 p-4 pb-0">
+            <div>
+                <h5 class="fw-black mb-1 text-body">
+                    <i class="bi bi-receipt text-success me-2"></i>Historial de Pagos de Suscripción & Licencia
+                </h5>
+                <p class="text-muted small mb-0">Control de cobros registrados, comprobantes emitidos y fechas de vigencia.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary rounded-pill btn-sm px-3 fw-bold d-flex align-items-center gap-1.5 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalExtenderLicencia">
+                    <i class="bi bi-calendar-plus"></i>
+                    <span>Extender Vigencia</span>
+                </button>
+                <button type="button" class="btn btn-success rounded-pill btn-sm px-3.5 fw-bold d-flex align-items-center gap-1.5 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoPago"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Registrar Nuevo Pago</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            {% if not pagos %}
+            <div class="text-center py-5">
+                <i class="bi bi-receipt-cutoff text-muted" style="font-size: 3.5rem; opacity: 0.3;"></i>
+                <h6 class="text-muted mt-2 fw-bold">Aún no se han registrado pagos para esta empresa</h6>
+                <p class="text-muted extra-small mb-3">Registra el primer pago de suscripción para habilitar recibos y control de fechas.</p>
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevoPago">
+                    <i class="bi bi-plus-lg me-1"></i>Registrar Primer Pago
+                </button>
+            </div>
+            {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light extra-small text-uppercase">
+                        <tr>
+                            <th>Recibo / Ref.</th>
+                            <th>Fecha de Pago</th>
+                            <th>Concepto & Plan</th>
+                            <th>Periodo Cobertura</th>
+                            <th>Medio de Pago</th>
+                            <th class="text-end">Monto Pagado</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pago in pagos %}
+                        <tr>
+                            <td>
+                                <strong class="font-monospace text-primary d-block">{{ pago.numero_recibo }}</strong>
+                                {% if pago.referencia %}
+                                <small class="text-muted extra-small">Ref: {{ pago.referencia }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="font-monospace fw-bold text-body">{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</span>
+                                <small class="text-muted d-block extra-small">{{ pago.fecha_pago.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <strong class="d-block text-body">{{ pago.plan }}</strong>
+                                <small class="text-muted extra-small">{{ pago.concepto or (pago.meses_cobertura ~ ' mes(es) de suscripción') }}</small>
+                            </td>
+                            <td>
+                                <div class="font-monospace extra-small">
+                                    <span class="text-muted">{{ pago.fecha_inicio.strftime('%d/%m/%Y') }}</span>
+                                    <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                                    <strong class="text-success">{{ pago.fecha_fin.strftime('%d/%m/%Y') }}</strong>
+                                </div>
+                                <small class="text-muted extra-small">({{ pago.meses_cobertura }} meses)</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-body border rounded-pill px-2.5 py-1 extra-small">
+                                    {% if 'nequi' in pago.metodo_pago.lower() %}
+                                    <i class="bi bi-phone-fill text-purple me-1"></i>
+                                    {% elif 'banco' in pago.metodo_pago.lower() or 'transf' in pago.metodo_pago.lower() %}
+                                    <i class="bi bi-bank text-primary me-1"></i>
+                                    {% elif 'efectivo' in pago.metodo_pago.lower() %}
+                                    <i class="bi bi-cash text-success me-1"></i>
+                                    {% else %}
+                                    <i class="bi bi-credit-card text-info me-1"></i>
+                                    {% endif %}
+                                    {{ pago.metodo_pago }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <span class="fs-6 fw-black font-monospace text-success">${{ "{:,.0f}".format(pago.monto).replace(',', '.') }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if pago.estado == 'Aprobado' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 extra-small">
+                                    <i class="bi bi-check2 me-0.5"></i>Aprobado
+                                </span>
+                                {% elif pago.estado == 'Pendiente' %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 extra-small">
+                                    <i class="bi bi-clock me-0.5"></i>Pendiente
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1 extra-small">
+                                    {{ pago.estado }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('superadmin.ver_recibo_pago', id=pago.id) }}" target="_blank" class="btn btn-outline-secondary rounded-pill px-2.5 py-1 extra-small fw-bold" title="Ver e Imprimir Recibo Oficial">
+                                        <i class="bi bi-printer me-1"></i>Recibo
+                                    </a>
+                                    {% if pago.estado == 'Aprobado' %}
+                                    <form method="POST" action="{{ url_for('superadmin.anular_pago_suscripcion', id=pago.id) }}" class="d-inline ms-1" onsubmit="return confirm('¿Seguro que deseas anular el recibo {{ pago.numero_recibo }}?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-outline-danger rounded-pill px-2 py-1 extra-small" title="Anular Pago">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SECCIÓN INFERIOR: USUARIOS DEL CLIENTE Y MÉTRICAS DE ACTIVIDAD -->
+    <div class="row g-4">
+        <!-- Usuarios de la Empresa -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-body">
+                        <i class="bi bi-people-fill text-primary me-2"></i>Usuarios Registrados ({{ usuarios|length }})
+                    </h5>
+                    <span class="badge bg-light text-muted border rounded-pill font-monospace small">Acceso al Software</span>
+                </div>
+                <div class="card-body p-4">
+                    {% if not usuarios %}
+                    <p class="text-muted small mb-0">Esta empresa aún no tiene usuarios registrados.</p>
+                    {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light extra-small text-uppercase">
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Último Acceso</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in usuarios %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-body small">{{ u.nombre_completo }}</strong>
+                                        {% if u.telefono %}
+                                        <small class="text-muted d-block extra-small">{{ u.telefono }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small font-monospace">{{ u.email }}</td>
+                                    <td>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill extra-small">
+                                            {{ u.rol.nombre if u.rol else 'Sin Rol' }}
+                                        </span>
+                                    </td>
+                                    <td class="extra-small text-muted font-monospace">
+                                        {{ u.ultimo_login.strftime('%d/%m/%Y %H:%M') if u.ultimo_login else 'Nunca' }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas del Vivero & Notas Privadas -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <h5 class="fw-bold mb-0 text-body">
+                        <i class="bi bi-bar-chart-fill text-success me-2"></i>Actividad en el Software
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-group list-group-flush mb-4 small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">Total Plántulas en Vivero:</span>
+                            <strong class="text-body font-monospace">{{ "{:,.0f}".format(total_plantas_vivas).replace(',', '.') }} unds.</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">Lotes de Producción Activos:</span>
+                            <strong class="text-body font-monospace">{{ total_lotes_plantas }} lotes</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">Total Ventas Facturadas (POS):</span>
+                            <strong class="text-success font-monospace">${{ "{:,.0f}".format(total_ventas_historicas).replace(',', '.') }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">Pedidos Recibidos por Tienda Web:</span>
+                            <strong class="text-primary font-monospace">{{ pedidos_web_count }} pedidos</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span class="text-muted">Artículos Comerciales / Insumos:</span>
+                            <strong class="text-body font-monospace">{{ insumos_count }} ítems</strong>
+                        </li>
+                    </ul>
+
+                    {% if empresa.notas_admin %}
+                    <div class="p-3 rounded-3 bg-light border">
+                        <span class="extra-small fw-bold text-uppercase text-muted d-block mb-1">
+                            <i class="bi bi-journal-text me-1"></i>Notas Privadas del Propietario:
+                        </span>
+                        <p class="mb-0 extra-small text-secondary">{{ empresa.notas_admin }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL: REGISTRAR NUEVO PAGO DE SUSCRIPCIÓN -->
+<div class="modal fade" id="modalNuevoPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="bi bi-cash-coin fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-black mb-0 text-body">Registrar Pago de Suscripción</h5>
+                        <small class="text-muted">Empresa: <strong>{{ empresa.nombre }}</strong></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="POST" action="{{ url_for('superadmin.registrar_pago_suscripcion', id=empresa.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Número de Recibo / Factura *</label>
+                            <input type="text" name="numero_recibo" class="form-control rounded-pill font-monospace" value="{{ next_recibo }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Fecha de Pago *</label>
+                            <input type="date" name="fecha_pago" class="form-control rounded-pill" value="{{ today.strftime('%Y-%m-%d') }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Monto Pagado ($ COP) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text rounded-start-pill bg-light">$</span>
+                                <input type="number" step="1000" name="monto" class="form-control rounded-end-pill font-monospace fw-bold text-success fs-5" value="{{ empresa.precio_suscripcion or 150000 }}" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Medio de Pago *</label>
+                            <select name="metodo_pago" class="form-select rounded-pill" required>
+                                <option value="Bancolombia">Transferencia Bancolombia</option>
+                                <option value="Nequi" selected>Nequi</option>
+                                <option value="Daviplata">Daviplata</option>
+                                <option value="PSE / Pasarela">PSE / Pasarela Online</option>
+                                <option value="Efectivo">Efectivo / Caja</option>
+                                <option value="Tarjeta de Crédito / Débito">Tarjeta de Crédito / Débito</option>
+                                <option value="Otro">Otro Medio</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Plan Suscripción</label>
+                            <input type="text" name="plan" class="form-control rounded-pill" value="{{ empresa.plan_nombre or 'Plan Pro Vivero' }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Meses de Cobertura</label>
+                            <select name="meses_cobertura" id="selectMeses" class="form-select rounded-pill" onchange="calcularFechasSuscripcion()">
+                                <option value="1" selected>1 Mes</option>
+                                <option value="3">3 Meses (Trimestral)</option>
+                                <option value="6">6 Meses (Semestral)</option>
+                                <option value="12">12 Meses (Anual)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Fecha Inicio Cobertura *</label>
+                            <input type="date" name="fecha_inicio" id="inputFechaInicio" class="form-control rounded-pill" value="{{ (empresa.fecha_vencimiento or today).strftime('%Y-%m-%d') }}" onchange="calcularFechasSuscripcion()" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Fecha Fin Cobertura (Nuevo Vencimiento) *</label>
+                            <input type="date" name="fecha_fin" id="inputFechaFin" class="form-control rounded-pill" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Referencia / Nº Transacción</label>
+                            <input type="text" name="referencia" class="form-control rounded-pill" placeholder="Ej: TRX-982341">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Registrado Por</label>
+                            <input type="text" name="registrado_por" class="form-control rounded-pill" value="SuperAdmin Propietario">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Concepto en Recibo</label>
+                            <input type="text" name="concepto" id="inputConcepto" class="form-control rounded-pill" value="Suscripción Plan Pro Vivero (1 mes)">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Notas Adicionales (Opcional)</label>
+                            <textarea name="notas" class="form-control rounded-3" rows="2" placeholder="Observaciones, acuerdos o detalles de la transferencia..."></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch p-3 bg-light rounded-3 border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" name="actualizar_vencimiento" id="chkActualizar" checked>
+                                <label class="form-check-label fw-bold text-dark small" for="chkActualizar">
+                                    Actualizar fecha de vencimiento de la empresa automáticamente con este pago
+                                </label>
+                                <small class="text-muted d-block mt-0.5">La licencia se mantendrá activa hasta la fecha fin de cobertura indicada.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                        <i class="bi bi-check-circle-fill me-1"></i>Registrar Pago y Emitir Recibo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EXTENSIÓN RÁPIDA DE LICENCIA -->
+<div class="modal fade" id="modalExtenderLicencia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="bi bi-calendar-plus fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-black mb-0 text-body">Extensión Rápida de Licencia</h5>
+                        <small class="text-muted">{{ empresa.nombre }}</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="POST" action="{{ url_for('superadmin.extender_licencia', id=empresa.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
+                        Vigencia actual: <strong class="text-body">{{ empresa.fecha_vencimiento.strftime('%d/%m/%Y') if empresa.fecha_vencimiento else 'Vitalicia' }}</strong>. 
+                        Selecciona el periodo adicional a conceder a este vivero:
+                    </p>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <label class="btn btn-outline-primary text-start rounded-3 p-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input type="radio" name="dias" value="30" class="form-check-input me-2" checked>
+                                <strong>+30 Días (1 Mes de Gracia)</strong>
+                            </div>
+                            <span class="badge bg-light text-muted border">Estándar</span>
+                        </label>
+
+                        <label class="btn btn-outline-primary text-start rounded-3 p-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input type="radio" name="dias" value="90" class="form-check-input me-2">
+                                <strong>+90 Días (Trimestre)</strong>
+                            </div>
+                            <span class="badge bg-light text-muted border">3 Meses</span>
+                        </label>
+
+                        <label class="btn btn-outline-primary text-start rounded-3 p-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <input type="radio" name="dias" value="365" class="form-check-input me-2">
+                                <strong>+365 Días (1 Año Completo)</strong>
+                            </div>
+                            <span class="badge bg-light text-muted border">Anual</span>
+                        </label>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="tipo" value="vitalicia" id="chkVitalicia">
+                            <label class="form-check-label fw-bold text-dark small" for="chkVitalicia">
+                                Convertir a Licencia Vitalicia (Sin fecha de vencimiento)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        Confirmar Extensión
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calcularFechasSuscripcion() {
+        const inputInicio = document.getElementById('inputFechaInicio');
+        const inputFin = document.getElementById('inputFechaFin');
+        const selectMeses = document.getElementById('selectMeses');
+        const inputConcepto = document.getElementById('inputConcepto');
+
+        if (!inputInicio || !inputFin || !selectMeses) return;
+
+        const fechaIniVal = inputInicio.value;
+        if (!fechaIniVal) return;
+
+        const meses = parseInt(selectMeses.value) || 1;
+        const d = new Date(fechaIniVal + 'T00:00:00');
+        d.setMonth(d.getMonth() + meses);
+
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+
+        inputFin.value = `${yyyy}-${mm}-${dd}`;
+
+        if (inputConcepto) {
+            inputConcepto.value = `Suscripción ${document.querySelector('input[name="plan"]')?.value || 'Plan Pro Vivero'} (${meses} mes(es) hasta ${dd}/${mm}/${yyyy})`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        calcularFechasSuscripcion();
+    });
+</script>
+
+{% endblock %}

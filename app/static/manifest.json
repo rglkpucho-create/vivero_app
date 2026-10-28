@@ -1,0 +1,36 @@
+{
+  "name": "EcoSistem — Vivero Inteligente",
+  "short_name": "EcoSistem",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "description": "Sistema Inteligente de Gestión Agronómica, Catálogo Digital y Trazabilidad Agroforestal",
+  "icons": [
+    {
+      "src": "/static/images/logo_ecosistem.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/logo_ecosistem.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Catálogo Digital",
+      "url": "/tienda/mi-catalogo",
+      "description": "Explora plántulas e insumos en tiempo real"
+    },
+    {
+      "name": "Asesor IA Agrónomo",
+      "url": "/tienda/ver#ia-asesor",
+      "description": "Consulta recomendaciones inteligentes"
+    }
+  ]
+}

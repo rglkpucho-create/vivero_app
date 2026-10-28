@@ -8,7 +8,7 @@ def restaurar_copia():
     
     # 2. Buscar backups existentes
     if not os.path.exists(carpeta_backups):
-        print("❌ No existe la carpeta de copias de seguridad ('backups').")
+        print("[!] No existe la carpeta de copias de seguridad ('backups').")
         return
 
     # Obtener lista de archivos .zip y ordenarlos por fecha (el más nuevo al final)
@@ -16,19 +16,18 @@ def restaurar_copia():
     archivos_zip.sort(key=os.path.getmtime)
 
     if not archivos_zip:
-        print("❌ No hay copias de seguridad disponibles para restaurar.")
+        print("[!] No hay copias de seguridad disponibles para restaurar.")
         return
 
     # 3. Mostrar menú interactivo
-    print("\n--- 🔄 RESTAURAR COPIA DE SEGURIDAD ---")
-    print("⚠️  ADVERTENCIA: Esto sobrescribirá tus archivos de código actuales.")
+    print("\n--- [*] RESTAURAR COPIA DE SEGURIDAD ---")
+    print("[!] ADVERTENCIA: Esto sobrescribirá tus archivos de código actuales.")
     print("    Los archivos nuevos que hayas creado después del backup NO se borrarán,")
     print("    pero los modificados volverán a su estado anterior.\n")
     
     print("Copias disponibles:")
     for i, archivo in enumerate(archivos_zip):
         nombre_archivo = os.path.basename(archivo)
-        # Mostrar fecha legible si es posible, o solo el nombre
         print(f"  [{i+1}] {nombre_archivo}")
 
     # 4. Solicitar selección al usuario
@@ -40,13 +39,13 @@ def restaurar_copia():
             
         indice = int(seleccion) - 1
         if indice < 0 or indice >= len(archivos_zip):
-            print("❌ Número inválido.")
+            print("[!] Número inválido.")
             return
             
         archivo_elegido = archivos_zip[indice]
         
     except ValueError:
-        print("❌ Entrada inválida.")
+        print("[!] Entrada inválida.")
         return
 
     # 5. Confirmación final
@@ -59,16 +58,20 @@ def restaurar_copia():
 
     # 6. Ejecutar restauración
     try:
-        print("\n⏳ Extrayendo archivos...")
+        print("\n[*] Extrayendo archivos de forma segura...")
+        target_dir = os.path.abspath(os.getcwd())
         with zipfile.ZipFile(archivo_elegido, 'r') as zipf:
-            # Extraer en el directorio actual (sobreescribiendo)
-            zipf.extractall(os.getcwd())
+            for member in zipf.infolist():
+                member_path = os.path.abspath(os.path.join(target_dir, member.filename))
+                if not member_path.startswith(target_dir + os.sep) and member_path != target_dir:
+                    raise Exception(f"Intento de extracción insegura detectado (Zip Slip): {member.filename}")
+            zipf.extractall(target_dir)
             
-        print("✅ ¡Restauración completada con éxito!")
-        print("🔄 Reinicia tu servidor Flask para ver los cambios.")
+        print("[+] Restauración completada con éxito.")
+        print("[*] Reinicia tu servidor Flask para ver los cambios.")
         
     except Exception as e:
-        print(f"❌ Error crítico al restaurar: {e}")
+        print(f"[!] Error crítico al restaurar: {e}")
         print("Intenta hacerlo manualmente descomprimiendo el ZIP.")
 
 if __name__ == "__main__":

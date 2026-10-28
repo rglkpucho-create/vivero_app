@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- CABECERA PRINCIPAL -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace extra-small px-3 py-1">
+                    <i class="bi bi-wallet2 me-1"></i>SAAS BILLING & REVENUE
+                </span>
+            </div>
+            <h2 class="fw-black mb-1 text-body">Libro de Pagos & Cobranzas SaaS</h2>
+            <p class="text-muted mb-0">Control financiero integral de suscripciones y licencias cobradas a todas las empresas clientes.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('superadmin.lista_empresas') }}" class="btn btn-outline-secondary rounded-pill fw-bold px-3 d-flex align-items-center gap-1.5 shadow-sm">
+                <i class="bi bi-building"></i>
+                <span>Ver Empresas</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- TARJETAS DE MÉTRICAS GLOBALES DE FACTURACIÓN -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Recaudo Histórico -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Recaudo Total Histórico</span>
+                <h3 class="fs-4 fw-black text-success font-monospace mb-1 mt-1">
+                    ${{ "{:,.0f}".format(total_recaudo_historico).replace(',', '.') }}
+                </h3>
+                <small class="text-muted extra-small">Ingresos acumulados del software</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-cash-stack fs-1 text-success"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Recaudo Mes Actual -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Recaudo Este Mes</span>
+                <h3 class="fs-4 fw-black text-primary font-monospace mb-1 mt-1">
+                    ${{ "{:,.0f}".format(recaudo_mes_actual).replace(',', '.') }}
+                </h3>
+                <small class="text-muted extra-small">Facturación del mes corriente</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-calendar-check fs-1 text-primary"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Total Transacciones -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Pagos Registrados</span>
+                <h3 class="fs-4 fw-black text-info font-monospace mb-1 mt-1">
+                    {{ total_transacciones }} <span class="fs-6 fw-normal text-muted">recibos</span>
+                </h3>
+                <small class="text-muted extra-small">Comprobantes emitidos</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-receipt fs-1 text-info"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Empresas al Día -->
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100 position-relative overflow-hidden">
+                <span class="text-uppercase text-muted extra-small fw-bold">Empresas al Día</span>
+                <h3 class="fs-4 fw-black text-dark font-monospace mb-1 mt-1">
+                    {{ empresas_al_dia }} / {{ empresas|length }}
+                </h3>
+                <small class="text-success extra-small fw-bold">Con licencia y cobertura activa</small>
+                <div class="position-absolute end-0 bottom-0 p-3 opacity-10">
+                    <i class="bi bi-shield-check fs-1 text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTROS Y BÚSQUEDA -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-3">
+        <form method="GET" action="{{ url_for('superadmin.lista_pagos_saas') }}" class="row g-2 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-pill"><i class="bi bi-building text-muted"></i></span>
+                    <select name="empresa_id" class="form-select border-start-0 rounded-end-pill" onchange="this.form.submit()">
+                        <option value="">-- Filtrar por Todas las Empresas --</option>
+                        {% for emp in empresas %}
+                        <option value="{{ emp.id }}" {% if filtro_empresa == emp.id %}selected{% endif %}>{{ emp.nombre }} ({{ emp.ciudad }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-pill"><i class="bi bi-credit-card text-muted"></i></span>
+                    <select name="metodo" class="form-select border-start-0 rounded-end-pill" onchange="this.form.submit()">
+                        <option value="">-- Todos los Medios de Pago --</option>
+                        <option value="Nequi" {% if filtro_metodo == 'Nequi' %}selected{% endif %}>Nequi</option>
+                        <option value="Bancolombia" {% if filtro_metodo == 'Bancolombia' %}selected{% endif %}>Bancolombia</option>
+                        <option value="Daviplata" {% if filtro_metodo == 'Daviplata' %}selected{% endif %}>Daviplata</option>
+                        <option value="PSE / Pasarela" {% if filtro_metodo == 'PSE / Pasarela' %}selected{% endif %}>PSE / Pasarela</option>
+                        <option value="Efectivo" {% if filtro_metodo == 'Efectivo' %}selected{% endif %}>Efectivo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold">
+                    <i class="bi bi-funnel me-1"></i>Filtrar
+                </button>
+                {% if filtro_empresa or filtro_metodo %}
+                <a href="{{ url_for('superadmin.lista_pagos_saas') }}" class="btn btn-outline-secondary rounded-pill px-3" title="Limpiar Filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- TABLA MAESTRA DE TODOS LOS PAGOS REGISTRADOS -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-body">
+                <i class="bi bi-list-check text-primary me-2"></i>Historial Consolidado de Recibos ({{ pagos|length }})
+            </h5>
+            <span class="badge bg-light text-muted border rounded-pill font-monospace small">Orden cronológico</span>
+        </div>
+
+        <div class="card-body p-4">
+            {% if not pagos %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted" style="font-size: 3.5rem; opacity: 0.3;"></i>
+                <h6 class="text-muted mt-2 fw-bold">No se encontraron pagos con los filtros seleccionados</h6>
+                <a href="{{ url_for('superadmin.lista_pagos_saas') }}" class="btn btn-sm btn-outline-primary rounded-pill mt-2">Limpiar Filtros</a>
+            </div>
+            {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light extra-small text-uppercase">
+                        <tr>
+                            <th>Recibo Nº</th>
+                            <th>Empresa Cliente</th>
+                            <th>Fecha de Pago</th>
+                            <th>Concepto / Plan</th>
+                            <th>Periodo de Cobertura</th>
+                            <th>Medio de Pago</th>
+                            <th class="text-end">Monto Pagado</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pago in pagos %}
+                        <tr>
+                            <td>
+                                <strong class="font-monospace text-primary">{{ pago.numero_recibo }}</strong>
+                                {% if pago.referencia %}
+                                <small class="text-muted d-block extra-small">{{ pago.referencia }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if pago.empresa.logo_url %}
+                                    <img src="{{ url_for('static', filename=pago.empresa.logo_url) }}" class="rounded-circle shadow-sm" style="width: 28px; height: 28px; object-fit: cover;">
+                                    {% else %}
+                                    <i class="bi bi-building text-muted"></i>
+                                    {% endif %}
+                                    <div>
+                                        <a href="{{ url_for('superadmin.control_empresa', id=pago.empresa_id) }}" class="fw-bold text-decoration-none text-body">
+                                            {{ pago.empresa.nombre }}
+                                        </a>
+                                        <small class="text-muted d-block extra-small">{{ pago.empresa.ciudad or '' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="font-monospace fw-bold text-body">{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</span>
+                                <small class="text-muted d-block extra-small">{{ pago.fecha_pago.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <strong class="d-block text-body small">{{ pago.plan }}</strong>
+                                <small class="text-muted extra-small">{{ pago.concepto or (pago.meses_cobertura ~ ' mes(es)') }}</small>
+                            </td>
+                            <td>
+                                <div class="font-monospace extra-small">
+                                    <span class="text-muted">{{ pago.fecha_inicio.strftime('%d/%m/%Y') }}</span>
+                                    <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                                    <strong class="text-success">{{ pago.fecha_fin.strftime('%d/%m/%Y') }}</strong>
+                                </div>
+                                <small class="text-muted extra-small">({{ pago.meses_cobertura }} meses)</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-body border rounded-pill px-2.5 py-1 extra-small">
+                                    {{ pago.metodo_pago }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <span class="fs-6 fw-black font-monospace text-success">${{ "{:,.0f}".format(pago.monto).replace(',', '.') }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if pago.estado == 'Aprobado' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 extra-small">
+                                    <i class="bi bi-check2 me-0.5"></i>Aprobado
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1 extra-small">
+                                    {{ pago.estado }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('superadmin.ver_recibo_pago', id=pago.id) }}" target="_blank" class="btn btn-outline-secondary rounded-pill px-2.5 py-1 extra-small fw-bold" title="Imprimir Recibo">
+                                        <i class="bi bi-printer me-1"></i>Recibo
+                                    </a>
+                                    <a href="{{ url_for('superadmin.control_empresa', id=pago.empresa_id) }}" class="btn btn-outline-primary rounded-pill px-2 py-1 extra-small ms-1" title="Ver Ficha de la Empresa">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

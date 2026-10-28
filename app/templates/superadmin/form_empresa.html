@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white p-4 border-0">
+                <h4 class="fw-bold mb-1">
+                    <i class="bi bi-building-fill-gear me-2"></i>
+                    {% if empresa %}Editar Empresa{% else %}Registrar Nueva Empresa{% endif %}
+                </h4>
+                <p class="mb-0 opacity-75">
+                    {% if empresa %}Modifica los datos y la licencia de {{ empresa.nombre }}{% else %}Crea una empresa cliente y su usuario administrador{% endif %}
+                </p>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                    <!-- DATOS DE LA EMPRESA -->
+                    <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+                        <i class="bi bi-info-circle me-1"></i> Datos de la Empresa
+                    </h6>
+                    
+                    <div class="row g-3 mb-4">
+                        <!-- Logo -->
+                        <div class="col-12 text-center mb-2">
+                            <div class="image-upload-wrapper border rounded-3 bg-light d-inline-flex align-items-center justify-content-center position-relative mx-auto"
+                                 style="width: 120px; height: 120px; cursor: pointer; border-style: dashed !important; border-width: 2px;">
+                                {% if empresa and empresa.logo_url %}
+                                <img id="logoPreview" src="{{ url_for('static', filename=empresa.logo_url) }}" 
+                                     class="w-100 h-100 object-fit-cover rounded-3">
+                                {% else %}
+                                <div class="text-center text-muted" id="logoPlaceholder">
+                                    <i class="bi bi-camera fs-2"></i>
+                                    <p class="small mb-0" style="font-size: 0.65rem;">Logo</p>
+                                </div>
+                                <img id="logoPreview" src="#" class="d-none w-100 h-100 object-fit-cover rounded-3">
+                                {% endif %}
+                                <input type="file" name="logo" class="position-absolute top-0 start-0 w-100 h-100 opacity-0"
+                                       accept="image/*" style="cursor: pointer;"
+                                       onchange="let r=new FileReader();r.onload=e=>{document.getElementById('logoPreview').src=e.target.result;document.getElementById('logoPreview').classList.remove('d-none');let p=document.getElementById('logoPlaceholder');if(p)p.classList.add('d-none')};r.readAsDataURL(this.files[0])">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Nombre Comercial *</label>
+                            <input type="text" name="nombre" class="form-control bg-light border-0"
+                                   value="{{ empresa.nombre if empresa else '' }}" required
+                                   placeholder="Vivero Ecológico">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Razón Social</label>
+                            <input type="text" name="razon_social" class="form-control bg-light border-0"
+                                   value="{{ empresa.razon_social if empresa else '' }}"
+                                   placeholder="Vivero Ecológico S.A.S.">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">NIT / RUT</label>
+                            <input type="text" name="nit_rut" class="form-control bg-light border-0"
+                                   value="{{ empresa.nit_rut if empresa else '' }}"
+                                   placeholder="900.123.456-7">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control bg-light border-0"
+                                   value="{{ empresa.telefono if empresa else '' }}"
+                                   placeholder="310 555 1234">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Email</label>
+                            <input type="email" name="email" class="form-control bg-light border-0"
+                                   value="{{ empresa.email if empresa else '' }}"
+                                   placeholder="info@vivero.com">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Ciudad</label>
+                            <input type="text" name="ciudad" class="form-control bg-light border-0"
+                                   value="{{ empresa.ciudad if empresa else '' }}"
+                                   placeholder="Bogotá">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Dirección</label>
+                            <input type="text" name="direccion" class="form-control bg-light border-0"
+                                   value="{{ empresa.direccion if empresa else '' }}"
+                                   placeholder="Cra 10 #45-20">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Sitio Web</label>
+                            <input type="text" name="sitio_web" class="form-control bg-light border-0"
+                                   value="{{ empresa.sitio_web if empresa else '' }}"
+                                   placeholder="www.vivero.com">
+                        </div>
+                    </div>
+
+                    <!-- PLAN DE SUSCRIPCIÓN & LICENCIA SAAS -->
+                    <div class="card border border-primary border-opacity-25 rounded-4 shadow-sm mb-4 overflow-hidden" style="background: rgba(16, 185, 129, 0.03);">
+                        <div class="card-header bg-primary bg-opacity-10 border-0 py-3 px-4 d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="fw-black text-primary mb-0">
+                                    <i class="bi bi-award-fill me-1.5"></i> Plan de Suscripción & Licencia SaaS
+                                </h6>
+                                <small class="text-muted extra-small">Define las capacidades, módulos y periodo de validez para esta empresa</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill px-3 py-1 font-monospace extra-small">Control SaaS</span>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <!-- Selección de Plan -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-body">Plan Comercial *</label>
+                                    <select name="plan_nombre" id="selectPlan" class="form-select bg-body border fw-bold" required onchange="actualizarPrecioPlan(this.value)">
+                                        {% set current_plan = empresa.plan_nombre if empresa else 'Plan Cosecha Pro' %}
+                                        <option value="Plan Semilla" {% if 'semilla' in current_plan.lower() %}selected{% endif %}>
+                                            🌱 Plan Semilla ($59.000 COP • 2 usuarios, 1 sede, 50 lotes)
+                                        </option>
+                                        <option value="Plan Cosecha Pro" {% if 'cosecha' in current_plan.lower() or 'pro' in current_plan.lower() %}selected{% endif %}>
+                                            🌾 Plan Cosecha Pro ($119.000 COP • 5 usuarios, 2 sedes, lotes ilimitados, QR) ⭐
+                                        </option>
+                                        <option value="Plan Agro-Hacienda" {% if 'hacienda' in current_plan.lower() or 'ganad' in current_plan.lower() or 'empresarial' in current_plan.lower() %}selected{% endif %}>
+                                            💎 Plan Agro-Hacienda ($229.000 COP • Ilimitado, Pecuario y Ganadería)
+                                        </option>
+                                    </select>
+                                    <div class="form-text extra-small" id="planDescripcion">
+                                        Módulos y límites se aplican automáticamente según el plan elegido.
+                                    </div>
+                                </div>
+
+                                <!-- Ciclo de Pago -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small text-body">Ciclo de Facturación</label>
+                                    <select name="ciclo_pago" id="selectCiclo" class="form-select bg-body border" onchange="actualizarPrecioSegunCiclo()">
+                                        {% set current_ciclo = empresa.ciclo_pago if empresa else 'Mensual' %}
+                                        <option value="Mensual" {% if current_ciclo == 'Mensual' %}selected{% endif %}>Mensual</option>
+                                        <option value="Semestral" {% if current_ciclo == 'Semestral' %}selected{% endif %}>Semestral (6 meses)</option>
+                                        <option value="Anual" {% if current_ciclo == 'Anual' %}selected{% endif %}>Anual (12 meses)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Precio Pactado -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold small text-body">Precio Suscripción (COP) *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-body-tertiary border text-muted small">$</span>
+                                        <input type="number" step="1000" name="precio_suscripcion" id="inputPrecio" class="form-control bg-body border font-monospace fw-bold"
+                                               value="{{ empresa.precio_suscripcion|int if (empresa and empresa.precio_suscripcion) else 119000 }}" required>
+                                    </div>
+                                    <small class="text-muted extra-small">Personalizable con descuento</small>
+                                </div>
+
+                                <!-- Vigencia de Licencia -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small text-body">Vigencia de la Licencia</label>
+                                    <select name="periodo_inicial" id="selectPeriodo" class="form-select bg-body border" onchange="toggleFechaManual(this.value)">
+                                        <option value="30d">30 Días (1 mes)</option>
+                                        <option value="90d">90 Días (Trimestre)</option>
+                                        <option value="365d">365 Días (1 Año completo)</option>
+                                        <option value="vitalicia">Vitalicia / Sin Fecha de Expiración</option>
+                                        <option value="manual" {% if empresa and empresa.fecha_vencimiento %}selected{% endif %}>Fecha Específica Personalizada</option>
+                                    </select>
+                                </div>
+
+                                <!-- Fecha de Vencimiento Manual -->
+                                <div class="col-md-6" id="divFechaVencimiento" {% if not (empresa and empresa.fecha_vencimiento) %}style="display: none;"{% endif %}>
+                                    <label class="form-label fw-bold small text-body">Fecha de Vencimiento Exacta</label>
+                                    <input type="date" name="fecha_vencimiento" id="inputFechaVencimiento" class="form-control bg-body border font-monospace"
+                                           value="{{ empresa.fecha_vencimiento.strftime('%Y-%m-%d') if (empresa and empresa.fecha_vencimiento) else '' }}">
+                                </div>
+
+                                <!-- Estado de Licencia (solo en edición) -->
+                                {% if empresa %}
+                                <div class="col-12 mt-2 pt-2 border-top">
+                                    <div class="d-flex align-items-center justify-content-between p-2.5 rounded-3 bg-body border">
+                                        <div>
+                                            <span class="fw-bold small d-block">Estado Operativo de la Licencia</span>
+                                            <small class="text-muted extra-small">Si se suspende, los usuarios de esta empresa no podrán iniciar sesión.</small>
+                                        </div>
+                                        <div class="form-check form-switch fs-5 mb-0">
+                                            <input class="form-check-input" type="checkbox" name="licencia_activa" value="1" id="switchLicencia" {% if empresa.licencia_activa %}checked{% endif %}>
+                                            <label class="form-check-label small fw-bold" for="switchLicencia" id="labelLicencia">
+                                                {% if empresa.licencia_activa %}<span class="text-success fs-6">Activa</span>{% else %}<span class="text-danger fs-6">Suspendida</span>{% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- USUARIOS DE ESTA EMPRESA -->
+                    {% if usuarios %}
+                    <h6 class="fw-bold text-info mb-3 border-bottom pb-2">
+                        <i class="bi bi-people me-1"></i> Usuarios ({{ usuarios | length }})
+                    </h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm align-middle">
+                            <thead><tr>
+                                <th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th>
+                            </tr></thead>
+                            <tbody>
+                            {% for u in usuarios %}
+                            <tr>
+                                <td class="fw-bold">{{ u.nombre_completo }}</td>
+                                <td><small>{{ u.email }}</small></td>
+                                <td><span class="badge bg-secondary">{{ u.rol.nombre if u.rol else 'Sin Rol' }}</span></td>
+                                <td>
+                                    {% if u.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+
+                    {% if not empresa %}
+                    <!-- USUARIO ADMIN INICIAL (solo al crear) -->
+                    <h6 class="fw-bold text-success mb-3 border-bottom pb-2">
+                        <i class="bi bi-person-badge me-1"></i> Usuario Administrador de la Empresa
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Nombre del Admin</label>
+                            <input type="text" name="admin_nombre" class="form-control bg-light border-0"
+                                   placeholder="Juan Pérez" value="Administrador">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Teléfono</label>
+                            <input type="text" name="admin_telefono" class="form-control bg-light border-0"
+                                   placeholder="310 555 1234">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Email de Acceso *</label>
+                            <input type="email" name="admin_email" class="form-control bg-light border-0"
+                                   placeholder="admin@vivero.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Contraseña Inicial</label>
+                            <input type="text" name="admin_password" class="form-control bg-light border-0"
+                                   value="Admin123!" placeholder="Admin123!">
+                            <small class="text-muted">Se le puede cambiar después.</small>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- NOTAS INTERNAS -->
+                    <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">
+                        <i class="bi bi-journal-text me-1"></i> Notas Internas (solo tú las ves)
+                    </h6>
+                    <textarea name="notas_admin" class="form-control bg-light border-0 mb-4" rows="3"
+                              placeholder="Ej: Paga mensual, contacto con María...">{{ empresa.notas_admin if empresa else '' }}</textarea>
+
+                    <!-- BOTONES -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold py-2 shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i>
+                            {% if empresa %}Guardar Cambios{% else %}Crear Empresa{% endif %}
+                        </button>
+                        <a href="{{ url_for('superadmin.lista_empresas') }}" 
+                           class="btn btn-link text-muted mt-2 text-decoration-none">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const PLAN_PRICES = {
+    'Plan Semilla': { 'Mensual': 59000, 'Semestral': 319000, 'Anual': 590000 },
+    'Plan Cosecha Pro': { 'Mensual': 119000, 'Semestral': 599000, 'Anual': 1190000 },
+    'Plan Agro-Hacienda': { 'Mensual': 229000, 'Semestral': 1190000, 'Anual': 2290000 }
+};
+
+function actualizarPrecioPlan(plan) {
+    const ciclo = document.getElementById('selectCiclo')?.value || 'Mensual';
+    const precio = PLAN_PRICES[plan]?.[ciclo] || PLAN_PRICES[plan]?.['Mensual'] || 119000;
+    const inputPrecio = document.getElementById('inputPrecio');
+    if (inputPrecio) {
+        inputPrecio.value = precio;
+    }
+}
+
+function actualizarPrecioSegunCiclo() {
+    const plan = document.getElementById('selectPlan')?.value || 'Plan Cosecha Pro';
+    actualizarPrecioPlan(plan);
+}
+
+function toggleFechaManual(val) {
+    const divF = document.getElementById('divFechaVencimiento');
+    if (divF) {
+        divF.style.display = (val === 'manual') ? 'block' : 'none';
+    }
+}
+
+document.getElementById('switchLicencia')?.addEventListener('change', function() {
+    const label = document.getElementById('labelLicencia');
+    if (label) {
+        label.innerHTML = this.checked ? '<span class="text-success fs-6">Activa</span>' : '<span class="text-danger fs-6">Suspendida</span>';
+    }
+});
+</script>
+{% endblock %}

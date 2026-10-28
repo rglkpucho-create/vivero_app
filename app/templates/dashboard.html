@@ -12,10 +12,10 @@
         position: relative;
     }
 
-        .kpi-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
 
     /* Icono de fondo gigante y sutil */
     .kpi-icon-bg {
@@ -30,86 +30,256 @@
 
     /* Tablas más limpias */
     .table-hover tbody tr:hover {
-        background-color: rgba(0,0,0,0.02);
+        background-color: rgba(0, 0, 0, 0.02);
     }
 
     /* Accesos rápidos */
     .quick-btn {
         text-align: left;
         padding: 1rem;
-        border: 1px solid rgba(0,0,0,0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
         border-radius: 1rem;
         transition: all 0.2s;
         background: var(--bs-card-bg);
     }
 
-        .quick-btn:hover {
-            border-color: var(--primary-color);
-            background-color: rgba(5, 150, 105, 0.05);
-            transform: translateX(5px);
-        }
+    .quick-btn:hover {
+        border-color: var(--primary-color);
+        background-color: rgba(5, 150, 105, 0.05);
+        transform: translateX(5px);
+    }
 
     /* Modo oscuro específico */
     [data-bs-theme="dark"] .quick-btn:hover {
-        background-color: rgba(255,255,255,0.05);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Cyber-Botanical AI HUD (High-Tech Command Console) */
+    .cyber-hud-card {
+        background: linear-gradient(135deg, #041a12 0%, #020c08 100%) !important;
+        border: 1.5px solid rgba(16, 185, 129, 0.45) !important;
+        border-radius: 1.35rem !important;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25), 0 0 25px rgba(16, 185, 129, 0.15) !important;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        color: #ffffff !important;
+    }
+
+    .cyber-hud-card h5,
+    .cyber-hud-card h3 {
+        color: #ffffff !important;
+    }
+
+    .cyber-hud-card::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 160px;
+        height: 160px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .hud-pulse-dot {
+        width: 10px;
+        height: 10px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #10b981;
+        display: inline-block;
+        animation: pulseNeon 1.8s infinite ease-in-out;
+    }
+
+    @keyframes pulseNeon {
+        0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 6px #10b981; }
+        50% { transform: scale(1.3); opacity: 0.7; box-shadow: 0 0 16px #10b981, 0 0 25px rgba(0, 255, 136, 0.4); }
     }
 </style>
 
 <div class="container py-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h2 class="fw-bold mb-0 text-dark">Panel de Control</h2>
-            <p class="text-muted mb-0">Resumen operativo del vivero.</p>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="hud-pulse-dot"></span>
+                <span class="text-success fw-bold font-monospace small" style="letter-spacing: 1px;">SISTEMA INTELIGENTE CONECTADO • ECO-AI ONLINE</span>
+            </div>
+            <h2 class="fw-bold mb-0 text-body">Panel de Control & Comando</h2>
+            <p class="text-muted mb-0">Resumen operativo, predicciones de IA y métricas bio-analíticas en tiempo real.</p>
         </div>
-        <div class="d-none d-md-block">
-            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-success rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-2 small shadow-sm" id="btnInstalarPWA" style="display: none;">
+                <i class="bi bi-phone-fill text-success"></i>
+                <span>Instalar App</span>
+            </button>
+            <span class="badge bg-light text-body border px-3 py-2 rounded-pill font-monospace">
                 <i class="bi bi-calendar-event me-2"></i>{{ datetime.now().strftime('%d/%m/%Y') }}
             </span>
         </div>
     </div>
 
+    <!-- HUD PREDICTIVO DE INTELIGENCIA ARTIFICIAL (BIO-ANALYTICS) -->
+    <div class="cyber-hud-card p-4 text-white mb-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom border-white border-opacity-10 pb-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="background: rgba(16, 185, 129, 0.2); color: #34d399; width: 44px; height: 44px; border: 1px solid rgba(16, 185, 129, 0.4);">
+                    <i class="bi bi-cpu-fill fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-black mb-0 text-white" style="letter-spacing: -0.5px;">Centro de Inteligencia Agronómica Predictiva</h5>
+                    <small class="text-white text-opacity-60">Algoritmos de rotación, proyección de demanda y biomasa calculados para tu vivero.</small>
+                </div>
+            </div>
+            <span class="badge rounded-pill px-3 py-1.5 font-monospace text-success fw-bold" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3);">
+                ⚡ IA PREDICTIVA ACTIVA
+            </span>
+        </div>
+
+        <div class="row g-4 align-items-center">
+            <!-- 1. Proyección 30 Días -->
+            <div class="col-6 col-lg-3 border-end-lg border-white border-opacity-10">
+                <span class="text-white text-opacity-60 small text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Proyección Ventas (30 Días)</span>
+                <div class="d-flex align-items-baseline gap-1">
+                    <h3 class="fs-4 fw-black text-white font-monospace mb-0">${{ "{:,.0f}".format(proyeccion_ventas_30d).replace(',', '.') }}</h3>
+                    <span class="text-success small fw-bold">↗ +18%</span>
+                </div>
+                <small class="text-white text-opacity-50 extra-small">Demanda estimada según estacionalidad</small>
+            </div>
+
+            <!-- 2. Índice de Salud Agronómica -->
+            <div class="col-6 col-lg-3 border-end-lg border-white border-opacity-10">
+                <span class="text-white text-opacity-60 small text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Salud del Vivero</span>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h3 class="fs-4 fw-black text-white font-monospace mb-0">{{ indice_salud_vivero }}%</h3>
+                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-2 py-0.5 extra-small">Óptimo</span>
+                </div>
+                <div class="progress mt-1.5" style="height: 5px; background: rgba(255,255,255,0.1);">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ indice_salud_vivero }}%;" aria-valuenow="{{ indice_salud_vivero }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+
+            <!-- 3. Captura Estimada de CO2 -->
+            <div class="col-6 col-lg-3 border-end-lg border-white border-opacity-10">
+                <span class="text-white text-opacity-60 small text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Captura de Carbono (Biomasa)</span>
+                <div class="d-flex align-items-baseline gap-1">
+                    <h3 class="fs-4 fw-black text-info font-monospace mb-0">{{ co2_captura_anual_toneladas }}</h3>
+                    <span class="text-white text-opacity-75 small">Ton CO₂/año</span>
+                </div>
+                <small class="text-white text-opacity-50 extra-small">Fijación por plántulas vivas activas</small>
+            </div>
+
+            <!-- 4. Lotes en Riesgo de Quiebre -->
+            <div class="col-6 col-lg-3">
+                <span class="text-white text-opacity-60 small text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Alerta Reabastecimiento</span>
+                {% if lotes_quiebre_stock %}
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="badge bg-warning bg-opacity-20 text-warning border border-warning border-opacity-25 rounded-pill px-2 py-1 font-monospace small">
+                        ⚠️ {{ lotes_quiebre_stock|length }} Lotes por Agotar
+                    </span>
+                </div>
+                <small class="text-white text-opacity-50 extra-small d-block text-truncate mt-1">
+                    {{ lotes_quiebre_stock[0].especie.nombre_comun if lotes_quiebre_stock[0].especie else 'Plántulas' }} ({{ lotes_quiebre_stock[0].cantidad_actual }} disp.)
+                </small>
+                {% else %}
+                <div class="d-flex align-items-center gap-1.5">
+                    <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-25 rounded-pill px-2 py-1 font-monospace small">
+                        ✅ Stock Equilibrado
+                    </span>
+                </div>
+                <small class="text-white text-opacity-50 extra-small">Inventario con cobertura normal</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <div class="row g-4 mb-5">
         <div class="col-md-6 col-lg-3">
-            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+            <a href="{{ url_for('produccion.lista_lotes', filtro='crecimiento', vista='informativa') }}" class="text-decoration-none h-100 d-block">
+                <div class="card kpi-card text-white h-100"
+                    style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                    <div class="card-body p-4">
+                        <h6 class="text-uppercase fw-bold opacity-75 small mb-2" style="letter-spacing: 0.5px;">Activos Vivos</h6>
+                        <div class="d-flex justify-content-between align-items-end">
+                            <div>
+                                <h2 class="fs-2 fw-black mb-0 font-monospace">{{ "{:,.0f}".format(total_plantas_crecimiento).replace(',', '.') }}</h2>
+                                <p class="mb-0 opacity-75 small mt-1">Plantas</p>
+                            </div>
+                            <div class="text-end">
+                                <h2 class="fs-2 fw-black mb-0 font-monospace">{{ total_animales }}</h2>
+                                <p class="mb-0 opacity-75 small mt-1">Animales</p>
+                            </div>
+                        </div>
+                        <i class="bi bi-flower1 kpi-icon-bg"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card kpi-card text-white h-100"
+                style="background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);">
                 <div class="card-body p-4">
-                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Plantas en Crecimiento</h6>
-                    <h2 class="display-5 fw-bold mb-0">{{ "{:,.0f}".format(total_plantas_crecimiento).replace(',', '.') }}</h2>
-                    <p class="mb-0 opacity-75 small mt-2">En {{ lotes_activos_count }} lotes activos</p>
-                    <i class="bi bi-flower1 kpi-icon-bg"></i>
+                    <h6 class="text-uppercase fw-bold opacity-75 small mb-2" style="letter-spacing: 0.5px;">Valor de Inventario</h6>
+                    <h2 class="fs-2 fw-black mb-0 font-monospace text-nowrap">${{ "{:,.0f}".format(valor_total_activos).replace(',', '.') }}</h2>
+                    <p class="mb-0 opacity-75 small mt-2">Valoración estimada de activos</p>
+                    <i class="bi bi-currency-dollar kpi-icon-bg"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-md-6 col-lg-3">
-            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #ffc107 0%, #ffdb4d 100%); color: #5c4206 !important;">
+            <div class="card kpi-card text-white h-100"
+                style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);">
                 <div class="card-body p-4">
-                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Alertas de Insumos</h6>
-                    <h2 class="display-5 fw-bold mb-0">{{ insumos_alerta|length }}</h2>
-                    <p class="mb-0 opacity-75 small mt-2">Ítems bajo stock mínimo</p>
-                    <i class="bi bi-exclamation-triangle-fill kpi-icon-bg"></i>
+                    <h6 class="text-uppercase fw-bold opacity-75 small mb-2" style="letter-spacing: 0.5px;">Salud Financiera (Mes)</h6>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-6 border-end border-white border-opacity-25">
+                            <h3 class="fs-4 fw-black mb-0 font-monospace">${{ "{:,.0f}".format(ingresos_mes).replace(',', '.') }}</h3>
+                            <p class="mb-0 opacity-75 small mt-1">Ventas</p>
+                        </div>
+                        <div class="col-6 ps-3">
+                            <h3 class="fs-4 fw-black mb-0 text-white font-monospace">${{ "{:,.0f}".format(margen_mes).replace(',', '.') }}</h3>
+                            <p class="mb-0 opacity-75 small mt-1">Margen</p>
+                        </div>
+                    </div>
+                    <i class="bi bi-graph-up-arrow kpi-icon-bg"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-md-6 col-lg-3">
-            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);">
-                <div class="card-body p-4">
-                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Pedidos a Proveedores</h6>
-                    <h2 class="display-5 fw-bold mb-0">{{ pedidos_pendientes }}</h2>
-                    <p class="mb-0 opacity-75 small mt-2">Órdenes por recibir</p>
-                    <i class="bi bi-truck kpi-icon-bg"></i>
+            <a href="{{ url_for('inventario.lista_insumos', filtro='alerta_total') }}" class="text-decoration-none h-100 d-block">
+                <div class="card kpi-card text-white h-100"
+                    style="background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);">
+                    <div class="card-body p-4">
+                        <h6 class="text-uppercase fw-bold opacity-90 small mb-2 text-white" style="letter-spacing: 0.5px;">Alertas de Insumos</h6>
+                        <h2 class="fs-2 fw-black mb-0 text-white font-monospace">{{ insumos_alerta|length }}</h2>
+                        <p class="mb-0 opacity-85 small mt-2 text-white">Ítems bajo stock crítico</p>
+                        <i class="bi bi-exclamation-triangle-fill kpi-icon-bg text-white"></i>
+                    </div>
                 </div>
-            </div>
+            </a>
         </div>
+    </div>
 
-        <div class="col-md-6 col-lg-3">
-            <div class="card kpi-card text-white h-100" style="background: linear-gradient(135deg, #0dcaf0 0%, #3dd5f3 100%);">
-                <div class="card-body p-4">
-                    <h6 class="text-uppercase fw-bold opacity-75 small mb-1">Ventas (Mes Actual)</h6>
-                    <h2 class="display-5 fw-bold mb-0">{{ ventas_mes }}</h2>
-                    <p class="mb-0 opacity-75 small mt-2">Facturas emitidas</p>
-                    <i class="bi bi-receipt kpi-icon-bg"></i>
+    <!-- SECCIÓN DE ANALÍTICA (ADAPTADA DARK/LIGHT 2026) -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-body"><i class="bi bi-bar-chart-line me-2 text-success"></i>Tendencia de Ventas</h5>
+                        <p class="text-muted small mb-0">Desempeño comercial de los últimos 6 meses (Valores en $)</p>
+                    </div>
+                    <div class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-bold">
+                        EcoSistem AI Analytics 
+                    </div>
+                </div>
+                <div class="card-body p-4" style="height: 350px;">
+                    <canvas id="ventasChart"></canvas>
                 </div>
             </div>
         </div>
@@ -118,21 +288,24 @@
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <div
+                    class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-speedometer2 me-2 text-success"></i>Progreso de Cultivos</h5>
+                        <h5 class="fw-bold mb-0 text-body"><i class="bi bi-speedometer2 me-2 text-success"></i>Progreso
+                            de Cultivos</h5>
                         <p class="text-muted small mb-0">Lotes activos ordenados por antigüedad.</p>
                     </div>
-                    <a href="{{ url_for('main.lista_lotes') }}" class="btn btn-sm btn-outline-success rounded-pill fw-bold">Ver Tablero Completo</a>
+                    <a href="{{ url_for('produccion.lista_lotes') }}"
+                        class="btn btn-sm btn-outline-success rounded-pill fw-bold">Ver Tablero Completo</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light small text-uppercase text-muted">
+                            <thead class="bg-body-secondary small text-uppercase text-muted border-bottom">
                                 <tr>
                                     <th class="ps-4">Lote / Especie</th>
                                     <th class="text-center">Población</th>
-                                    <th>Ciclo de Vida (Estimado)</th>
+                                    <th>Ciclo de Vida / Estado</th>
                                     <th class="text-end pe-4">Gestión</th>
                                 </tr>
                             </thead>
@@ -141,28 +314,48 @@
                                 <tr>
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
-                                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                                <i class="bi bi-flower1"></i>
+                                            <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+                                                style="width: 40px; height: 40px;">
+                                                <i class="bi bi-flower1 fs-5"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold text-dark small">{{ item.lote_obj.codigo_lote }}</div>
-                                                <div class="small text-muted">{{ item.lote_obj.especie.nombre_comun }}</div>
+                                                <div class="fw-bold text-body small d-flex align-items-center gap-2">
+                                                    {{ item.lote_obj.codigo_lote }}
+                                                    {% if item.lote_obj.estado == 'Disponible' %}
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace" style="font-size: 0.6rem;">Disponible</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="small text-muted">{{ item.lote_obj.especie.nombre_comun if item.lote_obj.especie else 'Cultivo' }}
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="text-center fw-bold text-dark">{{ item.lote_obj.cantidad_actual }}</td>
+                                    <td class="text-center fw-bold text-body font-monospace">{{ item.lote_obj.cantidad_actual }} <small class="text-muted fw-normal">unds</small></td>
                                     <td class="w-25">
                                         <div class="d-flex justify-content-between small mb-1">
-                                            <span>Día {{ item.dias_transcurridos }}</span>
-                                            <span class="fw-bold text-{{ item.color_estado }}">{{ item.progreso_pct }}%</span>
+                                            {% if item.lote_obj.estado == 'Disponible' %}
+                                            <span class="text-success fw-bold font-monospace" style="font-size: 0.72rem;">Maduro ({{ item.dias_transcurridos }} d)</span>
+                                            <span class="fw-bold text-success">100%</span>
+                                            {% else %}
+                                            <span class="text-body font-monospace" style="font-size: 0.72rem;">Día {{ item.dias_transcurridos }}</span>
+                                            <span class="fw-bold text-{{ item.color_estado }} font-monospace">{{ item.progreso_pct }}%</span>
+                                            {% endif %}
                                         </div>
                                         <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-{{ item.color_estado }}" role="progressbar" style="width: {{ item.progreso_pct }}%"></div>
+                                            <div class="progress-bar bg-{{ item.color_estado }}" role="progressbar"
+                                                style="width: {{ item.progreso_pct }}%"></div>
                                         </div>
-                                        <div class="small text-muted mt-1" style="font-size: 0.7rem;">Meta: {{ item.lote_obj.especie.dias_ciclo_estimado }} días</div>
+                                        <div class="small text-muted mt-1" style="font-size: 0.7rem;">
+                                            {% if item.lote_obj.estado == 'Disponible' %}
+                                            Listo para comercialización o consumo
+                                            {% else %}
+                                            Meta: {{ item.lote_obj.especie.dias_ciclo_estimado or 90 }} días
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <a href="{{ url_for('main.ver_lote', lote_id=item.lote_obj.id) }}" class="btn btn-sm btn-light fw-bold text-primary rounded-pill px-3">
+                                        <a href="{{ url_for('produccion.ver_lote', lote_id=item.lote_obj.id) }}"
+                                            class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3 shadow-sm" style="font-size: 0.75rem;">
                                             Detalles
                                         </a>
                                     </td>
@@ -182,27 +375,116 @@
         </div>
 
         <div class="col-lg-4">
+            <!-- IA SUGGESTED TASKS -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4" 
+                 style="background: linear-gradient(135deg, rgba(var(--bs-primary-rgb), 0.05) 0%, rgba(var(--bs-primary-rgb), 0) 100%); border: 1px solid var(--bs-border-color) !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                            <i class="bi bi-robot text-primary"></i> Cola de Trabajo (IA)
+                        </h6>
+                        <span class="badge bg-primary rounded-pill px-2 py-1" style="font-size: 0.65rem;">Sugerido</span>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        {% for tarea in tareas_ia %}
+                        <a href="{{ tarea.url }}" class="quick-btn text-decoration-none text-body d-flex align-items-center border-start border-4 border-{{ tarea.color }} px-3 py-2">
+                            <div class="bg-{{ tarea.color }} text-white rounded-circle p-2 me-3 flex-shrink-0" style="width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                                <i class="bi {{ tarea.icon }}"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <h6 class="fw-bold mb-1 small text-truncate">{{ tarea.titulo }}</h6>
+                                <small class="text-muted d-block text-truncate" style="font-size: 0.72rem; line-height: 1.25;">{{ tarea.sub }}</small>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted small ms-2"></i>
+                        </a>
+                        {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-check-circle text-success fs-3 mb-2"></i>
+                            <p class="small text-muted mb-0">No hay tareas urgentes.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASISTENTE DE COMPRAS INTELIGENTE (IA) -->
+            {% if alertas_compra %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" 
+                 style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%); border: 1px solid rgba(245, 158, 11, 0.3) !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                            <i class="bi bi-cart-check-fill text-warning fs-5"></i> Asistente de Reabastecimiento
+                        </h6>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill font-monospace px-2 py-1" style="font-size: 0.68rem;">
+                            <i class="bi bi-lightning-charge-fill me-1"></i>Crítico
+                        </span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2">
+                        {% for alerta in alertas_compra %}
+                        <div class="p-3 rounded-3 border bg-body shadow-sm">
+                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="rounded-circle bg-warning bg-opacity-15 text-warning p-1 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.8rem;">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    </span>
+                                    <strong class="small text-body fw-bold">{{ alerta.titulo }}</strong>
+                                </div>
+                                {% if alerta.lote %}
+                                <span class="badge bg-body-tertiary text-secondary border font-monospace" style="font-size: 0.68rem;">
+                                    {{ alerta.lote }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="small text-muted mb-2 ps-4" style="font-size: 0.76rem; line-height: 1.35;">
+                                {{ alerta.detalle }}
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-opacity-25 ps-4">
+                                <small class="text-warning-emphasis opacity-75 font-monospace" style="font-size: 0.68rem;">
+                                    Sugerencia: Crear Orden
+                                </small>
+                                <a href="{{ url_for('compras.nuevo_pedido') }}" 
+                                   class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 fw-bold text-decoration-none d-inline-flex align-items-center gap-1 shadow-sm" 
+                                   style="font-size: 0.72rem;">
+                                    <span>Pedir Insumos</span> <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3 text-dark">Accesos Rápidos</h6>
+                    <h6 class="fw-bold mb-3 text-body">Accesos Rápidos</h6>
                     <div class="d-flex flex-column gap-3">
-                        <a href="{{ url_for('main.nuevo_lote') }}" class="quick-btn text-decoration-none text-dark d-flex align-items-center">
-                            <div class="bg-success text-white rounded-circle p-2 me-3"><i class="bi bi-flower3"></i></div>
+                        <a href="{{ url_for('produccion.nuevo_lote') }}"
+                            class="quick-btn text-decoration-none text-body d-flex align-items-center">
+                            <div class="bg-success text-white rounded-circle p-2 me-3"><i class="bi bi-flower3"></i>
+                            </div>
                             <div>
                                 <h6 class="fw-bold mb-0">Registrar Siembra</h6>
                                 <small class="text-muted">Nuevo lote</small>
                             </div>
                         </a>
 
-                        <a href="{{ url_for('main.nuevo_pedido') }}" class="quick-btn text-decoration-none text-dark d-flex align-items-center">
-                            <div class="bg-primary text-white rounded-circle p-2 me-3"><i class="bi bi-cart-plus"></i></div>
+                        <a href="{{ url_for('compras.nuevo_pedido') }}"
+                            class="quick-btn text-decoration-none text-body d-flex align-items-center">
+                            <div class="bg-primary text-white rounded-circle p-2 me-3"><i class="bi bi-cart-plus"></i>
+                            </div>
                             <div>
                                 <h6 class="fw-bold mb-0">Nueva Compra</h6>
                                 <small class="text-muted">Solicitar insumos</small>
                             </div>
                         </a>
 
-                        <a href="{{ url_for('main.nueva_venta') }}" class="quick-btn text-decoration-none text-dark d-flex align-items-center">
+                        <a href="{{ url_for('ventas.nueva_venta') }}"
+                            class="quick-btn text-decoration-none text-body d-flex align-items-center">
                             <div class="bg-info text-white rounded-circle p-2 me-3"><i class="bi bi-receipt"></i></div>
                             <div>
                                 <h6 class="fw-bold mb-0">Registrar Venta</h6>
@@ -234,47 +516,101 @@
                 </div>
             </div>
         </div>
-    </div>
-
     {% if insumos_alerta %}
-    <div class="card border-0 shadow-sm rounded-4 mt-4 border-start border-5 border-danger overflow-hidden">
-        <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between">
-            <h5 class="fw-bold text-danger mb-0"><i class="bi bi-bell-fill me-2"></i>Insumos Críticos</h5>
-            <a href="{{ url_for('main.nuevo_pedido') }}" class="btn btn-sm btn-danger rounded-pill px-3">Solicitar Todo</a>
-        </div>
-        <div class="card-body px-0 pb-2">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="text-uppercase small text-muted">
-                        <tr>
-                            <th class="ps-4">Insumo</th>
-                            <th class="text-center">Stock</th>
-                            <th class="text-center">Mínimo</th>
-                            <th class="text-end pe-4">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ins in insumos_alerta %}
-                        <tr>
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-danger bg-opacity-10 text-danger rounded p-1 me-2"><i class="bi bi-box"></i></div>
-                                    <span class="fw-bold text-dark">{{ ins.nombre }}</span>
-                                </div>
-                            </td>
-                            <td class="text-center fw-bold text-danger">{{ ins.cantidad_actual }}</td>
-                            <td class="text-center text-muted small">{{ ins.stock_minimo }}</td>
-                            <td class="text-end pe-4">
-                                <a href="#" class="btn btn-sm btn-outline-danger rounded-pill" style="font-size: 0.75rem;">Reabastecer</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <!-- Modal para Insumos Críticos (Opcional o Inline) -->
     {% endif %}
 
 </div>
+
+<!-- CHART.JS INTEGRATION -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const ctx = document.getElementById('ventasChart').getContext('2d');
+        
+        // Estilo de gradiente esmeralda moderno para el gráfico
+        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+        gradient.addColorStop(0, isDark ? 'rgba(16, 185, 129, 0.35)' : 'rgba(5, 150, 105, 0.25)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+        const textColor = isDark ? '#94a3b8' : '#64748b';
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|tojson }},
+                datasets: [{
+                    label: 'Ventas Totales ($)',
+                    data: {{ chart_data|tojson }},
+                    borderColor: '#10b981',
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: isDark ? '#111827' : '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: isDark ? '#1e293b' : '#0f172a',
+                        titleColor: '#fff',
+                        bodyColor: '#10b981',
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: gridColor,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: textColor,
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: textColor
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

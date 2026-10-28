@@ -227,68 +227,70 @@ insumos_data = [
 ]
 
 # --- SCRIPT DE CARGA ---
-app = create_app()
+def sembrar_insumos(app=None):
+    if app is None:
+        app = create_app()
 
-with app.app_context():
-    print("🚜 Iniciando carga de Insumos y Unidades...")
+    with app.app_context():
+        print("[*] Iniciando carga de Insumos y Unidades...")
 
-    # 1. Asegurar Unidades de Medida
-    unidades_base = [
-        ('Kg', 'Kilogramo'),
-        ('L', 'Litro'),
-        ('Und', 'Unidad'),
-        ('Bto', 'Bulto'),
-        ('m3', 'Metro Cúbico'),
-        ('g', 'Gramo'),
-        ('ml', 'Mililitro'),
-        ('Rollo', 'Rollo')
-    ]
+        # 1. Asegurar Unidades de Medida
+        unidades_base = [
+            ('Kg', 'Kilogramo'),
+            ('L', 'Litro'),
+            ('Und', 'Unidad'),
+            ('Bto', 'Bulto'),
+            ('m3', 'Metro Cúbico'),
+            ('g', 'Gramo'),
+            ('ml', 'Mililitro'),
+            ('Rollo', 'Rollo')
+        ]
 
-    unidades_map = {} # Diccionario para acceso rápido id por abreviatura
+        unidades_map = {}
 
-    print("   > Verificando Unidades de Medida...")
-    for abreviatura, nombre in unidades_base:
-        unidad = UnidadMedida.query.filter_by(abreviatura=abreviatura).first()
-        if not unidad:
-            unidad = UnidadMedida(nombre=nombre, abreviatura=abreviatura)
-            db.session.add(unidad)
-            print(f"     + Creada unidad: {nombre}")
-        unidades_map[abreviatura] = unidad
-    
-    db.session.commit() # Guardar unidades para tener IDs
-    
-    # Recargar mapa con objetos persistidos
-    for u in UnidadMedida.query.all():
-        unidades_map[u.abreviatura] = u
-
-    # 2. Cargar Insumos
-    print("\n   > Sembrando Insumos en la Base de Datos...")
-    conteo = 0
-    for data in insumos_data:
-        # Verificar si ya existe por nombre
-        existe = Insumo.query.filter_by(nombre=data['nombre']).first()
+        print("   > Verificando Unidades de Medida...")
+        for abreviatura, nombre in unidades_base:
+            unidad = UnidadMedida.query.filter_by(abreviatura=abreviatura).first()
+            if not unidad:
+                unidad = UnidadMedida(nombre=nombre, abreviatura=abreviatura)
+                db.session.add(unidad)
+                print(f"     + Creada unidad: {nombre}")
+            unidades_map[abreviatura] = unidad
         
-        if not existe:
-            # Buscar el ID de la unidad
-            unidad_obj = unidades_map.get(data['unidad'])
-            if not unidad_obj:
-                print(f"     ! ALERTA: Unidad '{data['unidad']}' no encontrada para {data['nombre']}. Usando 'Und'.")
-                unidad_obj = unidades_map.get('Und')
+        db.session.commit()
+        
+        for u in UnidadMedida.query.all():
+            unidades_map[u.abreviatura] = u
 
-            nuevo = Insumo(
-                nombre=data['nombre'],
-                codigo=data['codigo'],
-                tipo=data['tipo'],
-                unidad_medida_id=unidad_obj.id,
-                stock_minimo=data['stock_minimo'],
-                cantidad_actual=0.0, # Inician en 0
-                costo_promedio=0.0
-            )
-            db.session.add(nuevo)
-            conteo += 1
-            print(f"     + Agregado: {data['nombre']}")
-        else:
-            print(f"     . Saltado (ya existe): {data['nombre']}")
+        # 2. Cargar Insumos
+        print("\n   > Sembrando Insumos en la Base de Datos...")
+        conteo = 0
+        for data in insumos_data:
+            existe = Insumo.query.filter_by(nombre=data['nombre']).first()
+            
+            if not existe:
+                unidad_obj = unidades_map.get(data['unidad'])
+                if not unidad_obj:
+                    print(f"     ! ALERTA: Unidad '{data['unidad']}' no encontrada para {data['nombre']}. Usando 'Und'.")
+                    unidad_obj = unidades_map.get('Und')
 
-    db.session.commit()
-    print(f"\n✨ Proceso finalizado. {conteo} nuevos insumos registrados en el sistema.")
+                nuevo = Insumo(
+                    nombre=data['nombre'],
+                    codigo=data['codigo'],
+                    tipo=data['tipo'],
+                    unidad_medida_id=unidad_obj.id,
+                    stock_minimo=data['stock_minimo'],
+                    cantidad_actual=0.0,
+                    costo_promedio=0.0
+                )
+                db.session.add(nuevo)
+                conteo += 1
+                print(f"     + Agregado: {data['nombre']}")
+            else:
+                print(f"     . Saltado (ya existe): {data['nombre']}")
+
+        db.session.commit()
+        print(f"\n[+] Proceso finalizado. {conteo} nuevos insumos registrados en el sistema.")
+
+if __name__ == '__main__':
+    sembrar_insumos()

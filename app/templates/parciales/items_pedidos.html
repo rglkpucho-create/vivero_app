@@ -1,0 +1,96 @@
+{% if pedidos %}
+{% for p in pedidos %}
+<tr class="fade-in-item">
+    <td class="ps-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-4 p-2 d-flex align-items-center justify-content-center shadow-sm border"
+                 style="width: 44px; height: 44px; background: {% if p.estado == 'Recibido' %}rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16,185,129,0.2) !important;{% elif p.estado == 'Solicitado' %}rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59,130,246,0.2) !important;{% elif p.estado == 'Borrador' %}rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245,158,11,0.2) !important;{% else %}rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239,68,68,0.2) !important;{% endif %};">
+                <i class="bi {% if p.estado == 'Recibido' %}bi-check2-circle{% elif p.estado == 'Solicitado' %}bi-truck{% elif p.estado == 'Borrador' %}bi-pencil-square{% else %}bi-x-circle{% endif %} fs-5"></i>
+            </div>
+            <div>
+                <h6 class="fw-black text-body mb-0 font-monospace" style="letter-spacing: -0.3px; font-size: 0.95rem;">
+                    #{{ p.numero_orden }}
+                </h6>
+                <span class="badge bg-body-tertiary text-secondary border font-monospace mt-1" style="font-size: 0.68rem;">
+                    ID: P-{{ p.id }}
+                </span>
+            </div>
+        </div>
+    </td>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-building text-primary opacity-75"></i>
+            <div>
+                <span class="fw-bold text-body fs-6 text-truncate d-block" style="max-width: 250px;">
+                    {{ p.proveedor.razon_social }}
+                </span>
+                {% if p.sede %}
+                <small class="text-secondary" style="font-size: 0.75rem;">
+                    <i class="bi bi-geo-alt me-1"></i>Destino: {{ p.sede.nombre }}
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </td>
+    <td>
+        <div class="d-flex flex-column">
+            <span class="text-body fw-bold" style="font-size: 0.88rem;">
+                <i class="bi bi-calendar3 me-1 text-secondary opacity-75"></i>
+                {{ p.fecha_solicitud.strftime('%d %b, %Y') if p.fecha_solicitud else 'N/A' }}
+            </span>
+            {% if p.fecha_entrega_estimada %}
+            <small class="text-muted" style="font-size: 0.75rem;">
+                Est. Entrega: {{ p.fecha_entrega_estimada.strftime('%d/%m/%Y') }}
+            </small>
+            {% endif %}
+        </div>
+    </td>
+    <td class="text-center">
+        {% if p.estado == 'Solicitado' %}
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+            <i class="bi bi-truck me-1"></i> EN TRÁNSITO
+        </span>
+        {% elif p.estado == 'Recibido' %}
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+            <i class="bi bi-check-circle-fill me-1"></i> RECIBIDO
+        </span>
+        {% elif p.estado == 'Borrador' %}
+        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+            <i class="bi bi-pencil-fill me-1"></i> BORRADOR
+        </span>
+        {% else %}
+        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+            <i class="bi bi-x-circle-fill me-1"></i> {{ p.estado|upper }}
+        </span>
+        {% endif %}
+    </td>
+    <td class="text-end">
+        <h5 class="fw-black mb-0 font-monospace text-body" style="letter-spacing: -0.5px;">
+            ${{ "{:,.0f}".format(p.total_estimado or 0) }}
+        </h5>
+        <small class="text-secondary" style="font-size: 0.72rem;">{{ p.detalles|length }} producto(s)</small>
+    </td>
+    <td class="text-end pe-4">
+        <a href="{{ url_for('compras.ver_pedido', pedido_id=p.id) }}"
+           class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1 shadow-sm hover-lift">
+            Gestionar <i class="bi bi-arrow-right-short fs-6"></i>
+        </a>
+    </td>
+</tr>
+{% endfor %}
+{% else %}
+<tr>
+    <td colspan="6" class="text-center py-5">
+        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <div class="rounded-circle p-4 mb-3 border shadow-sm bg-body-tertiary">
+                <i class="bi bi-cart-x display-4 text-muted opacity-50"></i>
+            </div>
+            <h6 class="fw-bold text-body mb-1">No se encontraron órdenes de compra</h6>
+            <p class="text-secondary small mb-3">No hay pedidos registrados con los filtros seleccionados.</p>
+            <a href="{{ url_for('compras.nuevo_pedido') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-bold">
+                <i class="bi bi-plus-lg me-1"></i> Crear Primera Orden
+            </a>
+        </div>
+    </td>
+</tr>
+{% endif %}

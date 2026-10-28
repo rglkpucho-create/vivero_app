@@ -1,0 +1,651 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+
+    <!-- Header Ejecutivo del Fundador -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-pill bg-warning text-dark fw-bold px-3 py-1.5 shadow-sm" style="font-size: 0.78rem;">
+                    <i class="bi bi-shield-check me-1"></i>PROPIETARIO DEL SOFTWARE
+                </span>
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2.5 py-1" style="font-size: 0.75rem;">
+                    <i class="bi bi-cpu-fill me-1"></i>EcoSistem SaaS v2.5
+                </span>
+            </div>
+            <h2 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <span>Centro de Mando del Fundador</span>
+            </h2>
+            <p class="text-muted mb-0 small">
+                Monitoreo ejecutivo de ingresos recurrentes (MRR), cobranzas, salud de clientes y soporte 1-clic.
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('superadmin.lista_pagos_saas') }}" class="btn btn-warning rounded-pill fw-bold text-dark shadow-sm px-3">
+                <i class="bi bi-credit-card-2-front-fill me-1"></i> Libro de Pagos SaaS
+            </a>
+            <a href="{{ url_for('superadmin.estadisticas_globales') }}" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-graph-up me-1"></i> Estadísticas Globales
+            </a>
+            <a href="{{ url_for('auth.planes') }}" target="_blank" class="btn btn-outline-info rounded-pill px-3" title="Ver cómo ve el público tus planes">
+                <i class="bi bi-eye me-1"></i> Ver Landing de Planes
+            </a>
+            <a href="{{ url_for('superadmin.nueva_empresa') }}" class="btn btn-primary rounded-pill fw-bold shadow px-3">
+                <i class="bi bi-plus-lg me-1"></i> Nueva Empresa Cliente
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 KPIs Ejecutivos del SaaS -->
+    <div class="row g-4 mb-4">
+        <!-- KPI 1: MRR -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative"
+                 style="background: linear-gradient(145deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.05) 100%); border-left: 5px solid #10b981 !important; min-height: 165px;">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">MRR (Recurrente Mensual)</span>
+                        <div class="rounded-circle bg-success bg-opacity-25 text-success d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px;">
+                            <i class="bi bi-cash-stack fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="fw-bold text-success mb-0 d-flex align-items-baseline gap-1.5 flex-wrap">
+                            <span>${{ "{:,.0f}".format(mrr_total) }}</span>
+                            <span class="fs-6 text-muted fw-normal">COP/mes</span>
+                        </h3>
+                    </div>
+                    <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                        <i class="bi bi-graph-up-arrow text-success"></i>
+                        <span>Proyección anual (ARR): <strong>${{ "{:,.0f}".format(arr_total) }} COP</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Cobranza Urgente / Por Vencer -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative"
+                 style="background: linear-gradient(145deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.05) 100%); border-left: 5px solid #f59e0b !important; min-height: 165px;">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">Radar de Cobro Inmediato</span>
+                        <div class="rounded-circle bg-warning bg-opacity-25 text-warning-emphasis d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px;">
+                            <i class="bi bi-alarm-fill fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-baseline gap-2 mb-0">
+                            <h3 class="fw-bold text-warning-emphasis mb-0">{{ empresas_alerta_cobro|length }}</h3>
+                            <span class="badge rounded-pill {% if empresas_alerta_cobro|length > 0 %}bg-warning text-dark{% else %}bg-success{% endif %} extra-small fw-bold">
+                                {% if empresas_alerta_cobro|length > 0 %}{{ vencidas_count }} vencidas • {{ por_vencer_count }} por vencer{% else %}Cartera al día{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                        <i class="bi bi-whatsapp text-success"></i>
+                        <span>Listos para cobrar con 1-clic por WhatsApp</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Clientes Activos & Retención -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative"
+                 style="background: linear-gradient(145deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.05) 100%); border-left: 5px solid #3b82f6 !important; min-height: 165px;">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">Salud de Cartera</span>
+                        <div class="rounded-circle bg-primary bg-opacity-25 text-primary d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px;">
+                            <i class="bi bi-buildings-fill fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="fw-bold text-primary mb-0 d-flex align-items-baseline gap-1.5 flex-wrap">
+                            <span>{{ activas_count }}</span>
+                            <span class="fs-6 text-muted fw-normal">de {{ empresas|length }} empresas</span>
+                        </h3>
+                    </div>
+                    <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                        {% set pct_activas = ((activas_count / (empresas|length or 1)) * 100)|round|int %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill extra-small">{{ pct_activas }}% activas</span>
+                        <span>• {{ suspendidas_count }} suspendida(s)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI 4: Recaudo Histórico -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden position-relative"
+                 style="background: linear-gradient(145deg, rgba(139, 92, 246, 0.12) 0%, rgba(109, 40, 217, 0.05) 100%); border-left: 5px solid #8b5cf6 !important; min-height: 165px;">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">Recaudo Histórico Total</span>
+                        <div class="rounded-circle bg-purple bg-opacity-25 text-purple d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px; color: #8b5cf6; background: rgba(139, 92, 246, 0.2);">
+                            <i class="bi bi-wallet2 fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="fw-bold mb-0 d-flex align-items-baseline gap-1.5 flex-wrap" style="color: #7c3aed;">
+                            <span>${{ "{:,.0f}".format(total_recaudado_saas) }}</span>
+                            <span class="fs-6 text-muted fw-normal">COP</span>
+                        </h3>
+                    </div>
+                    <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                        <i class="bi bi-receipt text-secondary"></i>
+                        <span>{{ total_pagos_saas }} pagos registrados con éxito</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE COBRANZA URGENTE POR WHATSAPP (Aparece destacada si hay empresas por cobrar) -->
+    {% if empresas_alerta_cobro %}
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="border: 1px solid rgba(245, 158, 11, 0.3) !important;">
+        <div class="card-header border-0 py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2"
+             style="background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%); color: #78350f;">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge fs-6 rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 34px; height: 34px; background-color: #f59e0b; color: #ffffff;">
+                    <i class="bi bi-bell-fill"></i>
+                </span>
+                <div>
+                    <h5 class="fw-bold mb-0" style="color: #92400e;">
+                        🚨 Radar de Cobro Urgente & Renovación ({{ empresas_alerta_cobro|length }} empresas)
+                    </h5>
+                    <small style="color: #78350f; font-weight: 500;">
+                        Clientes con suscripción vencida o por vencer en los próximos 7 días. Con 1-clic puedes enviarles su factura de cobro a su WhatsApp.
+                    </small>
+                </div>
+            </div>
+            <span class="badge bg-dark text-white rounded-pill px-3 py-2 extra-small text-uppercase fw-bold shadow-sm">
+                Cero Fugas de Dinero
+            </span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Empresa / Vivero</th>
+                            <th>Plan SaaS</th>
+                            <th>Monto Cuota</th>
+                            <th>Estado Licencia</th>
+                            <th>Teléfono Contacto</th>
+                            <th class="text-end pe-4">Acción de Cobro Inmediato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in empresas_alerta_cobro %}
+                        {% set emp = item.empresa %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    {% if emp.logo_url %}
+                                    <img src="{{ url_for('static', filename=emp.logo_url) }}" class="rounded-circle shadow-sm" style="width: 36px; height: 36px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-body-tertiary rounded-circle d-flex align-items-center justify-content-center border" style="width: 36px; height: 36px;">
+                                        <i class="bi bi-building fw-bold text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-bold d-block">{{ emp.nombre }}</span>
+                                        <small class="text-muted">{{ emp.ciudad or 'Colombia' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">
+                                    {{ emp.plan_nombre or 'Plan Estándar' }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong class="text-success">${{ "{:,.0f}".format(item.monto) }} COP</strong>
+                                <small class="text-muted d-block extra-small">{{ item.ciclo }}</small>
+                            </td>
+                            <td>
+                                {% if item.estado == 'vencida' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold">
+                                        <i class="bi bi-exclamation-octagon-fill me-1"></i>Vencida {% if item.dias_restantes is not none %}(hace {{ item.dias_restantes|abs }}d){% endif %}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold">
+                                        <i class="bi bi-hourglass-split me-1"></i>Vence en {{ item.dias_restantes }} día(s)
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if emp.telefono %}
+                                    <span class="font-monospace small"><i class="bi bi-telephone me-1 text-muted"></i>{{ emp.telefono }}</span>
+                                {% else %}
+                                    <span class="text-muted extra-small">Sin teléfono</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-inline-flex gap-2">
+                                    {% if item.whatsapp_url %}
+                                    <a href="{{ item.whatsapp_url }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1 shadow-sm"
+                                       title="Abrir WhatsApp con mensaje de cobro pre-redactado">
+                                        <i class="bi bi-whatsapp"></i>
+                                        <span>Cobrar por WhatsApp</span>
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-secondary rounded-pill px-3" disabled title="Agrega un teléfono a la empresa para cobrar por WhatsApp">
+                                        <i class="bi bi-whatsapp me-1"></i>Sin Tel.
+                                    </button>
+                                    {% endif %}
+                                    <a href="{{ url_for('superadmin.control_empresa', id=emp.id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-2.5 fw-bold" title="Registrar pago recibido y renovar licencia">
+                                        <i class="bi bi-credit-card-2-front me-1"></i>Registrar Pago
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Barra de Búsqueda y Filtros Rápidos -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="busquedaEmpresas" class="form-control border-start-0" 
+                               placeholder="Buscar por nombre, NIT, teléfono, ciudad o plan..." 
+                               onkeyup="filtrarEmpresasEnVivo()">
+                    </div>
+                </div>
+                <div class="col-12 col-md-7">
+                    <div class="d-flex flex-wrap gap-1.5 justify-content-md-end">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 active filter-chip" onclick="aplicarFiltroChip('todos', this)">
+                            Todas ({{ empresas|length }})
+                        </button>
+                        {% if empresas_alerta_cobro %}
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-pill px-3 filter-chip" onclick="aplicarFiltroChip('cobro_urgente', this)">
+                            ⚠️ Por Cobrar ({{ empresas_alerta_cobro|length }})
+                        </button>
+                        {% endif %}
+                        {% if conteo_riesgo > 0 %}
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 filter-chip fw-bold" onclick="aplicarFiltroChip('riesgo', this)" title="Empresas con más de 12 días sin actividad en el sistema">
+                            🚨 En Riesgo por No Uso ({{ conteo_riesgo }})
+                        </button>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 filter-chip" onclick="aplicarFiltroChip('semilla', this)">
+                            🌱 Semilla ({{ conteo_semilla }})
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 filter-chip" onclick="aplicarFiltroChip('cosecha', this)">
+                            ⭐ Cosecha Pro ({{ conteo_cosecha }})
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 filter-chip" onclick="aplicarFiltroChip('hacienda', this)">
+                            🚜 Hacienda ({{ conteo_hacienda }})
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2.5 filter-chip" onclick="aplicarFiltroChip('activas', this)">
+                            Activas ({{ activas_count }})
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 filter-chip" onclick="aplicarFiltroChip('suspendidas', this)">
+                            Suspendidas ({{ suspendidas_count }})
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not empresas %}
+    <div class="text-center py-5">
+        <i class="bi bi-building text-muted" style="font-size: 4rem; opacity: 0.3;"></i>
+        <h5 class="text-muted mt-3">No hay empresas clientes registradas</h5>
+        <a href="{{ url_for('superadmin.nueva_empresa') }}" class="btn btn-primary rounded-pill mt-2">
+            <i class="bi bi-plus-lg me-1"></i> Registrar Primera Empresa
+        </a>
+    </div>
+    {% else %}
+
+    <!-- Cuadrícula Principal de Tarjetas de Empresas -->
+    <div class="row g-3" id="contenedorEmpresas">
+        <!-- Estado Vacío cuando no hay resultados en el filtro -->
+        <div id="sinResultadosFiltro" class="col-12 text-center py-5" style="display: none;">
+            <div class="card border-0 shadow-sm rounded-4 p-5 bg-body-tertiary">
+                <i class="bi bi-funnel text-muted" style="font-size: 3rem; opacity: 0.4;"></i>
+                <h5 class="fw-bold text-muted mt-3">No se encontraron empresas con este filtro</h5>
+                <p class="text-muted small mb-3">No hay empresas clientes que coincidan con el plan seleccionado o el texto de búsqueda.</p>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-bold" onclick="aplicarFiltroChip('todos', document.querySelector('.filter-chip'))">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Ver Todas las Empresas
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% for emp in empresas %}
+        {% set lic = stats[emp.id] %}
+        <div class="col-md-6 col-xl-4 tarjeta-empresa-col" 
+             data-nombre="{{ emp.nombre|lower }}"
+             data-nit="{{ emp.nit_rut|lower if emp.nit_rut else '' }}"
+             data-ciudad="{{ emp.ciudad|lower if emp.ciudad else '' }}"
+             data-telefono="{{ emp.telefono or '' }}"
+             data-plan="{{ emp.plan_nombre|lower if emp.plan_nombre else '' }}"
+             data-activa="{{ 'true' if emp.licencia_activa else 'false' }}"
+             data-estado-lic="{{ lic.estado_licencia }}"
+             data-adopcion="{{ lic.nivel_adopcion }}">
+            
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden d-flex flex-column
+                        {% if not emp.licencia_activa %}border-start border-danger border-4{% elif lic.estado_licencia == 'por_vencer' %}border-start border-warning border-4{% endif %}"
+                 style="transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                
+                <!-- Cabecera de la Tarjeta -->
+                <div class="card-header border-0 d-flex justify-content-between align-items-center py-3
+                            {% if not emp.licencia_activa %}bg-danger bg-opacity-10
+                            {% elif lic.estado_licencia == 'por_vencer' %}bg-warning bg-opacity-10
+                            {% else %}bg-success bg-opacity-10{% endif %}">
+                    <div class="d-flex align-items-center gap-2.5">
+                        {% if emp.logo_url %}
+                        <img src="{{ url_for('static', filename=emp.logo_url) }}" 
+                             class="rounded-circle shadow-sm" style="width: 42px; height: 42px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-body rounded-circle d-flex align-items-center justify-content-center shadow-sm border"
+                             style="width: 42px; height: 42px;">
+                            <i class="bi bi-building fw-bold fs-5 text-primary"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="fw-bold mb-0 text-truncate" style="max-width: 180px;" title="{{ emp.nombre }}">{{ emp.nombre }}</h6>
+                            <small class="text-muted d-flex align-items-center gap-1">
+                                <i class="bi bi-geo-alt extra-small"></i>{{ emp.ciudad or 'Colombia' }}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <span class="badge rounded-pill {% if emp.licencia_activa %}bg-success{% else %}bg-danger{% endif %} shadow-sm px-2.5 py-1">
+                        {% if emp.licencia_activa %}
+                        <i class="bi bi-check-circle me-1"></i>Activa
+                        {% else %}
+                        <i class="bi bi-x-circle me-1"></i>Suspendida
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="card-body pb-2 flex-grow-1">
+                    <!-- Fila de Plan Contratado & Cuota Mensual -->
+                    <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                        <div>
+                            <span class="extra-small text-muted text-uppercase fw-bold d-block">Plan Contratado</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold">
+                                {% if 'semilla' in (emp.plan_nombre or '')|lower %}🌱
+                                {% elif 'hacienda' in (emp.plan_nombre or '')|lower %}🚜
+                                {% else %}⭐{% endif %}
+                                {{ emp.plan_nombre or 'Plan Semilla' }}
+                            </span>
+                        </div>
+                        <div class="text-end">
+                            <span class="extra-small text-muted text-uppercase fw-bold d-block">Cuota SaaS</span>
+                            <span class="fw-bold text-success">${{ "{:,.0f}".format(emp.precio_suscripcion or 0) }}</span>
+                            <span class="extra-small text-muted">/{{ emp.ciclo_pago or 'Mes' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Datos Rápidos de Contacto -->
+                    <div class="row g-2 extra-small mb-3">
+                        {% if emp.nit_rut %}
+                        <div class="col-6">
+                            <span class="text-muted">NIT:</span>
+                            <span class="fw-bold">{{ emp.nit_rut }}</span>
+                        </div>
+                        {% endif %}
+                        {% if emp.telefono %}
+                        <div class="col-6">
+                            <span class="text-muted">Tel:</span>
+                            <a href="tel:{{ emp.telefono }}" class="fw-bold text-decoration-none text-body">{{ emp.telefono }}</a>
+                        </div>
+                        {% endif %}
+                        {% if emp.email %}
+                        <div class="col-12 text-truncate">
+                            <span class="text-muted">Email:</span>
+                            <span class="fw-bold">{{ emp.email }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Semáforo de Adopción y Salud del Cliente (Churn Prevention) -->
+                    <div class="p-2 rounded-3 border bg-body-tertiary mb-3 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-1.5">
+                            <i class="bi {{ lic.adopcion_icono }} text-{{ lic.badge_adopcion_color }} fs-6"></i>
+                            <div>
+                                <div class="extra-small fw-bold text-muted text-uppercase" style="font-size: 0.68rem;">Uso / Adopción:</div>
+                                <div class="small fw-bold text-{{ lic.badge_adopcion_color }}">{{ lic.texto_actividad }}</div>
+                            </div>
+                        </div>
+                        <div>
+                            {% if lic.nivel_adopcion == 'riesgo' %}
+                            <span class="badge bg-danger text-white rounded-pill extra-small" title="El cliente lleva días sin registrar datos. ¡Llama para ofrecer soporte!">
+                                ⚠️ En Riesgo
+                            </span>
+                            {% elif lic.nivel_adopcion == 'excelente' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small">
+                                🔥 Uso Diario
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill extra-small">
+                                Activo
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Métricas del Negocio del Cliente -->
+                    <div class="d-flex gap-2 py-2 border-top border-bottom text-center">
+                        <div class="flex-fill">
+                            <div class="fw-bold text-primary">{{ lic['usuarios'] }}</div>
+                            <small class="text-muted extra-small">Usuarios</small>
+                        </div>
+                        <div class="flex-fill border-start border-end">
+                            <div class="fw-bold text-success">${{ "{:,.0f}".format(lic['ventas_mes']) }}</div>
+                            <small class="text-muted extra-small">Ventas/Mes</small>
+                        </div>
+                        <div class="flex-fill">
+                            <div class="fw-bold text-purple" style="color: #8b5cf6;">${{ "{:,.0f}".format(lic['total_pagado']) }}</div>
+                            <small class="text-muted extra-small">{{ lic['conteo_pagos'] }} cobro(s)</small>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Progreso de la Licencia -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted fw-bold extra-small text-uppercase">Vigencia Licencia</small>
+                            {% if lic.estado_licencia == 'vitalicia' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 extra-small">Vitalicia / Sin Límite</span>
+                            {% elif lic.estado_licencia == 'vencida' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 extra-small fw-bold">Vencida (hace {{ lic.dias_restantes | abs }}d)</span>
+                            {% elif lic.estado_licencia == 'por_vencer' %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 extra-small fw-bold">⚠️ Vence en {{ lic.dias_restantes }}d</span>
+                            {% else %}
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 extra-small">Al día ({{ lic.dias_restantes }}d rest.)</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if lic.estado_licencia == 'vitalicia' %}
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-success" style="width: 100%;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1 extra-small text-muted">
+                                <span>Desde: {{ emp.fecha_registro.strftime('%d/%m/%Y') if emp.fecha_registro else '-' }}</span>
+                                <span>Vence: Nunca</span>
+                            </div>
+                        {% else %}
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-{{ lic.color_progreso }}" style="width: {{ lic.porcentaje_consumido }}%;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1 extra-small text-muted">
+                                <span>Desde: {{ emp.fecha_registro.strftime('%d/%m/%Y') if emp.fecha_registro else '-' }}</span>
+                                <span>Vence: {{ emp.fecha_vencimiento.strftime('%d/%m/%Y') if emp.fecha_vencimiento else '-' }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Enlaces Directos al Catálogo y Web Pública -->
+                    <div class="d-flex align-items-center justify-content-between gap-2 mt-3 pt-2 border-top">
+                        <span class="extra-small text-muted fw-bold">Canal Digital:</span>
+                        <div class="d-flex gap-1.5">
+                            <a href="{{ url_for('tienda.index', empresa_id=emp.id) }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-0.5 extra-small fw-bold" title="Abrir página web pública de {{ emp.nombre }}">
+                                <i class="bi bi-globe2 me-1"></i>Web
+                            </a>
+                            <a href="{{ url_for('tienda.catalogo', empresa_id=emp.id) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5 extra-small fw-bold" title="Abrir catálogo digital de {{ emp.nombre }}">
+                                <i class="bi bi-bag-check me-1"></i>Catálogo
+                            </a>
+                            {% if lic.whatsapp_url %}
+                            <a href="{{ lic.whatsapp_url }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 extra-small fw-bold" title="Enviar WhatsApp a {{ emp.nombre }}">
+                                <i class="bi bi-whatsapp"></i> Chat
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer con Botones de Acción -->
+                <div class="card-footer bg-transparent border-0 d-flex flex-column gap-2 pb-3 px-3 pt-0">
+                    <!-- BOTÓN ESTRELLA: MODO SOPORTE / ENTRAR COMO ESTA EMPRESA -->
+                    {% if session.get('superadmin_empresa_id') == emp.id %}
+                    <div class="btn btn-sm btn-success rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2"
+                         style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Empresa Activa en Sesión (Modo Soporte)</span>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('superadmin.seleccionar_empresa_activa', superadmin_empresa_id=emp.id, redir='dashboard') }}" 
+                       class="btn btn-sm btn-primary rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2"
+                       style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border: none;">
+                        <i class="bi bi-lightning-charge-fill text-warning"></i>
+                        <span>Ingresar y Administrar Esta Empresa (1-Clic)</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Botón de Ficha Maestra y Cobros -->
+                    <a href="{{ url_for('superadmin.control_empresa', id=emp.id) }}" 
+                       class="btn btn-sm btn-dark rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-1.5"
+                       style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.15);">
+                        <i class="bi bi-person-badge-fill text-warning"></i>
+                        <span>Ficha Maestra & Libro de Cobros</span>
+                    </a>
+
+                    <!-- Acciones Secundarias: Editar y Suspender/Activar -->
+                    <div class="d-flex gap-2 w-100">
+                        <a href="{{ url_for('superadmin.editar_empresa', id=emp.id) }}" 
+                           class="btn btn-sm btn-outline-primary rounded-pill flex-fill">
+                            <i class="bi bi-pencil me-1"></i>Editar Plan
+                        </a>
+                        <form method="POST" action="{{ url_for('superadmin.toggle_licencia', id=emp.id) }}"
+                              onsubmit="return confirm('¿{% if emp.licencia_activa %}Suspender{% else %}Activar{% endif %} licencia de {{ emp.nombre }}?')" class="m-0">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            {% if emp.licencia_activa %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                <i class="bi bi-pause-circle me-1"></i>Suspender
+                            </button>
+                            {% else %}
+                            <button type="submit" class="btn btn-sm btn-success rounded-pill fw-bold px-3">
+                                <i class="bi bi-play-circle me-1"></i>Activar
+                            </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Script de Filtrado y Búsqueda en Tiempo Real -->
+<script>
+let filtroChipActual = 'todos';
+
+function filtrarEmpresasEnVivo() {
+    const texto = (document.getElementById('busquedaEmpresas')?.value || '').toLowerCase().trim();
+    const tarjetas = document.querySelectorAll('.tarjeta-empresa-col');
+    let visiblesCount = 0;
+
+    tarjetas.forEach(card => {
+        const nombre = (card.getAttribute('data-nombre') || '').toLowerCase();
+        const nit = (card.getAttribute('data-nit') || '').toLowerCase();
+        const ciudad = (card.getAttribute('data-ciudad') || '').toLowerCase();
+        const telefono = (card.getAttribute('data-telefono') || '').toLowerCase();
+        const plan = (card.getAttribute('data-plan') || '').toLowerCase();
+        const activa = card.getAttribute('data-activa') === 'true';
+        const estadoLic = (card.getAttribute('data-estado-lic') || '').toLowerCase();
+        const adopcion = (card.getAttribute('data-adopcion') || '').toLowerCase();
+
+        // Coincidencia de texto
+        const coincideTexto = !texto || 
+            nombre.includes(texto) || 
+            nit.includes(texto) || 
+            ciudad.includes(texto) || 
+            telefono.includes(texto) || 
+            plan.includes(texto);
+
+        // Coincidencia de chip
+        let coincideChip = true;
+        if (filtroChipActual === 'cobro_urgente') {
+            coincideChip = (estadoLic === 'vencida' || estadoLic === 'por_vencer' || !activa);
+        } else if (filtroChipActual === 'riesgo') {
+            coincideChip = (adopcion === 'riesgo');
+        } else if (filtroChipActual === 'semilla') {
+            coincideChip = plan.includes('semilla');
+        } else if (filtroChipActual === 'cosecha') {
+            coincideChip = plan.includes('cosecha');
+        } else if (filtroChipActual === 'hacienda') {
+            coincideChip = plan.includes('hacienda');
+        } else if (filtroChipActual === 'activas') {
+            coincideChip = activa;
+        } else if (filtroChipActual === 'suspendidas') {
+            coincideChip = !activa;
+        }
+
+        const mostrar = coincideTexto && coincideChip;
+        if (mostrar) {
+            card.classList.remove('d-none');
+            card.style.display = '';
+            visiblesCount++;
+        } else {
+            card.classList.add('d-none');
+            card.style.display = 'none';
+        }
+    });
+
+    const emptyBox = document.getElementById('sinResultadosFiltro');
+    if (emptyBox) {
+        if (visiblesCount === 0) {
+            emptyBox.classList.remove('d-none');
+            emptyBox.style.display = 'block';
+        } else {
+            emptyBox.classList.add('d-none');
+            emptyBox.style.display = 'none';
+        }
+    }
+}
+
+function aplicarFiltroChip(tipo, btn) {
+    filtroChipActual = tipo;
+    document.querySelectorAll('.filter-chip').forEach(b => {
+        b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
+    filtrarEmpresasEnVivo();
+}
+
+// Inicializar al cargar el documento
+document.addEventListener('DOMContentLoaded', function() {
+    filtrarEmpresasEnVivo();
+});
+</script>
+{% endblock %}

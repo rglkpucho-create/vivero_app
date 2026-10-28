@@ -1,78 +1,119 @@
 {% if proveedores %}
-    {% for p in proveedores %}
-    <tr class="fade-in-item">
-        <td class="ps-4">
-            <div class="d-flex align-items-center">
-                <!-- Avatar generado con la inicial -->
-                <div class="avatar-placeholder bg-primary bg-opacity-10 text-primary me-3">
-                    {{ p.razon_social[:1].upper() }}
-                </div>
-                <div>
-                    <div class="fw-bold text-dark">{{ p.razon_social }}</div>
-                    <small class="text-muted" style="font-size: 0.75rem;">
-                        <i class="bi bi-geo-alt-fill me-1"></i>{{ p.direccion if p.direccion else 'Sin dirección' }}
+{% for p in proveedores %}
+<tr class="fade-in-item">
+    <td class="ps-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="supplier-avatar" style="background: linear-gradient(135deg, {% if loop.index % 3 == 1 %}#0ea5e9 0%, #2563eb 100%{% elif loop.index % 3 == 2 %}#10b981 0%, #059669 100%{% else %}#8b5cf6 0%, #6d28d9 100%{% endif %});">
+                {{ p.razon_social[:1].upper() }}
+            </div>
+            <div>
+                <h6 class="fw-black text-body mb-0" style="letter-spacing: -0.3px; font-size: 1.05rem;">
+                    {{ p.razon_social }}
+                </h6>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <small class="text-secondary d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                        <i class="bi bi-geo-alt-fill text-danger opacity-75"></i> 
+                        {{ p.direccion if p.direccion else 'Sede principal' }}
                     </small>
+                    {% if p.email %}
+                    <span class="text-muted" style="font-size: 0.75rem;">•</span>
+                    <a href="mailto:{{ p.email }}" class="text-muted text-decoration-none small hover-underline" title="{{ p.email }}">
+                        <i class="bi bi-envelope me-1"></i>{{ p.email }}
+                    </a>
+                    {% endif %}
                 </div>
             </div>
-        </td>
-        <td>
-            <span class="badge bg-light text-dark border fw-normal font-monospace">
-                {{ p.nit_rut }}
-            </span>
-        </td>
-        <td>
-            {% if p.contacto_nombre %}
-            <div class="d-flex align-items-center text-muted">
-                <i class="bi bi-person-fill me-2"></i>{{ p.contacto_nombre }}
-            </div>
-            {% else %}
-            <span class="text-muted small">-</span>
-            {% endif %}
-        </td>
-        <td>
-            <span class="text-dark">{{ p.telefono }}</span>
-        </td>
-        <td class="text-end pe-4">
-            <a href="{{ url_for('main.nuevo_proveedor', proveedor_id=p.id) }}" class="action-btn btn-light text-primary me-1" title="Editar">
-                <i class="bi bi-pencil-fill"></i>
+        </div>
+    </td>
+    <td>
+        <span class="badge bg-body-tertiary text-body border font-monospace px-3 py-1 rounded-pill" style="font-size: 0.8rem;">
+            {{ p.nit_rut }}
+        </span>
+    </td>
+    <td>
+        {% if p.contacto_nombre %}
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-body-tertiary border text-body" style="font-size: 0.82rem;">
+            <i class="bi bi-person-fill text-primary"></i>
+            <span class="fw-bold">{{ p.contacto_nombre }}</span>
+        </div>
+        {% else %}
+        <span class="text-muted small fst-italic">Sin contacto asignado</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if p.telefono %}
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-bold font-monospace text-body" style="font-size: 0.88rem;">{{ p.telefono }}</span>
+            <a href="https://wa.me/{{ p.telefono|replace(' ', '')|replace('-', '')|replace('+', '') }}" 
+               target="_blank" 
+               class="btn btn-sm btn-outline-success rounded-circle p-1 d-inline-flex align-items-center justify-content-center shadow-sm"
+               style="width: 28px; height: 28px;"
+               title="Chatear por WhatsApp">
+                <i class="bi bi-whatsapp"></i>
             </a>
-            <button type="button" class="action-btn btn-light text-danger border-0" data-bs-toggle="modal" data-bs-target="#deleteModal{{ p.id }}" title="Eliminar">
-                <i class="bi bi-trash-fill"></i>
+        </div>
+        {% else %}
+        <span class="text-muted small">-</span>
+        {% endif %}
+    </td>
+    <td class="text-end pe-4">
+        <div class="d-flex justify-content-end align-items-center gap-2">
+            <a href="{{ url_for('compras.nuevo_proveedor', proveedor_id=p.id) }}"
+               class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1 shadow-sm"
+               title="Editar información">
+                <i class="bi bi-pencil"></i> <span class="d-none d-md-inline">Editar</span>
+            </a>
+            <button type="button"
+                    class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 shadow-sm"
+                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ p.id }}" 
+                    title="Eliminar Proveedor">
+                <i class="bi bi-trash"></i>
             </button>
+        </div>
 
-            <!-- Modal Eliminación -->
-            <div class="modal fade" id="deleteModal{{ p.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow">
-                        <div class="modal-body p-4 text-center">
-                            <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex p-3 mb-3">
-                                <i class="bi bi-building-dash fs-3"></i>
-                            </div>
-                            <h5 class="fw-bold mb-2">¿Eliminar Proveedor?</h5>
-                            <p class="text-muted mb-4">
-                                Vas a eliminar a <strong>{{ p.razon_social }}</strong>.<br>
-                                <span class="text-danger small">Esto borrará también su historial de pedidos.</span>
-                            </p>
-                            <div class="d-flex justify-content-center gap-2">
-                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                                <form action="{{ url_for('main.eliminar_proveedor', proveedor_id=p.id) }}" method="POST">
-                                    <button type="submit" class="btn btn-danger rounded-pill px-4">Confirmar</button>
-                                </form>
-                            </div>
+        <!-- Modal Eliminación -->
+        <div class="modal fade text-start" id="deleteModal{{ p.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4" style="background-color: var(--bs-body-bg);">
+                    <div class="modal-body p-4 text-center">
+                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex p-3 mb-3 border border-danger border-opacity-25">
+                            <i class="bi bi-exclamation-octagon fs-1"></i>
+                        </div>
+                        <h5 class="fw-black mb-2 text-body">¿Eliminar a {{ p.razon_social }}?</h5>
+                        <p class="text-secondary small mb-4">
+                            Esta acción eliminará el registro del proveedor del directorio. Los históricos de pedidos previos se mantendrán con fines de auditoría.
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                            <form action="{{ url_for('compras.eliminar_proveedor', proveedor_id=p.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+                                    Sí, Eliminar
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
-        </td>
-    </tr>
-    {% endfor %}
+        </div>
+    </td>
+</tr>
+{% endfor %}
 {% else %}
-    <tr class="fade-in-item">
-        <td colspan="5" class="text-center py-5">
-            <div class="text-muted">
-                <i class="bi bi-people display-6 mb-3 d-block opacity-25"></i>
-                No se encontraron proveedores que coincidan con la búsqueda.
+<tr class="fade-in-item">
+    <td colspan="5" class="py-5 text-center">
+        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <div class="rounded-circle p-4 mb-3 border shadow-sm bg-body-tertiary">
+                <i class="bi bi-buildings display-4 text-muted opacity-50"></i>
             </div>
-        </td>
-    </tr>
+            <h6 class="fw-bold text-body mb-1">No se encontraron proveedores</h6>
+            <p class="text-secondary small mb-3">No hay aliados comerciales que coincidan con la búsqueda actual.</p>
+            <a href="{{ url_for('compras.nuevo_proveedor') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-2 fw-bold">
+                <i class="bi bi-plus-lg me-1"></i> Registrar Primer Proveedor
+            </a>
+        </div>
+    </td>
+</tr>
 {% endif %}

@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+
+    <!-- Header Ejecutivo -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-1 extra-small fw-bold">
+                    <i class="bi bi-graph-up-arrow me-1"></i>BUSINESS INTELLIGENCE SAAS
+                </span>
+                <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-1 extra-small">
+                    <i class="bi bi-check-circle-fill me-1"></i>En tiempo real
+                </span>
+            </div>
+            <h2 class="fw-bold mb-1">Estadísticas Globales de EcoSistem</h2>
+            <p class="text-muted mb-0 small">
+                Radiografía analítica de facturación SaaS, retención de cartera, cobertura en Colombia e impacto operativo.
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('superadmin.lista_empresas') }}" class="btn btn-outline-primary rounded-pill px-3 fw-bold">
+                <i class="bi bi-speedometer2 me-1"></i> Centro de Mando
+            </a>
+            <a href="{{ url_for('superadmin.lista_pagos_saas') }}" class="btn btn-warning rounded-pill px-3 fw-bold text-dark shadow-sm">
+                <i class="bi bi-credit-card-2-front-fill me-1"></i> Libro de Pagos SaaS
+            </a>
+        </div>
+    </div>
+
+    <!-- 1. Los 4 KPIs Financieros SaaS Clave -->
+    <div class="row g-4 mb-4">
+        <!-- KPI MRR -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4"
+                 style="background: linear-gradient(145deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.05) 100%); border-left: 5px solid #10b981 !important; min-height: 165px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">MRR (Recurrente Mensual)</span>
+                    <div class="rounded-circle bg-success bg-opacity-25 text-success d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px;">
+                        <i class="bi bi-cash-stack fs-5"></i>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h3 class="fw-bold text-success mb-0 d-flex align-items-baseline gap-1.5 flex-wrap">
+                        <span>${{ "{:,.0f}".format(mrr_total) }}</span>
+                        <span class="fs-6 text-muted fw-normal">COP/m</span>
+                    </h3>
+                </div>
+                <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                    <i class="bi bi-graph-up-arrow text-success"></i>
+                    <span>ARR Anualizado: <strong>${{ "{:,.0f}".format(arr_total) }} COP</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Recaudo Total -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4"
+                 style="background: linear-gradient(145deg, rgba(139, 92, 246, 0.12) 0%, rgba(109, 40, 217, 0.05) 100%); border-left: 5px solid #8b5cf6 !important; min-height: 165px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">Recaudo Histórico</span>
+                    <div class="rounded-circle bg-opacity-25 d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px; color: #8b5cf6; background: rgba(139, 92, 246, 0.2);">
+                        <i class="bi bi-wallet2 fs-5"></i>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h3 class="fw-bold mb-0 d-flex align-items-baseline gap-1.5 flex-wrap" style="color: #7c3aed;">
+                        <span>${{ "{:,.0f}".format(total_recaudado) }}</span>
+                        <span class="fs-6 text-muted fw-normal">COP</span>
+                    </h3>
+                </div>
+                <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                    <i class="bi bi-receipt text-secondary"></i>
+                    <span>En <strong>{{ total_pagos }}</strong> cobros aprobados</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI ARPU -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4"
+                 style="background: linear-gradient(145deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.05) 100%); border-left: 5px solid #3b82f6 !important; min-height: 165px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">Ticket Promedio (ARPU)</span>
+                    <div class="rounded-circle bg-primary bg-opacity-25 text-primary d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px;">
+                        <i class="bi bi-pie-chart-fill fs-5"></i>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h3 class="fw-bold text-primary mb-0 d-flex align-items-baseline gap-1.5 flex-wrap">
+                        <span>${{ "{:,.0f}".format(arpu) }}</span>
+                        <span class="fs-6 text-muted fw-normal">COP/mes</span>
+                    </h3>
+                </div>
+                <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                    <i class="bi bi-person-check-fill text-primary"></i>
+                    <span>Ingreso mensual promedio por vivero</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cartera & Retención -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4"
+                 style="background: linear-gradient(145deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.05) 100%); border-left: 5px solid #f59e0b !important; min-height: 165px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted fw-bold text-uppercase extra-small" style="letter-spacing: 0.6px;">Retención & Empresas</span>
+                    <div class="rounded-circle bg-warning bg-opacity-25 text-warning-emphasis d-flex align-items-center justify-content-center shadow-sm" style="width: 42px; height: 42px; min-width: 42px;">
+                        <i class="bi bi-buildings-fill fs-5"></i>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <h3 class="fw-bold text-warning-emphasis mb-0 d-flex align-items-baseline gap-1.5 flex-wrap">
+                        <span>{{ empresas_activas }}</span>
+                        <span class="fs-6 text-muted fw-normal">/ {{ total_empresas }} activas</span>
+                    </h3>
+                </div>
+                <div class="extra-small text-muted d-flex align-items-center gap-1.5 mt-auto pt-2 border-top border-secondary border-opacity-10">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small">
+                        {{ ((empresas_activas / (total_empresas or 1)) * 100)|round|int }}% Activas
+                    </span>
+                    <span>• {{ total_usuarios }} usuarios registrados</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Distribución de Planes SaaS & Métodos de Pago en Colombia -->
+    <div class="row g-4 mb-4">
+        <!-- Distribución de Planes -->
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-diagram-3-fill text-primary"></i>
+                        <span>Distribución de Clientes por Plan</span>
+                    </h5>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill extra-small">
+                        {{ total_empresas }} Viveros
+                    </span>
+                </div>
+                <p class="text-muted small mb-4">
+                    Proporción de clientes suscritos a cada nivel de servicio comercial de EcoSistem.
+                </p>
+
+                <!-- Barra de Progreso Multi-segmento -->
+                <div class="progress mb-4 rounded-pill overflow-hidden" style="height: 14px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ pct_semilla }}%;" title="Plan Semilla: {{ pct_semilla }}%"></div>
+                    <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: {{ pct_cosecha }}%;" title="Plan Cosecha Pro: {{ pct_cosecha }}%"></div>
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ pct_hacienda }}%;" title="Plan Agro-Hacienda: {{ pct_hacienda }}%"></div>
+                </div>
+
+                <!-- Detalle de Cada Plan -->
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded-3 border d-flex justify-content-between align-items-center bg-body-tertiary">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                🌱
+                            </span>
+                            <div>
+                                <span class="fw-bold d-block">Plan Semilla</span>
+                                <small class="text-muted">$59.000 COP/mes • Viveros pequeños y principiantes</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <h6 class="fw-bold mb-0 text-success">{{ conteo_semilla }} clientes</h6>
+                            <small class="text-muted extra-small">{{ pct_semilla }}% de la cartera</small>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 border d-flex justify-content-between align-items-center bg-body-tertiary">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                ⭐
+                            </span>
+                            <div>
+                                <span class="fw-bold d-block">Plan Cosecha Pro</span>
+                                <small class="text-muted">$119.000 COP/mes • Viveros comerciales y tiendas botánicas</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <h6 class="fw-bold mb-0 text-warning-emphasis">{{ conteo_cosecha }} clientes</h6>
+                            <small class="text-muted extra-small">{{ pct_cosecha }}% de la cartera</small>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 border d-flex justify-content-between align-items-center bg-body-tertiary">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <span class="badge bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                🚜
+                            </span>
+                            <div>
+                                <span class="fw-bold d-block">Plan Agro-Hacienda</span>
+                                <small class="text-muted">$229.000 COP/mes • Fincas agropecuarias y multi-sede</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <h6 class="fw-bold mb-0 text-primary">{{ conteo_hacienda }} clientes</h6>
+                            <small class="text-muted extra-small">{{ pct_hacienda }}% de la cartera</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métodos de Pago en Colombia -->
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-credit-card-2-front text-success"></i>
+                        <span>Canales de Recaudo Preferidos</span>
+                    </h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill extra-small">
+                        Canales Colombia
+                    </span>
+                </div>
+                <p class="text-muted small mb-4">
+                    Comportamiento de pagos de los clientes para renovar sus licencias de software.
+                </p>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for m in metodos_pago %}
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small d-flex align-items-center gap-1.5">
+                                {% if 'daviplata' in m.nombre|lower %}📱 Daviplata
+                                {% elif 'nequi' in m.nombre|lower %}📱 Nequi
+                                {% elif 'bancolombia' in m.nombre|lower %}🏦 Bancolombia
+                                {% elif 'efectivo' in m.nombre|lower %}💵 Efectivo / Corresponsal
+                                {% else %}💳 {{ m.nombre }}{% endif %}
+                            </span>
+                            <span class="extra-small text-muted">
+                                <strong>${{ "{:,.0f}".format(m.total) }} COP</strong> ({{ m.porcentaje }}%) • {{ m.conteo }} pagos
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar {% if 'daviplata' in m.nombre|lower %}bg-danger{% elif 'nequi' in m.nombre|lower %}bg-purple{% elif 'bancolombia' in m.nombre|lower %}bg-warning text-dark{% else %}bg-primary{% endif %}"
+                                 style="width: {{ m.porcentaje }}%;" aria-valuenow="{{ m.porcentaje }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. El Poder y Escala de tu Plataforma (Platform Reach) -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-4" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.03) 0%, rgba(15, 23, 42, 0.08) 100%);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-shaded text-info"></i>
+                    <span>Volumen & Escala Operativa de EcoSistem</span>
+                </h5>
+                <small class="text-muted">
+                    Total de activos, inventario vivo y operaciones gestionadas por las empresas clientes sobre tu infraestructura.
+                </small>
+            </div>
+            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-1 extra-small fw-bold">
+                Métricas de Tracción
+            </span>
+        </div>
+
+        <div class="row g-3 text-center">
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card border-0 shadow-sm rounded-4 p-3 py-3 bg-body h-100 d-flex flex-column justify-content-center">
+                    <i class="bi bi-flower1 text-success fs-3 mb-1"></i>
+                    <h4 class="fw-bold text-success mb-1">{{ "{:,}".format(plantas_gestionadas) }}</h4>
+                    <small class="text-muted extra-small fw-bold">Plantas Vivas</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card border-0 shadow-sm rounded-4 p-3 py-3 bg-body h-100 d-flex flex-column justify-content-center">
+                    <i class="bi bi-piggy-bank-fill text-warning fs-3 mb-1"></i>
+                    <h4 class="fw-bold text-warning-emphasis mb-1">{{ "{:,}".format(animales_gestionados) }}</h4>
+                    <small class="text-muted extra-small fw-bold">Animales en Fincas</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card border-0 shadow-sm rounded-4 p-3 py-3 bg-body h-100 d-flex flex-column justify-content-center">
+                    <i class="bi bi-grid-3x3-gap-fill text-primary fs-3 mb-1"></i>
+                    <h4 class="fw-bold text-primary mb-1">{{ lotes_totales }}</h4>
+                    <small class="text-muted extra-small fw-bold">Lotes de Cultivo</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card border-0 shadow-sm rounded-4 p-3 py-3 bg-body h-100 d-flex flex-column justify-content-center">
+                    <i class="bi bi-cash-coin text-success fs-3 mb-1"></i>
+                    <div class="fs-5 fw-bold text-success mb-1">${{ "{:,.0f}".format(ventas_procesadas) }}</div>
+                    <small class="text-muted extra-small fw-bold">Ventas de Clientes</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card border-0 shadow-sm rounded-4 p-3 py-3 bg-body h-100 d-flex flex-column justify-content-center">
+                    <i class="bi bi-box-seam-fill text-purple fs-3 mb-1" style="color: #8b5cf6;"></i>
+                    <h4 class="fw-bold mb-1" style="color: #8b5cf6;">{{ insumos_inventario }}</h4>
+                    <small class="text-muted extra-small fw-bold">Insumos Registrados</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="card border-0 shadow-sm rounded-4 p-3 py-3 bg-body h-100 d-flex flex-column justify-content-center">
+                    <i class="bi bi-globe2 text-info fs-3 mb-1"></i>
+                    <h4 class="fw-bold text-info mb-1">{{ total_empresas }}</h4>
+                    <small class="text-muted extra-small fw-bold">Catálogos Web</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Top Clientes Más Valiosos & Cobertura Geográfica -->
+    <div class="row g-4 mb-4">
+        <!-- Top 5 Clientes SaaS -->
+        <div class="col-12 col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-trophy-fill text-warning"></i>
+                        <span>Top 5 Clientes Más Valiosos (LTV)</span>
+                    </h5>
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill extra-small">
+                        Mayor Recaudo SaaS
+                    </span>
+                </div>
+                <p class="text-muted small mb-3">
+                    Empresas con mayor facturación histórica acumulada en licencias y suscripciones EcoSistem.
+                </p>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-uppercase">
+                            <tr>
+                                <th>Empresa Cliente</th>
+                                <th>Plan Contratado</th>
+                                <th class="text-center">Cobros</th>
+                                <th class="text-end">Total Pagado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in top_clientes %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if c.empresa.logo_url %}
+                                        <img src="{{ url_for('static', filename=c.empresa.logo_url) }}" class="rounded-circle shadow-sm" style="width: 32px; height: 32px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="bg-body-tertiary rounded-circle d-flex align-items-center justify-content-center border" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-building text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <a href="{{ url_for('superadmin.control_empresa', id=c.empresa.id) }}" class="fw-bold text-decoration-none text-body d-block">
+                                                {{ c.empresa.nombre }}
+                                            </a>
+                                            <small class="text-muted extra-small">{{ c.empresa.ciudad or 'Colombia' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill extra-small">
+                                        {{ c.empresa.plan_nombre or 'Plan SaaS' }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill extra-small">{{ c.num_pagos }} pago(s)</span>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="text-success">${{ "{:,.0f}".format(c.total_pagado) }} COP</strong>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cobertura Geográfica en Colombia -->
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-alt-fill text-danger"></i>
+                        <span>Presencia en Colombia</span>
+                    </h5>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill extra-small">
+                        {{ ciudades|length }} Ciudades
+                    </span>
+                </div>
+                <p class="text-muted small mb-3">
+                    Distribución geográfica de los viveros y haciendas que operan con EcoSistem.
+                </p>
+
+                <div class="d-flex flex-wrap gap-2">
+                    {% for c, cant in ciudades %}
+                    <div class="py-2 px-3 rounded-pill border bg-body-tertiary d-flex align-items-center gap-2 shadow-sm">
+                        <i class="bi bi-pin-map-fill text-danger extra-small"></i>
+                        <span class="small fw-bold">{{ c }}</span>
+                        <span class="badge bg-primary rounded-pill extra-small">{{ cant }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

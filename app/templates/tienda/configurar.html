@@ -1,0 +1,580 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuración de Mi Sitio Web — EcoSistem{% endblock %}
+
+{% block content %}
+<style>
+    .store-config-header {
+        background: linear-gradient(135deg, #065f46 0%, #0f172a 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 2.25rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .config-card {
+        background-color: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.25rem;
+        padding: 1.75rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    [data-bs-theme="dark"] .config-card {
+        background-color: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .live-preview-box {
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+    }
+
+    .banner-preview {
+        height: 180px;
+        border-radius: 1rem;
+        background-size: cover;
+        background-position: center;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: flex-end;
+        padding: 1.25rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .banner-preview::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, transparent 80%);
+    }
+
+    .color-swatch-picker {
+        width: 48px;
+        height: 38px;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="container-fluid py-4 mx-auto" style="max-width: 1350px;">
+
+    <!-- CABECERA PRINCIPAL -->
+    <div class="store-config-header mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4 position-relative z-1">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <span class="badge rounded-pill px-3 py-1 fw-bold" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.72rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-globe2 me-1"></i> E-COMMERCE & MICROSITIO PÚBLICO
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-20 text-white-50 border border-secondary border-opacity-25 font-monospace rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">
+                        TIENDA VIRTUAL PRO
+                    </span>
+                </div>
+                <h1 class="fw-black text-white mb-1" style="letter-spacing: -1px; font-size: 2.2rem;">
+                    Configuración de Mi Sitio Web
+                </h1>
+                <p class="text-white-50 mb-0 fw-medium fs-6">
+                    Personaliza la portada, colores, datos de contacto y catálogo online que verán tus clientes al comprar.
+                </p>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('tienda.index', empresa_id=empresa.id) }}" target="_blank"
+                   class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                   style="border-color: rgba(255,255,255,0.3);">
+                    <i class="bi bi-browser-chrome text-info"></i>
+                    <span>Ver Mi Página Web</span>
+                </a>
+                <a href="{{ url_for('tienda.catalogo', empresa_id=empresa.id) }}" target="_blank"
+                   class="btn btn-success rounded-pill px-4 py-2.5 fw-black d-flex align-items-center gap-2 shadow-lg border-0"
+                   style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="bi bi-bag-check-fill"></i>
+                    <span>Ver Catálogo Digital en Vivo</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ENLACES PÚBLICOS Y ESTADÍSTICAS DEL CATÁLOGO -->
+    <div class="row g-4 mb-4">
+        <!-- URL Página Principal -->
+        <div class="col-lg-4">
+            <div class="live-preview-box d-flex flex-column justify-content-between h-100 gap-2">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; font-size: 1.25rem;">
+                        <i class="bi bi-house-door"></i>
+                    </div>
+                    <div>
+                        <small class="text-white-50 d-block font-monospace" style="font-size: 0.72rem;">WEB PRINCIPAL (HISTORIA, SERVICIOS, REDES):</small>
+                        <a href="{{ url_publica }}" target="_blank" class="fw-bold text-info text-decoration-none font-monospace small" id="urlPublicaText">
+                            {{ url_publica }}
+                        </a>
+                    </div>
+                </div>
+                <button type="button" onclick="copiarEnlace('urlPublicaText', this)" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1 fw-bold align-self-start mt-2">
+                    <i class="bi bi-clipboard me-1"></i> Copiar Link Web
+                </button>
+            </div>
+        </div>
+
+        <!-- URL Catálogo Digital Exclusivo -->
+        <div class="col-lg-4">
+            <div class="live-preview-box d-flex flex-column justify-content-between h-100 gap-2" style="border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.05);">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 1.25rem;">
+                        <i class="bi bi-bag-check-fill"></i>
+                    </div>
+                    <div>
+                        <small class="text-success text-opacity-75 d-block font-monospace fw-bold" style="font-size: 0.72rem;">CATÁLOGO DIGITAL (PÁGINA EXCLUSIVA):</small>
+                        <a href="{{ url_catalogo }}" target="_blank" class="fw-bold text-success text-decoration-none font-monospace small" id="urlCatalogoText">
+                            {{ url_catalogo }}
+                        </a>
+                    </div>
+                </div>
+                <button type="button" onclick="copiarEnlace('urlCatalogoText', this)" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold align-self-start mt-2">
+                    <i class="bi bi-clipboard me-1"></i> Copiar Link Catálogo
+                </button>
+            </div>
+        </div>
+
+        <!-- KPI Resumen de Catálogo en Vivo -->
+        <div class="col-lg-4">
+            <div class="config-card d-flex align-items-center justify-content-between h-100 p-3">
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem;">Catálogo Sincronizado</span>
+                    <h5 class="fw-black mb-0 text-body">
+                        <span class="text-success">{{ total_plantas }}</span> plantas • <span class="text-info">{{ total_insumos }}</span> artículos
+                    </h5>
+                    <small class="text-muted" style="font-size: 0.75rem;">Alimentado automáticamente del inventario</small>
+                </div>
+                <div class="text-success fs-2">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO DE PERSONALIZACIÓN -->
+    <form action="{{ url_for('tienda.guardar_configuracion_tienda') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="empresa_id" value="{{ empresa.id }}">
+
+        <div class="row g-4">
+            <!-- COLUMNA IZQUIERDA: IDENTIDAD, HISTORIA Y MÉTRICAS -->
+            <div class="col-lg-7">
+                <!-- Tarjeta 1: Identidad Visual -->
+                <div class="config-card mb-4">
+                    <h5 class="fw-bold text-body mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                        <i class="bi bi-palette text-success"></i> Identidad Visual y Marca
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold small">Nombre Público del Vivero / Finca</label>
+                            <input type="text" name="nombre" value="{{ empresa.nombre }}" class="form-control" required />
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small">Color de Marca / Tema</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="color" name="color_tema" value="{{ empresa.color_tema or '#10b981' }}"
+                                       class="form-control form-control-color color-swatch-picker" id="colorTemaInput" />
+                                <span class="font-monospace small text-muted" id="colorTemaCode">{{ empresa.color_tema or '#10b981' }}</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Slogan o Lema Comercial</label>
+                            <input type="text" name="slogan" value="{{ empresa.slogan or '' }}" class="form-control"
+                                   placeholder="Ej: Plantas nativas, ornamentales y frutales de la mejor calidad" />
+                            <small class="text-muted extra-small">Aparece destacado debajo del nombre en el Hero principal.</small>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Descripción Corta / Resumen</label>
+                            <textarea name="descripcion_web" class="form-control" rows="2"
+                                      placeholder="Breve presentación de 1 o 2 renglones...">{{ empresa.descripcion_web or '' }}</textarea>
+                        </div>
+
+                        <!-- Subir Logo -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Logo de tu Vivero</label>
+                            {% if empresa.logo_url %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <img src="{{ url_for('static', filename=empresa.logo_url) }}" alt="Logo" class="rounded-circle border" style="width: 50px; height: 50px; object-fit: cover;">
+                                <small class="text-muted extra-small">Logo actual configurado</small>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="logo" accept="image/*" class="form-control form-control-sm" />
+                        </div>
+
+                        <!-- Subir Banner de Portada -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Banner de Portada</label>
+                            {% if empresa.banner_url %}
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <img src="{{ url_for('static', filename=empresa.banner_url) }}" alt="Banner" class="rounded-3 border" style="width: 80px; height: 50px; object-fit: cover;">
+                                <small class="text-muted extra-small">Banner actual</small>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="banner" accept="image/*" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Nuestra Historia y Especialidades (Sobre Nosotros) -->
+                <div class="config-card mb-4">
+                    <h5 class="fw-bold text-body mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                        <i class="bi bi-feather text-success"></i> Nuestra Historia & Servicios (Sección "Sobre Nosotros")
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Historia Completa del Vivero / Finca</label>
+                            <textarea name="sobre_nosotros_largo" class="form-control" rows="4"
+                                      placeholder="Cuéntale a tus clientes cómo nació el vivero, su experiencia en el campo, valores ambientales y compromiso con el medio ambiente...">{{ empresa.sobre_nosotros_largo or '' }}</textarea>
+                            <small class="text-muted extra-small">Aparece en la sección destacada de "Sobre Nosotros" con tu fotografía de finca.</small>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Texto de Servicios y Especialidades</label>
+                            <textarea name="servicios_texto" class="form-control" rows="2"
+                                      placeholder="Ej: Suministro agroforestal masivo, injertación personalizada, asesoría técnica en campo y diseño paisajístico.">{{ empresa.servicios_texto or '' }}</textarea>
+                            <small class="text-muted extra-small">Acompaña la cuadrícula de servicios y especialidades técnicas.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3: Métricas de Impacto y Logros -->
+                <div class="config-card">
+                    <h5 class="fw-bold text-body mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                        <i class="bi bi-trophy text-warning"></i> Métricas de Trayectoria y Logros
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Años de Trayectoria</label>
+                            <input type="text" name="anios_experiencia" value="{{ empresa.anios_experiencia or '10+ Años' }}" class="form-control font-monospace" placeholder="10+ Años" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Plántulas Entregadas</label>
+                            <input type="text" name="plantas_entregadas" value="{{ empresa.plantas_entregadas or '50,000+' }}" class="form-control font-monospace text-success" placeholder="50,000+" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small">Especies / Variedades</label>
+                            <input type="text" name="hectareas_o_variedades" value="{{ empresa.hectareas_o_variedades or '150+ Especies' }}" class="form-control font-monospace" placeholder="150+ Especies" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: PUBLICACIÓN, REDES Y CONTACTO -->
+            <div class="col-lg-5">
+                <!-- Tarjeta 4: Modalidad de Publicación (Catálogo vs Solo Web) -->
+                <div class="config-card mb-4" style="border: 2px solid rgba(16, 185, 129, 0.35);">
+                    <h5 class="fw-bold text-body mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                        <i class="bi bi-sliders text-success"></i> Opciones de Publicación
+                    </h5>
+
+                    <!-- Switch 1: Activar Sitio Web -->
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="tienda_activa" id="checkTiendaActiva" {% if empresa.tienda_activa %}checked{% endif %}>
+                        <label class="form-check-label fw-bold text-body" for="checkTiendaActiva">
+                            Sitio Web Público Activado
+                        </label>
+                        <small class="text-muted d-block extra-small">Si está apagado, los visitantes verán una pantalla de mantenimiento.</small>
+                    </div>
+
+                    <!-- Switch 2: PUBLICAR CATÁLOGO DIGITAL (REQUERIMIENTO CLAVE) -->
+                    <div class="p-3 rounded-3 mb-3" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25);">
+                        <div class="form-check form-switch mb-1">
+                            <input class="form-check-input" type="checkbox" name="mostrar_catalogo_web" id="checkCatalogoWeb" {% if empresa.mostrar_catalogo_web %}checked{% endif %}>
+                            <label class="form-check-label fw-black text-success" for="checkCatalogoWeb">
+                                <i class="bi bi-bag-check-fill me-1"></i> Publicar Catálogo Digital Online
+                            </label>
+                        </div>
+                        <small class="text-muted d-block" style="font-size: 0.78rem; line-height: 1.4;">
+                            <strong>Activado:</strong> Muestra la tienda virtual completa con buscador, filtros por categoría y carrito de compras conectado a WhatsApp.<br>
+                            <strong>Desactivado:</strong> Tu sitio web funcionará como una <strong>página web institucional/corporativa</strong> presentando tu historia, servicios, redes sociales y contacto para proyectos personalizados.
+                        </small>
+                    </div>
+
+                    <!-- Switch 3: Mostrar Precios -->
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="mostrar_precios_web" id="checkPrecios" {% if empresa.mostrar_precios_web %}checked{% endif %}>
+                        <label class="form-check-label fw-bold text-body" for="checkPrecios">
+                            Mostrar Precios de Venta al Público
+                        </label>
+                        <small class="text-muted d-block extra-small">Si lo desactivas, los productos dirán "Consultar Precio" o "Cotizar".</small>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 5: Redes Sociales Creativas -->
+                <div class="config-card mb-4">
+                    <h5 class="fw-bold text-body mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                        <i class="bi bi-share-fill text-primary"></i> Redes Sociales y Comunidad
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-body">
+                                <i class="bi bi-instagram text-danger me-1"></i> Enlace de Instagram
+                            </label>
+                            <input type="url" name="instagram_url" value="{{ empresa.instagram_url or '' }}"
+                                   class="form-control form-control-sm" placeholder="https://instagram.com/tu_vivero" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-body">
+                                <i class="bi bi-facebook text-primary me-1"></i> Enlace de Facebook
+                            </label>
+                            <input type="url" name="facebook_url" value="{{ empresa.facebook_url or '' }}"
+                                   class="form-control form-control-sm" placeholder="https://facebook.com/tu_vivero" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-body">
+                                <i class="bi bi-tiktok text-dark me-1"></i> Enlace de TikTok
+                            </label>
+                            <input type="url" name="tiktok_url" value="{{ empresa.tiktok_url or '' }}"
+                                   class="form-control form-control-sm" placeholder="https://tiktok.com/@tu_vivero" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 6: Contacto y WhatsApp -->
+                <div class="config-card">
+                    <h5 class="fw-bold text-body mb-3 d-flex align-items-center gap-2 border-bottom pb-2">
+                        <i class="bi bi-whatsapp text-success"></i> WhatsApp y Atención Directa
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-success">
+                                <i class="bi bi-whatsapp me-1"></i> WhatsApp para Recibir Pedidos
+                            </label>
+                            <input type="text" name="whatsapp_pedidos" value="{{ empresa.whatsapp_pedidos or empresa.telefono or '' }}"
+                                   class="form-control font-monospace border-success border-opacity-50"
+                                   placeholder="Ej: 573001234567 (con indicativo de país)" />
+                            <small class="text-muted extra-small">A este número llegarán automáticamente los pedidos armados desde el carrito de tu página web.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Teléfono Alternativo</label>
+                            <input type="text" name="telefono" value="{{ empresa.telefono or '' }}" class="form-control" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">Correo Electrónico</label>
+                            <input type="email" name="email" value="{{ empresa.email or '' }}" class="form-control" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Dirección Física</label>
+                            <input type="text" name="direccion" value="{{ empresa.direccion or '' }}" class="form-control" placeholder="Km 5 Vía Principal..." />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Ciudad / Municipio</label>
+                            <input type="text" name="ciudad" value="{{ empresa.ciudad or '' }}" class="form-control" placeholder="Ej: Villavicencio, Meta" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">Horario de Atención</label>
+                            <input type="text" name="horario_atencion" value="{{ empresa.horario_atencion or '' }}" class="form-control"
+                                   placeholder="Ej: Lun a Sáb: 7:00 AM - 5:30 PM | Dom: 8:00 AM - 2:00 PM" />
+                        </div>
+
+                        <div class="col-12 pt-3">
+                            <button type="submit" class="btn btn-success rounded-pill w-100 py-3 fw-black shadow-lg border-0"
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-size: 1.05rem;">
+                                <i class="bi bi-save-fill me-1"></i> Guardar Cambios del Sitio Web
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- SECCIÓN: GESTIÓN DE TESTIMONIOS Y CALIFICACIONES DE CLIENTES -->
+    <div class="row g-4 mt-2" id="testimonios-admin">
+        <div class="col-12">
+            <div class="config-card">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 border-bottom pb-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge rounded-pill px-2.5 py-1 font-monospace" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem;">
+                                ⭐ SOCIAL PROOF & CALIFICACIONES
+                            </span>
+                            <span class="badge bg-secondary bg-opacity-25 text-white-50 rounded-pill font-monospace" style="font-size: 0.7rem;">
+                                {{ testimonios|length }} OPINIONES
+                            </span>
+                        </div>
+                        <h4 class="fw-black text-dark mb-1">Opiniones y Calificaciones de Clientes</h4>
+                        <p class="text-muted small mb-0">Gestiona los testimonios que aparecen en la sección pública de tu sitio web.</p>
+                    </div>
+                    <button type="button" class="btn btn-outline-success rounded-pill px-3.5 py-2 fw-bold d-flex align-items-center gap-2"
+                            data-bs-toggle="modal" data-bs-target="#modalNuevoTestimonioManual">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Agregar Testimonio Manual</span>
+                    </button>
+                </div>
+
+                {% if testimonios %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr class="text-secondary small">
+                                    <th>CLIENTE</th>
+                                    <th>CALIFICACIÓN</th>
+                                    <th>OPINIÓN / COMENTARIO</th>
+                                    <th>FECHA</th>
+                                    <th>ESTADO</th>
+                                    <th class="text-end">ACCIONES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in testimonios %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+                                                 style="width: 36px; height: 36px; font-size: 0.82rem; background: {{ t.avatar_color or '#10b981' }}; flex-shrink: 0;">
+                                                {{ t.nombre_cliente[:2]|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ t.nombre_cliente }}</div>
+                                                <small class="text-muted">{{ t.proyecto_o_ciudad }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-warning">
+                                            {% for i in range(t.calificacion) %}★{% endfor %}{% for i in range(5 - t.calificacion) %}☆{% endfor %}
+                                            <span class="text-dark small fw-bold ms-1">({{ t.calificacion }}/5)</span>
+                                        </div>
+                                    </td>
+                                    <td style="max-width: 340px;">
+                                        <small class="text-secondary fst-italic">"{{ t.comentario }}"</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ t.fecha.strftime('%d/%m/%Y') if t.fecha else '-' }}</small>
+                                    </td>
+                                    <td>
+                                        {% if t.aprobado %}
+                                            <span class="badge bg-success bg-opacity-15 text-success rounded-pill px-2.5 py-1">Visible</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary bg-opacity-25 text-muted rounded-pill px-2.5 py-1">Oculto</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <form action="{{ url_for('tienda.toggle_aprobado_testimonio', testimonio_id=t.id) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1"
+                                                        title="{{ 'Ocultar de la web' if t.aprobado else 'Mostrar en la web' }}">
+                                                    <i class="bi bi-eye{{ '-slash' if t.aprobado else '' }}"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{{ url_for('tienda.eliminar_testimonio', testimonio_id=t.id) }}" method="POST" class="d-inline"
+                                                  onsubmit="return confirm('¿Seguro que deseas eliminar esta opinión?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" title="Eliminar">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 bg-light rounded-4 border">
+                        <i class="bi bi-chat-heart text-muted fs-1 mb-2 d-block"></i>
+                        <h6 class="fw-bold text-dark">No hay opiniones de clientes registradas todavía</h6>
+                        <p class="text-muted small mb-3">Tus clientes pueden dejar sus opiniones directamente desde tu página web pública, o puedes agregar manualmente opiniones recibidas por WhatsApp.</p>
+                        <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-bold"
+                                data-bs-toggle="modal" data-bs-target="#modalNuevoTestimonioManual">
+                            <i class="bi bi-plus-circle me-1"></i> Agregar Primer Testimonio
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA AGREGAR TESTIMONIO MANUALMENTE (DESDE PANEL ADMIN) -->
+    <div class="modal fade" id="modalNuevoTestimonioManual" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-0 bg-light px-4 pt-4 pb-2">
+                    <h5 class="modal-title fw-black text-dark">
+                        <i class="bi bi-chat-quote-fill text-success me-2"></i>Agregar Opinión o Testimonio
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form action="{{ url_for('tienda.crear_testimonio_manual') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-body px-4 py-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Nombre del Cliente *</label>
+                            <input type="text" name="nombre_cliente" class="form-control rounded-3" placeholder="Ej: Ing. Mauricio Silva" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Proyecto / Finca / Ubicación</label>
+                            <input type="text" name="proyecto_o_ciudad" class="form-control rounded-3" placeholder="Ej: Hacienda Los Alpes • Ganadería o Paisajismo">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Calificación</label>
+                            <select name="calificacion" class="form-select rounded-3">
+                                <option value="5" selected>⭐⭐⭐⭐⭐ 5 Estrellas (Excelente)</option>
+                                <option value="4">⭐⭐⭐⭐ 4 Estrellas (Muy Bueno)</option>
+                                <option value="3">⭐⭐⭐ 3 Estrellas (Bueno)</option>
+                                <option value="2">⭐⭐ 2 Estrellas (Regular)</option>
+                                <option value="1">⭐ 1 Estrella (Deficiente)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Testimonio / Comentario *</label>
+                            <textarea name="comentario" class="form-control rounded-3" rows="3" placeholder="Comentario que el cliente compartió sobre sus plántulas o atención recibida..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light px-4 py-3">
+                        <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Guardar y Publicar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function copiarEnlace(elemId, btn) {
+        const text = document.getElementById(elemId)?.textContent?.trim();
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            if (btn) {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2 me-1"></i> ¡Copiado!';
+                setTimeout(() => { btn.innerHTML = originalHtml; }, 2500);
+            }
+        });
+    }
+
+    document.getElementById('colorTemaInput')?.addEventListener('input', (e) => {
+        document.getElementById('colorTemaCode').textContent = e.target.value;
+    });
+</script>
+{% endblock %}

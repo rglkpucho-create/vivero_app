@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Cabecera Ejecutiva Glass */
+    .purchases-header {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.75rem;
+        padding: 2.5rem 2.5rem 2.25rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-bs-theme="light"] .purchases-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+    }
+
+    .purchases-header::after {
+        content: '';
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 260px;
+        height: 260px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        filter: blur(45px);
+        pointer-events: none;
+    }
+
+    /* Tarjetas KPI Modernas */
+    .kpi-card-luxury {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .kpi-card-luxury:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 30px -8px rgba(0, 0, 0, 0.12);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .kpi-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+    }
+
+    /* Toolbar de Filtros */
+    .filter-card-luxury {
+        background: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.06);
+    }
+
+    .form-select-modern,
+    .form-control-modern {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.85rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .form-select-modern:focus,
+    .form-control-modern:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+    }
+
+    /* Tabla de Pedidos */
+    .table-orders {
+        border-collapse: separate;
+        border-spacing: 0 0.85rem;
+    }
+
+    .table-orders tbody tr {
+        background-color: var(--bs-card-bg, #ffffff);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        border-radius: 1.25rem;
+        transition: all 0.25s ease;
+    }
+
+    /* MODO OSCURO */
+    [data-bs-theme="dark"] .kpi-card-luxury,
+    [data-bs-theme="dark"] .filter-card-luxury,
+    [data-bs-theme="dark"] .table-orders tbody tr {
+        background-color: #111827 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    [data-bs-theme="dark"] .table-orders tbody tr:hover {
+        background-color: #1e293b !important;
+    }
+
+    .table-orders td,
+    .table-orders th {
+        border: none;
+        vertical-align: middle;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .table-orders tbody tr td:first-child {
+        border-top-left-radius: 1.25rem;
+        border-bottom-left-radius: 1.25rem;
+    }
+
+    .table-orders tbody tr td:last-child {
+        border-top-right-radius: 1.25rem;
+        border-bottom-right-radius: 1.25rem;
+    }
+</style>
+
+<div class="container-fluid py-4 mx-auto" style="max-width: 1400px;">
+
+    <!-- CABECERA EJECUTIVA -->
+    <div class="purchases-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4 position-relative z-1">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-indigo bg-opacity-25 text-white border border-light border-opacity-25 rounded-pill px-3 py-1 fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px; background-color: rgba(99, 102, 241, 0.2);">
+                        <i class="bi bi-cart-check me-1"></i> LOGÍSTICA & ABASTECIMIENTO
+                    </span>
+                    <span class="badge bg-secondary bg-opacity-20 text-white-50 border border-secondary border-opacity-25 font-monospace rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                        ÓRDENES DE COMPRA
+                    </span>
+                </div>
+                <h1 class="fw-black text-white mb-1" style="letter-spacing: -1px; font-size: 2.2rem;">Órdenes de Compra</h1>
+                <p class="text-white-50 mb-0 fw-medium fs-6">
+                    Aprovisionamiento con proveedores, control de recepción en bodega y costos de adquisición.
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('compras.lista_proveedores') }}" 
+                   class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
+                   style="border-color: rgba(255,255,255,0.25);">
+                    <i class="bi bi-buildings"></i> <span class="d-none d-sm-inline">Proveedores</span>
+                </a>
+                <a href="{{ url_for('compras.nuevo_pedido') }}"
+                   class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 shadow-lg hover-lift border-0"
+                   style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                    <i class="bi bi-cart-plus-fill fs-5"></i> Crear Pedido
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIBBON DE KPIs DE COMPRAS -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Inversión Recibida</span>
+                    <h3 class="fw-black mb-0 text-success font-monospace">${{ "{:,.0f}".format(kpi_inversion_total or 0) }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Total recepcionado</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">En Tránsito</span>
+                    <h3 class="fw-black mb-0 text-primary font-monospace">{{ kpi_solicitados or 0 }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Pedidos solicitados</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Borradores</span>
+                    <h3 class="fw-black mb-0 text-warning font-monospace">{{ kpi_borradores or 0 }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">En preparación</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card-luxury">
+                <div class="kpi-icon-wrapper bg-info bg-opacity-10 text-info border border-info border-opacity-25">
+                    <i class="bi bi-check-all"></i>
+                </div>
+                <div>
+                    <span class="text-secondary small fw-bold text-uppercase d-block mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">Completados</span>
+                    <h3 class="fw-black mb-0 text-info font-monospace">{{ kpi_recibidos or 0 }}</h3>
+                    <small class="text-muted" style="font-size: 0.75rem;">Ingresados al stock</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRA DE FILTROS AVANZADA -->
+    <div class="filter-card-luxury mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                    Proveedor
+                </label>
+                <select id="filtroProveedor" class="form-select form-select-modern">
+                    <option value="">Todos los proveedores</option>
+                    {% for p in proveedores %}
+                    <option value="{{ p.id }}" {% if request.args.get('proveedor_id')==p.id|string %}selected{% endif %}>
+                        {{ p.razon_social }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                    Estado
+                </label>
+                <select id="filtroEstado" class="form-select form-select-modern">
+                    <option value="">Cualquier estado</option>
+                    <option value="Borrador" {% if request.args.get('estado')=='Borrador' %}selected{% endif %}>Borrador</option>
+                    <option value="Solicitado" {% if request.args.get('estado')=='Solicitado' %}selected{% endif %}>En Tránsito (Solicitado)</option>
+                    <option value="Recibido" {% if request.args.get('estado')=='Recibido' %}selected{% endif %}>Recibido en Bodega</option>
+                    <option value="Cancelado" {% if request.args.get('estado')=='Cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-secondary text-uppercase mb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                    Rango de Fechas
+                </label>
+                <div class="input-group">
+                    <input type="date" id="filtroFechaInicio" class="form-control form-control-modern"
+                           value="{{ request.args.get('fecha_inicio') or '' }}" title="Fecha inicio">
+                    <span class="input-group-text bg-body-tertiary border-0 text-muted px-2 small">a</span>
+                    <input type="date" id="filtroFechaFin" class="form-control form-control-modern"
+                           value="{{ request.args.get('fecha_fin') or '' }}" title="Fecha fin">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="position-relative flex-grow-1">
+                        <input type="text" id="filtroBusqueda" class="form-control form-control-modern ps-4"
+                               placeholder="Buscar por # orden..." value="{{ search_query or '' }}">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
+                    </div>
+                    <div id="loadingIndicator" class="spinner-border spinner-border-sm text-primary" role="status" style="display: none;"></div>
+                    <a href="{{ url_for('compras.lista_pedidos') }}"
+                       class="btn btn-outline-secondary rounded-pill px-3 py-2 small fw-bold d-inline-flex align-items-center shadow-sm"
+                       title="Restablecer filtros">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE RESULTADOS DE ÓRDENES -->
+    <div class="table-responsive px-1 pb-5">
+        <table class="table table-orders align-middle w-100">
+            <thead>
+                <tr>
+                    <th class="ps-4 text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Referencia / Orden
+                    </th>
+                    <th class="text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Proveedor Asignado
+                    </th>
+                    <th class="text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Fecha de Pedido
+                    </th>
+                    <th class="text-uppercase text-secondary small fw-bold border-0 pb-1 text-center" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Estado Logístico
+                    </th>
+                    <th class="text-end text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Importe Total
+                    </th>
+                    <th class="text-end pe-4 text-uppercase text-secondary small fw-bold border-0 pb-1" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                        Gestión
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="contenedorPedidos">
+                {% include 'parciales/items_pedidos.html' %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let timeoutId;
+        const filtroProveedor = document.getElementById('filtroProveedor');
+        const filtroEstado = document.getElementById('filtroEstado');
+        const filtroFechaInicio = document.getElementById('filtroFechaInicio');
+        const filtroFechaFin = document.getElementById('filtroFechaFin');
+        const filtroBusqueda = document.getElementById('filtroBusqueda');
+        const contenedor = document.getElementById('contenedorPedidos');
+        const loading = document.getElementById('loadingIndicator');
+
+        function filtrar() {
+            if (loading) loading.style.display = 'inline-block';
+            const proveedor_id = filtroProveedor.value;
+            const estado = filtroEstado.value;
+            const fecha_inicio = filtroFechaInicio.value;
+            const fecha_fin = filtroFechaFin.value;
+            const q = filtroBusqueda ? filtroBusqueda.value.trim() : '';
+
+            const params = new URLSearchParams();
+            if (proveedor_id) params.set('proveedor_id', proveedor_id);
+            if (estado) params.set('estado', estado);
+            if (fecha_inicio) params.set('fecha_inicio', fecha_inicio);
+            if (fecha_fin) params.set('fecha_fin', fecha_fin);
+            if (q) params.set('q', q);
+            params.set('ajax', '1');
+
+            fetch(`{{ url_for('compras.lista_pedidos') }}?${params.toString()}`)
+                .then(r => r.text())
+                .then(html => {
+                    contenedor.innerHTML = html;
+                    if (loading) loading.style.display = 'none';
+                })
+                .catch(() => { 
+                    if (loading) loading.style.display = 'none'; 
+                });
+        }
+
+        filtroProveedor.addEventListener('change', filtrar);
+        filtroEstado.addEventListener('change', filtrar);
+        
+        filtroFechaInicio.addEventListener('change', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(filtrar, 250);
+        });
+        filtroFechaFin.addEventListener('change', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(filtrar, 250);
+        });
+        if (filtroBusqueda) {
+            filtroBusqueda.addEventListener('input', function() {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(filtrar, 300);
+            });
+        }
+    });
+</script>
+{% endblock %}
