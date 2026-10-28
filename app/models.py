@@ -56,6 +56,13 @@ class Empresa(db.Model):
     ciclo_pago = db.Column(db.String(30), default='Mensual')
     notas_admin = db.Column(db.Text)  # Notas privadas del proveedor del software
 
+    # Datos Bancarios & Textos Comerciales
+    cuentas_bancarias = db.Column(db.Text, nullable=True) # Cuentas para pagos/transferencias
+    pie_factura_legal = db.Column(db.Text, nullable=True) # Textos legales de pie de factura y régimen
+    pie_ticket_pos = db.Column(db.Text, nullable=True)    # Mensaje de despedida en ticket térmico
+    prefijo_factura_pos = db.Column(db.String(10), default='POS-')
+    ultimo_backup_fecha = db.Column(db.DateTime, nullable=True)
+
     # Configuración de Facturación Electrónica (DIAN / Proveedores Tecnológicos)
     fe_habilitada = db.Column(db.Boolean, default=False)
     fe_proveedor = db.Column(db.String(50), default='SANDBOX')  # 'SANDBOX', 'FACTUS', 'ALEGRA', 'SIIGO'

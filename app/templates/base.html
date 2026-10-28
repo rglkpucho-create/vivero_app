@@ -102,6 +102,9 @@
                             <li><a class="dropdown-item fw-bold {% if request.endpoint in ['inventario.lista_insumos', 'inventario.nuevo_insumo'] %}active{% endif %}"
                                     href="{{ url_for('inventario.lista_insumos') }}"><i
                                         class="bi bi-box-seam text-warning"></i>Insumos</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint and request.endpoint.startswith('etiquetas.') %}active{% endif %}"
+                                    href="{{ url_for('etiquetas.index') }}"><i
+                                        class="bi bi-upc-scan text-success"></i>Impresión de Etiquetas</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -231,12 +234,15 @@
                             <i class="bi bi-shield-lock-fill text-warning"></i> Admin
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_usuarios') }}"><i class="bi bi-people-fill text-primary"></i> Usuarios</a></li>
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_roles') }}"><i class="bi bi-person-lines-fill text-success"></i> Roles</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'admin.configuracion_empresa' %}active{% endif %}" href="{{ url_for('admin.configuracion_empresa') }}"><i class="bi bi-building-gear text-primary"></i> Mi Empresa & Logo</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('ventas.configuracion_integraciones') }}"><i class="bi bi-shield-check text-success"></i> DIAN & Pagos Online</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'admin.lista_usuarios' %}active{% endif %}" href="{{ url_for('admin.lista_usuarios') }}"><i class="bi bi-people-fill text-info"></i> Usuarios</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'admin.lista_roles' %}active{% endif %}" href="{{ url_for('admin.lista_roles') }}"><i class="bi bi-person-lines-fill text-success"></i> Roles</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_auditoria') }}"><i class="bi bi-journal-text text-danger"></i> Auditoría</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'ventas.configuracion_integraciones' %}active{% endif %}" href="{{ url_for('ventas.configuracion_integraciones') }}"><i class="bi bi-shield-check text-success"></i> DIAN & Pagos Online</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'admin.panel_respaldos' %}active{% endif %}" href="{{ url_for('admin.panel_respaldos') }}"><i class="bi bi-database-down text-warning"></i> Copias de Seguridad (Backups)</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'admin.lista_auditoria' %}active{% endif %}" href="{{ url_for('admin.lista_auditoria') }}"><i class="bi bi-journal-text text-danger"></i> Auditoría</a></li>
                         </ul>
                     </li>
                     {% endif %}

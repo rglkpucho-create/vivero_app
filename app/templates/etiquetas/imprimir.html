@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impresión de Etiquetas - EcoSistem</title>
+    <!-- JsBarcode y QRCode para renderizado vectorial nítido sin dependencias pesadas -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #000;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            padding: 20px;
+        }
+
+        .no-print-bar {
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-print {
+            background: #10b981;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-print:hover { background: #059669; }
+
+        .btn-close {
+            background: #475569;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        /* ============================================================== */
+        /* FORMATO 1: ROLLO TÉRMICO 50mm x 30mm                           */
+        /* ============================================================== */
+        {% if formato == 'rollo_50x30' %}
+        .labels-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .etiqueta-item {
+            width: 50mm;
+            height: 30mm;
+            background: #fff;
+            border: 1px dashed #cbd5e1;
+            padding: 2mm 3mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            page-break-after: always;
+        }
+
+        .etiqueta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            line-height: 1.1;
+        }
+
+        .etiqueta-titulo {
+            font-size: 9pt;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 32mm;
+        }
+
+        .etiqueta-precio {
+            font-size: 9.5pt;
+            font-weight: 900;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .etiqueta-subtitulo {
+            font-size: 6.5pt;
+            color: #475569;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .etiqueta-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2mm;
+            margin-top: 1mm;
+        }
+
+        .barcode-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .barcode-container svg {
+            width: 100% !important;
+            height: 12mm !important;
+        }
+
+        .qr-box {
+            width: 11mm;
+            height: 11mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-box img {
+            width: 11mm !important;
+            height: 11mm !important;
+        }
+
+        .etiqueta-empresa {
+            font-size: 5.5pt;
+            color: #64748b;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        @media print {
+            body { background: transparent; padding: 0; margin: 0; }
+            .no-print-bar { display: none !important; }
+            .labels-container { gap: 0; }
+            .etiqueta-item { border: none; box-shadow: none; margin: 0; }
+            @page {
+                size: 50mm 30mm;
+                margin: 0;
+            }
+        }
+
+        /* ============================================================== */
+        /* FORMATO 2: ROLLO TÉRMICO 60mm x 40mm                           */
+        /* ============================================================== */
+        {% elif formato == 'rollo_60x40' %}
+        .labels-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .etiqueta-item {
+            width: 60mm;
+            height: 40mm;
+            background: #fff;
+            border: 1px dashed #cbd5e1;
+            padding: 3mm 4mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            page-break-after: always;
+        }
+
+        .etiqueta-titulo {
+            font-size: 11pt;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .etiqueta-subtitulo {
+            font-size: 7.5pt;
+            color: #475569;
+            font-style: italic;
+        }
+
+        .etiqueta-precio {
+            font-size: 12pt;
+            font-weight: 900;
+            text-align: right;
+            color: #000;
+        }
+
+        .etiqueta-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 3mm;
+            margin: 2mm 0;
+        }
+
+        .barcode-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .barcode-container svg {
+            width: 100% !important;
+            height: 16mm !important;
+        }
+
+        .qr-box {
+            width: 15mm;
+            height: 15mm;
+        }
+        .qr-box img {
+            width: 15mm !important;
+            height: 15mm !important;
+        }
+
+        .etiqueta-empresa {
+            font-size: 6.5pt;
+            color: #64748b;
+            text-align: center;
+            border-top: 0.5px solid #e2e8f0;
+            padding-top: 1mm;
+        }
+
+        @media print {
+            body { background: transparent; padding: 0; margin: 0; }
+            .no-print-bar { display: none !important; }
+            .labels-container { gap: 0; }
+            .etiqueta-item { border: none; box-shadow: none; margin: 0; }
+            @page {
+                size: 60mm 40mm;
+                margin: 0;
+            }
+        }
+
+        /* ============================================================== */
+        /* FORMATO 3: HOJA CARTA ADHESIVA (3 COLUMNAS X 10 FILAS = 30)   */
+        /* ============================================================== */
+        {% else %}
+        .labels-container {
+            width: 216mm;
+            background: #fff;
+            margin: 0 auto;
+            padding: 12mm 5mm;
+            display: grid;
+            grid-template-columns: repeat(3, 66.7mm);
+            grid-auto-rows: 25.4mm;
+            column-gap: 2.8mm;
+            row-gap: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .etiqueta-item {
+            width: 66.7mm;
+            height: 25.4mm;
+            padding: 1.5mm 3mm;
+            border: 1px dotted #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        .etiqueta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            line-height: 1;
+        }
+
+        .etiqueta-titulo {
+            font-size: 8pt;
+            font-weight: 800;
+            max-width: 42mm;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .etiqueta-precio {
+            font-size: 8.5pt;
+            font-weight: 900;
+        }
+
+        .etiqueta-subtitulo {
+            font-size: 5.5pt;
+            color: #475569;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .etiqueta-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5mm;
+        }
+
+        .barcode-container {
+            flex: 1;
+        }
+        .barcode-container svg {
+            width: 100% !important;
+            height: 10.5mm !important;
+        }
+
+        .qr-box {
+            width: 9.5mm;
+            height: 9.5mm;
+        }
+        .qr-box img {
+            width: 9.5mm !important;
+            height: 9.5mm !important;
+        }
+
+        .etiqueta-empresa {
+            font-size: 5pt;
+            color: #64748b;
+            text-align: center;
+        }
+
+        @media print {
+            body { background: transparent; padding: 0; margin: 0; }
+            .no-print-bar { display: none !important; }
+            .labels-container { box-shadow: none; padding: 12mm 5mm; }
+            .etiqueta-item { border: none; }
+            @page {
+                size: letter;
+                margin: 0;
+            }
+        }
+        {% endif %}
+    </style>
+</head>
+<body>
+    <div class="no-print-bar">
+        <div>
+            <strong>EcoSistem | Impresión de Etiquetas</strong>
+            <span style="font-size: 13px; color: #94a3b8; margin-left: 10px;">
+                Formato: {{ formato|upper }} • {{ etiquetas|length }} etiqueta(s) generadas
+            </span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-print" onclick="window.print()">🖨️ Imprimir Ahora</button>
+            <a href="javascript:window.close()" class="btn-close">Cerrar Ventana</a>
+        </div>
+    </div>
+
+    <div class="labels-container">
+        {% for et in etiquetas %}
+        <div class="etiqueta-item">
+            <div class="etiqueta-header">
+                <div>
+                    <div class="etiqueta-titulo">{{ et.titulo }}</div>
+                    <div class="etiqueta-subtitulo">{{ et.subtitulo }}</div>
+                </div>
+                {% if et.mostrar_precio and et.precio %}
+                <div class="etiqueta-precio">${{ "{:,.0f}".format(et.precio) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="etiqueta-body">
+                {% if et.mostrar_barcode and et.codigo_barcode %}
+                <div class="barcode-container">
+                    <svg class="barcode-svg" data-code="{{ et.codigo_barcode }}"></svg>
+                </div>
+                {% endif %}
+
+                {% if et.mostrar_qr and et.codigo_barcode %}
+                <div class="qr-box" id="qr-box-{{ loop.index }}" data-payload="{{ et.codigo_barcode }}"></div>
+                {% endif %}
+            </div>
+
+            <div class="etiqueta-empresa">
+                {{ empresa.nombre if empresa else 'EcoSistem Agro' }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        // Generar códigos de barras Code128 vectoriales nítidos
+        document.querySelectorAll('.barcode-svg').forEach(function(svg) {
+            const code = svg.getAttribute('data-code');
+            if (code) {
+                try {
+                    JsBarcode(svg, code, {
+                        format: "CODE128",
+                        width: 1.1,
+                        height: 35,
+                        displayValue: true,
+                        fontSize: 8.5,
+                        margin: 0,
+                        textMargin: 1
+                    });
+                } catch(e) {
+                    console.error("Error generando código de barras:", e);
+                }
+            }
+        });
+
+        // Generar Códigos QR
+        document.querySelectorAll('.qr-box').forEach(function(box) {
+            const payload = box.getAttribute('data-payload');
+            if (payload) {
+                try {
+                    new QRCode(box, {
+                        text: payload,
+                        width: 48,
+                        height: 48,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.M
+                    });
+                } catch(e) {
+                    console.error("Error generando QR:", e);
+                }
+            }
+        });
+
+        // Diálogo de impresión opcional
+        window.addEventListener('load', function() {
+            // Se puede descomentar para autodisparo: window.print();
+        });
+    </script>
+</body>
+</html>

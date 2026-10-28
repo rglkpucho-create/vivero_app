@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Copias de Seguridad & Respaldos | EcoSistem{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-4" style="max-width: 1000px;">
+    <!-- Encabezado -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2.5 py-1 rounded-pill fw-bold">
+                    <i class="bi bi-shield-check me-1"></i> Seguridad & Continuidad
+                </span>
+                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 rounded-pill">
+                    Mantenimiento
+                </span>
+            </div>
+            <h2 class="h3 fw-bold text-body mb-0">Copias de Seguridad & Respaldos (1-Clic)</h2>
+            <p class="text-secondary small mb-0">Protege toda tu información comercial, inventario, ventas y clientes descargando un respaldo completo en cualquier momento.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.configuracion_empresa') }}" class="btn btn-outline-secondary rounded-pill px-4">Volver a Configuración</a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Diagnóstico y Métricas -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: var(--bs-card-bg);">
+                <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Motor de Base de Datos</span>
+                <h4 class="h5 fw-bold text-body mb-1">
+                    {% if es_sqlite %}
+                    <i class="bi bi-file-earmark-code text-info me-1"></i> SQLite Local
+                    {% else %}
+                    <i class="bi bi-server text-primary me-1"></i> MySQL / Remoto
+                    {% endif %}
+                </h4>
+                <span class="text-success small fw-medium"><i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> Conectada & Operativa</span>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: var(--bs-card-bg);">
+                <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Tamaño de Datos</span>
+                <h4 class="h5 fw-bold text-body mb-1">{{ tamano_db_str }}</h4>
+                <span class="text-secondary small">Tablas, índices y registros</span>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: var(--bs-card-bg);">
+                <span class="text-secondary small fw-bold text-uppercase d-block mb-1">Último Respaldo Generado</span>
+                <h4 class="h6 fw-bold text-body mb-1">
+                    {% if empresa and empresa.ultimo_backup_fecha %}
+                    {{ empresa.ultimo_backup_fecha.strftime('%d/%m/%Y %H:%M') }}
+                    {% else %}
+                    <span class="text-warning">Sin respaldo reciente</span>
+                    {% endif %}
+                </h4>
+                <span class="text-secondary small">Descarga recomendada semanal</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Opciones de Descarga y Respaldo -->
+    <div class="row g-4">
+        <!-- Respaldo de Base de Datos -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 d-flex flex-column justify-content-between" style="background: var(--bs-card-bg);">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle p-3 bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-database-fill-down fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="h6 fw-bold text-body mb-1">Respaldo de Base de Datos (.SQL)</h5>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size: 0.7rem;">Rápido & Universal</span>
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-4">
+                        Descarga un archivo <code>.sql</code> con el volcado completo de todas las tablas: clientes, ventas, compras, insumos, lotes de plantas, animales, cotizaciones y cartera. Se genera en caliente sin bloquear la operación de los cajeros.
+                    </p>
+                </div>
+                <a href="{{ url_for('admin.descargar_respaldo_db') }}" class="btn btn-primary rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                    <i class="bi bi-download fs-5"></i>
+                    <span>Descargar SQL de Base de Datos</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Respaldo Integral Completo (.ZIP) -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100 d-flex flex-column justify-content-between" style="background: var(--bs-card-bg);">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle p-3 bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-file-earmark-zip-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="h6 fw-bold text-body mb-1">Respaldo Integral Completo (.ZIP)</h5>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25" style="font-size: 0.7rem;">Base de Datos + Archivos Multimedia</span>
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-4">
+                        Descarga un paquete comprimido <code>.zip</code> que contiene la base de datos completa más todas las fotos subidas (logotipos, imágenes de plantas, fichas botánicas y evidencias de labores agrícolas).
+                    </p>
+                </div>
+                <a href="{{ url_for('admin.descargar_respaldo_completo') }}" class="btn btn-success rounded-pill fw-bold py-2.5 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                    <i class="bi bi-file-zip-fill fs-5"></i>
+                    <span>Descargar Paquete Completo (.ZIP)</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guía de Restauración -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mt-4" style="background: var(--bs-card-bg);">
+        <h6 class="fw-bold text-body mb-2"><i class="bi bi-question-circle text-info me-2"></i>¿Cómo restaurar una copia de seguridad?</h6>
+        <p class="text-secondary small mb-2">
+            1. En caso de migración a un nuevo servidor o contingencia, el archivo <code>.sql</code> puede ejecutarse directamente en cualquier cliente SQLite o importarse en MySQL.
+        </p>
+        <p class="text-secondary small mb-0">
+            2. El paquete <code>.zip</code> restaura la base de datos y la carpeta <code>app/static/uploads</code> simplemente descomprimiendo el contenido en la raíz del proyecto.
+        </p>
+    </div>
+</div>
+{% endblock %}

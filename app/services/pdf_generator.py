@@ -34,11 +34,26 @@ class FacturaComercialPDF(FPDF):
         self.rect(0, 0, 216, 5, 'F')
         
         # Datos Empresa (Izquierda)
-        self.set_xy(15, 12)
-        self.set_font('Helvetica', 'B', 16)
+        x_text = 15
+        w_text = 115
+        if self.empresa and getattr(self.empresa, 'logo_url', None):
+            try:
+                import os
+                from flask import current_app
+                clean_logo = self.empresa.logo_url.lstrip('/')
+                logo_full = os.path.join(current_app.root_path, clean_logo)
+                if os.path.exists(logo_full):
+                    self.image(logo_full, x=15, y=10, w=22)
+                    x_text = 40
+                    w_text = 90
+            except Exception:
+                pass
+
+        self.set_xy(x_text, 12)
+        self.set_font('Helvetica', 'B', 15)
         self.set_text_color(30, 41, 59)
         nombre_empresa = self.empresa.nombre if self.empresa else "EcoSistem Agro"
-        self.cell(115, 7, clean_text(nombre_empresa), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        self.cell(w_text, 7, clean_text(nombre_empresa), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         
         self.set_font('Helvetica', '', 8)
         self.set_text_color(100, 116, 139)
@@ -49,8 +64,8 @@ class FacturaComercialPDF(FPDF):
         email = f"Email: {self.empresa.email}" if self.empresa and self.empresa.email else ""
         
         empresa_info = f"{nit} | {tel}\n{direc} - {ciudad}\n{email}"
-        self.set_x(15)
-        self.multi_cell(115, 4, clean_text(empresa_info))
+        self.set_x(x_text)
+        self.multi_cell(w_text, 4, clean_text(empresa_info))
 
         # Caja de Factura (Derecha)
         self.set_xy(135, 12)

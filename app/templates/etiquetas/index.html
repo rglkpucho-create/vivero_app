@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% block title %}Impresión de Etiquetas con Código de Barras & QR | EcoSistem{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-4">
+    <!-- Encabezado -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 rounded-pill fw-bold">
+                    <i class="bi bi-upc-scan me-1"></i> Códigos de Barras & QR
+                </span>
+                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 rounded-pill">
+                    Identificación Botánica & POS
+                </span>
+            </div>
+            <h2 class="h3 fw-bold text-body mb-0">Impresión de Etiquetas Adhesivas</h2>
+            <p class="text-secondary small mb-0">Genera etiquetas adhesivas para macetas, bolsas de vivero y sacos con código de barras Code128 y código QR para lectura inmediata en el POS.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Formulario de Configuración -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 p-4" style="background: var(--bs-card-bg);">
+                <h5 class="h6 fw-bold text-body mb-3 border-bottom border-secondary border-opacity-10 pb-2">
+                    <i class="bi bi-sliders text-success me-2"></i>Configuración de la Etiqueta
+                </h5>
+
+                <form action="{{ url_for('etiquetas.generar_etiquetas') }}" method="POST" target="_blank">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Origen del Producto -->
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">1. Producto o Planta a Etiquetar</label>
+                        <select name="tipo_origen" id="tipo_origen_select" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25 py-2.5" onchange="cambiarTipoOrigen(this.value)">
+                            <option value="lote">🌱 Lote de Plantas en Vivero (Cosecha)</option>
+                            <option value="insumo">📦 Insumo / Mercancía (Materas, Abonos, Semillas)</option>
+                            <option value="animal">🐄 Lote Pecuario / Animales</option>
+                            <option value="personalizado">✍️ Etiqueta Personalizada</option>
+                        </select>
+                    </div>
+
+                    <!-- Selector de Lotes -->
+                    <div class="mb-3" id="bloque_sel_lote">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Seleccionar Lote de Cultivo</label>
+                        <select name="item_id" id="sel_lote_input" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25">
+                            {% for l in lotes %}
+                            <option value="{{ l.id }}">
+                                {{ l.especie.nombre_comun if l.especie else l.codigo_lote }} ({{ l.especie.nombre_cientifico or '' }}) - Lote: {{ l.codigo_lote }} [Disp: {{ l.cantidad_actual }}]
+                            </option>
+                            {% else %}
+                            <option value="">No hay lotes disponibles</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Selector de Insumos -->
+                    <div class="mb-3 d-none" id="bloque_sel_insumo">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Seleccionar Insumo / Mercancía</label>
+                        <select name="item_id" id="sel_insumo_input" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25" disabled>
+                            {% for ins in insumos %}
+                            <option value="{{ ins.id }}">
+                                {{ ins.nombre }} (Ref: {{ ins.codigo or 'N/A' }}) - ${{ "{:,.0f}".format(ins.precio_venta or 0) }} [Stock: {{ ins.cantidad_actual }}]
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Selector de Animales -->
+                    <div class="mb-3 d-none" id="bloque_sel_animal">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Seleccionar Animal / Lote Pecuario</label>
+                        <select name="item_id" id="sel_animal_input" class="form-select bg-body-tertiary text-white border-secondary border-opacity-25" disabled>
+                            {% for a in animales %}
+                            <option value="{{ a.id }}">
+                                {{ a.nombre or a.codigo }} ({{ a.especie }} - {{ a.raza_rel.nombre if a.raza_rel else '' }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Campos Personalizados -->
+                    <div class="d-none" id="bloque_sel_personalizado">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold text-uppercase">Título Principal de la Etiqueta</label>
+                            <input type="text" name="titulo_personalizado" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25" placeholder="Ej: Palma Areca Maceta 20cm">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Subtítulo / Nombre Científico</label>
+                                <input type="text" name="subtitulo_personalizado" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25" placeholder="Ej: Dypsis lutescens">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Código de Barras (Alfanumérico)</label>
+                                <input type="text" name="codigo_personalizado" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25" placeholder="Ej: VIV-ARECA-01">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small fw-bold text-uppercase">Precio de Venta ($ COP)</label>
+                            <input type="number" name="precio_personalizado" value="35000" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25">
+                        </div>
+                    </div>
+
+                    <!-- Formato de Impresión -->
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">2. Formato de Impresora y Papel</label>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <div class="form-check p-3 rounded-3 border border-secondary border-opacity-25 bg-body-tertiary h-100">
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="formato" id="fmt_rollo50" value="rollo_50x30" checked>
+                                    <label class="form-check-label fw-bold text-body small" for="fmt_rollo50">
+                                        <i class="bi bi-printer-fill text-success d-block fs-5 mb-1"></i>
+                                        Rollo 50x30 mm
+                                        <span class="d-block text-secondary fw-normal" style="font-size: 0.72rem;">Impresora térmica Zebra / Xprinter</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check p-3 rounded-3 border border-secondary border-opacity-25 bg-body-tertiary h-100">
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="formato" id="fmt_rollo60" value="rollo_60x40">
+                                    <label class="form-check-label fw-bold text-body small" for="fmt_rollo60">
+                                        <i class="bi bi-file-earmark-richtext-fill text-info d-block fs-5 mb-1"></i>
+                                        Rollo 60x40 mm
+                                        <span class="d-block text-secondary fw-normal" style="font-size: 0.72rem;">Etiqueta grande con QR + Barras</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check p-3 rounded-3 border border-secondary border-opacity-25 bg-body-tertiary h-100">
+                                    <input class="form-check-input ms-0 me-2" type="radio" name="formato" id="fmt_hoja30" value="hoja_carta_30">
+                                    <label class="form-check-label fw-bold text-body small" for="fmt_hoja30">
+                                        <i class="bi bi-grid-3x3-gap-fill text-warning d-block fs-5 mb-1"></i>
+                                        Hoja Carta (30)
+                                        <span class="d-block text-secondary fw-normal" style="font-size: 0.72rem;">Avery 5160 / Papel adhesivo normal</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opciones de Contenido -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label text-secondary small fw-bold text-uppercase">Cantidad de Copias</label>
+                            <input type="number" name="cantidad_copias" value="12" min="1" max="500" class="form-control bg-body-tertiary text-white border-secondary border-opacity-25 py-2">
+                        </div>
+                        <div class="col-md-8 d-flex align-items-center gap-3 pt-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="mostrar_precio" value="1" id="sw_precio" checked>
+                                <label class="form-check-label small fw-medium" for="sw_precio">Mostrar Precio</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="mostrar_qr" value="1" id="sw_qr" checked>
+                                <label class="form-check-label small fw-medium" for="sw_qr">Incluir QR</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="mostrar_barcode" value="1" id="sw_bar" checked>
+                                <label class="form-check-label small fw-medium" for="sw_bar">Código de Barras</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success rounded-pill fw-bold px-4 py-2.5 d-inline-flex align-items-center gap-2 shadow-sm">
+                        <i class="bi bi-printer-fill fs-5"></i>
+                        <span>Generar e Imprimir Etiquetas</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Vista Previa y Atajos Rápidos -->
+        <div class="col-lg-5">
+            <!-- Tarjeta de Instrucciones y Compatibilidad -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: var(--bs-card-bg);">
+                <h6 class="fw-bold text-body mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Lectura Instantánea en POS</h6>
+                <p class="text-secondary small mb-3">
+                    El código de barras impreso en cada etiqueta corresponde exactamente con el identificador del producto en el sistema (ej. <code>LOT-ARECA-01</code>). Al apuntar el lector óptico en la pantalla de <strong>Ventas POS</strong>, el producto se agregará de inmediato al carrito.
+                </p>
+                <div class="p-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25 small text-secondary">
+                    <i class="bi bi-info-circle text-info me-1"></i> Compatible con cualquier impresora térmica (Zebra ZD220, Xprinter XP-365B, Bixolon, Epson) o impresoras láser de oficina con hojas adhesivas.
+                </div>
+            </div>
+
+            <!-- Atajos por Lote Activo -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bs-card-bg);">
+                <div class="p-3 border-bottom border-secondary border-opacity-10 d-flex justify-content-between align-items-center">
+                    <span class="text-secondary small fw-bold text-uppercase">Atajos Rápidos por Lote Activo</span>
+                    <span class="badge bg-secondary rounded-pill">{{ lotes|length }} lotes</span>
+                </div>
+                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                    {% for l in lotes[:6] %}
+                    <a href="{{ url_for('etiquetas.imprimir_lote_directo', lote_id=l.id) }}" target="_blank" class="list-group-item list-group-item-action bg-transparent text-body d-flex justify-content-between align-items-center py-2.5 px-3">
+                        <div>
+                            <div class="fw-bold small">{{ l.especie.nombre_comun if l.especie else l.codigo_lote }}</div>
+                            <div class="text-secondary" style="font-size: 0.72rem;">Código: {{ l.codigo_lote }} • Stock: {{ l.cantidad_actual }}</div>
+                        </div>
+                        <span class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1" style="font-size: 0.75rem;">
+                            <i class="bi bi-printer me-1"></i> Imprimir {{ l.cantidad_actual }}
+                        </span>
+                    </a>
+                    {% else %}
+                    <div class="p-3 text-secondary text-center small">No hay lotes con plantas disponibles.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cambiarTipoOrigen(tipo) {
+    document.getElementById('bloque_sel_lote').classList.add('d-none');
+    document.getElementById('bloque_sel_insumo').classList.add('d-none');
+    document.getElementById('bloque_sel_animal').classList.add('d-none');
+    document.getElementById('bloque_sel_personalizado').classList.add('d-none');
+
+    document.getElementById('sel_lote_input').disabled = true;
+    document.getElementById('sel_insumo_input').disabled = true;
+    document.getElementById('sel_animal_input').disabled = true;
+
+    if (tipo === 'lote') {
+        document.getElementById('bloque_sel_lote').classList.remove('d-none');
+        document.getElementById('sel_lote_input').disabled = false;
+    } else if (tipo === 'insumo') {
+        document.getElementById('bloque_sel_insumo').classList.remove('d-none');
+        document.getElementById('sel_insumo_input').disabled = false;
+    } else if (tipo === 'animal') {
+        document.getElementById('bloque_sel_animal').classList.remove('d-none');
+        document.getElementById('sel_animal_input').disabled = false;
+    } else if (tipo === 'personalizado') {
+        document.getElementById('bloque_sel_personalizado').classList.remove('d-none');
+    }
+}
+</script>
+{% endblock %}

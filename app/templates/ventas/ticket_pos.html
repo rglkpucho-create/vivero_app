@@ -217,8 +217,18 @@
         </div>
 
         <div class="ticket-footer">
-            <p class="mb-1 fw-bold">¡Gracias por su compra!</p>
+            {% if venta.empresa and venta.empresa.cuentas_bancarias %}
+            <div style="font-size: 0.65rem; border: 1px dashed #000; padding: 4px; margin: 6px 0; text-align: left;">
+                <strong>CUENTAS PARA TRANSFERENCIAS:</strong><br>
+                {{ venta.empresa.cuentas_bancarias|replace('\n', '<br>')|safe }}
+            </div>
+            {% endif %}
+            <p class="mb-1 fw-bold">{{ venta.empresa.pie_ticket_pos or '¡Gracias por su compra!' }}</p>
+            {% if venta.empresa and venta.empresa.pie_factura_legal %}
+            <p class="mb-1" style="font-size: 0.62rem;">{{ venta.empresa.pie_factura_legal }}</p>
+            {% else %}
             <p class="mb-2">Sembrando vida y cosechando futuro con EcoSistem.</p>
+            {% endif %}
             <div class="text-center my-2">
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=FAC-{{ venta.numero_factura }}-TOTAL-{{ venta.total }}" 
                      alt="QR Validación" style="width: 75px; height: 75px;">

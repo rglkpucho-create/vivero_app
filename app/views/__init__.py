@@ -30,6 +30,7 @@ from .mano_obra import mano_obra_bp
 from .reportes import reportes_bp
 from .cotizaciones import cotizaciones_bp
 from .cartera import cartera_bp
+from .etiquetas import etiquetas_bp
 
 # Blueprint principal para compatibilidad
 main_bp = Blueprint('main', __name__)
@@ -107,3 +108,4 @@ def register_blueprints(app):
     app.register_blueprint(reportes_bp)
     app.register_blueprint(cotizaciones_bp)
     app.register_blueprint(cartera_bp)
+    app.register_blueprint(etiquetas_bp)

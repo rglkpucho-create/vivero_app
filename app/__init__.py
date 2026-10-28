@@ -93,8 +93,22 @@ def create_app(config_name='default'):
                             with db.engine.connect() as conn:
                                 conn.execute(text("ALTER TABLE venta ADD COLUMN caja_turno_id INTEGER REFERENCES caja_turno(id)"))
                                 conn.commit()
+
+                    if 'empresa' in inspector.get_table_names():
+                        cols_emp = [c['name'] for c in inspector.get_columns('empresa')]
+                        for col_n, col_t in [
+                            ('cuentas_bancarias', 'TEXT'),
+                            ('pie_factura_legal', 'TEXT'),
+                            ('pie_ticket_pos', 'TEXT'),
+                            ('prefijo_factura_pos', 'VARCHAR(10)'),
+                            ('ultimo_backup_fecha', 'DATETIME')
+                        ]:
+                            if col_n not in cols_emp:
+                                with db.engine.connect() as conn:
+                                    conn.execute(text(f"ALTER TABLE empresa ADD COLUMN {col_n} {col_t}"))
+                                    conn.commit()
                 except Exception as ex_col:
-                    app.logger.warning(f"Aviso verificando columnas dinámicas de caja: {ex_col}")
+                    app.logger.warning(f"Aviso verificando columnas dinámicas de esquema: {ex_col}")
 
                 app.logger.info("Sistema EcoSistem: Base de datos conectada y esquema verificado.")
                 break
