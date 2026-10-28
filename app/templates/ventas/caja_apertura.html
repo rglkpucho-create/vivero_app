@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Apertura de Turno de Caja | EcoSistem{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('dashboard.dashboard') }}" class="text-decoration-none text-secondary"><i class="bi bi-house-door-fill"></i> Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('ventas.nueva_venta') }}" class="text-decoration-none text-secondary">Ventas POS</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Apertura de Caja</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+
+            <!-- Card Principal de Apertura -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid rgba(255, 255, 255, 0.08) !important;">
+                
+                <!-- Encabezado Visual -->
+                <div class="p-4 p-md-5 text-center position-relative" style="background: radial-gradient(circle at top, rgba(16, 185, 129, 0.18) 0%, transparent 70%); border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-3 shadow-sm" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.15) 100%); border: 1px solid rgba(16, 185, 129, 0.35);">
+                        <i class="bi bi-cash-stack fs-1 text-success"></i>
+                    </div>
+                    <span class="badge rounded-pill px-3 py-1.5 fw-bold text-uppercase mb-2" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.72rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-lock-fill me-1"></i> Caja Actualmente Cerrada
+                    </span>
+                    <h2 class="fw-black text-white mb-2" style="letter-spacing: -0.5px;">Apertura de Turno de Caja</h2>
+                    <p class="text-secondary small mb-0 max-w-md mx-auto">
+                        Inicia una nueva jornada o sesión de ventas en el terminal POS registrando la base inicial en efectivo para cambio o vueltas en gaveta.
+                    </p>
+                </div>
+
+                <!-- Formulario de Apertura -->
+                <div class="p-4 p-md-5">
+                    <form action="{{ url_for('ventas.abrir_caja') }}" method="POST" id="formAbrirCaja">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <!-- Fila de Metadatos del Turno -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <label class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.72rem;">Cajero Responsable</label>
+                                <div class="d-flex align-items-center gap-2 p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10 text-white">
+                                    <i class="bi bi-person-circle text-info fs-5"></i>
+                                    <div>
+                                        <div class="fw-bold fs-6">{{ current_user.nombre or current_user.email }}</div>
+                                        <small class="text-secondary font-monospace" style="font-size: 0.72rem;">{{ current_user.rol or 'Cajero POS' }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.72rem;">Fecha & Hora de Inicio</label>
+                                <div class="d-flex align-items-center gap-2 p-2.5 rounded-3 bg-body-tertiary border border-secondary border-opacity-10 text-white">
+                                    <i class="bi bi-calendar2-check text-warning fs-5"></i>
+                                    <div>
+                                        <div class="fw-bold fs-6" id="liveTimeClock">Cargando...</div>
+                                        <small class="text-secondary font-monospace" style="font-size: 0.72rem;">Turno del Día</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monto Base en Efectivo -->
+                        <div class="mb-4">
+                            <label for="monto_apertura" class="form-label fw-bold text-white d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-cash me-1 text-success"></i> Base Inicial en Efectivo (Sencillo)</span>
+                                <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 px-2 py-0.5" style="font-size: 0.72rem;">Dinero en Gaveta</span>
+                            </label>
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text bg-body-tertiary text-success fw-bold border-secondary border-opacity-25 fs-4">$</span>
+                                <input type="number" step="100" min="0" name="monto_apertura" id="monto_apertura" 
+                                       class="form-control bg-body-tertiary text-white fw-bold fs-3 border-secondary border-opacity-25 font-monospace"
+                                       value="100000" placeholder="0" required autofocus>
+                            </div>
+                            <small class="text-secondary d-block mt-2">
+                                Dinero en billetes y monedas con el que se inicia la caja para dar vueltas a los clientes.
+                            </small>
+
+                            <!-- Botones de Selección Rápida de Base -->
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 font-monospace" onclick="setBase(0)">$0 (Sin Base)</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 font-monospace" onclick="setBase(50000)">$50,000</button>
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 font-monospace active" onclick="setBase(100000)">$100,000</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 font-monospace" onclick="setBase(200000)">$200,000</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 font-monospace" onclick="setBase(300000)">$300,000</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 font-monospace" onclick="setBase(500000)">$500,000</button>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones Opcionales -->
+                        <div class="mb-4">
+                            <label for="observaciones_apertura" class="form-label text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem;">
+                                Observaciones de Apertura (Opcional)
+                            </label>
+                            <textarea name="observaciones_apertura" id="observaciones_apertura" rows="2" 
+                                      class="form-control bg-body-tertiary text-white border-secondary border-opacity-25"
+                                      placeholder="Ej: Apertura turno mañana, gaveta revisada con sencillo suficiente..."></textarea>
+                        </div>
+
+                        <!-- Botón de Envío -->
+                        <div class="d-grid gap-2 pt-2">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold py-3 shadow-lg d-flex align-items-center justify-content-center gap-2 border-0"
+                                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                <i class="bi bi-box-arrow-in-right fs-4"></i>
+                                <span>ABRIR TURNO DE CAJA & COMENZAR VENTAS</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Footer del Card con Enlace a Historial -->
+                <div class="p-3 bg-black bg-opacity-25 border-top border-secondary border-opacity-10 d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary small">
+                    <div>
+                        {% if ultimo_turno %}
+                        <i class="bi bi-clock-history me-1"></i> Último Cierre: <strong>Turno #{{ ultimo_turno.id }}</strong> ({{ ultimo_turno.fecha_cierre.strftime('%d/%m/%Y %I:%M %p') if ultimo_turno.fecha_cierre else 'Reciente' }})
+                        {% else %}
+                        <i class="bi bi-info-circle me-1"></i> Primer turno de caja para esta sede.
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{{ url_for('ventas.historial_cajas') }}" class="text-info text-decoration-none fw-bold">
+                            <i class="bi bi-journals me-1"></i> Ver Historial de Turnos Anteriores &rarr;
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setBase(valor) {
+        document.getElementById('monto_apertura').value = valor;
+        // Ajustar clases visuales
+        document.querySelectorAll('.btn-outline-success, .btn-outline-secondary').forEach(btn => {
+            if (btn.innerText.includes(valor.toLocaleString()) || (valor === 0 && btn.innerText.includes('$0'))) {
+                btn.className = 'btn btn-sm btn-outline-success rounded-pill px-3 py-1 font-monospace active';
+            } else {
+                btn.className = 'btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 font-monospace';
+            }
+        });
+    }
+
+    // Reloj en vivo
+    function actualizarReloj() {
+        const now = new Date();
+        const opciones = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        const relojElem = document.getElementById('liveTimeClock');
+        if (relojElem) {
+            relojElem.innerText = now.toLocaleDateString('es-CO', opciones);
+        }
+    }
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+</script>
+{% endblock %}

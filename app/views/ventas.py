@@ -8,7 +8,8 @@ from flask_login import login_required, current_user
 from sqlalchemy import or_
 from ..models import (
     Cliente, Venta, DetalleVenta, LoteProduccion, Especie,
-    Insumo, MovimientoInventario, LoteAnimal, RazaAnimal
+    Insumo, MovimientoInventario, LoteAnimal, RazaAnimal,
+    CajaTurno, MovimientoCaja
 )
 from ..extensions import db
 from .helpers import consumir_stock_fifo, safe_float, safe_int, solo_admin, registrar_auditoria, filtrar_por_empresa, asignar_empresa, get_or_404_empresa
@@ -205,10 +206,15 @@ def nueva_venta():
 def ver_venta(venta_id):
     venta = get_or_404_empresa(Venta, venta_id)
     clientes = filtrar_por_empresa(Cliente.query, Cliente).order_by(Cliente.nombre).all()
+    caja_activa = CajaTurno.query.filter_by(
+        empresa_id=venta.empresa_id,
+        estado='Abierta'
+    ).order_by(CajaTurno.id.desc()).first()
     
     return render_template('ventas/ver_venta.html', 
                            venta=venta, 
-                           clientes=clientes)
+                           clientes=clientes,
+                           caja_activa=caja_activa)
 
 
 @ventas_bp.route('/venta/<int:venta_id>/cambiar_cliente', methods=['POST'])
@@ -506,6 +512,14 @@ def finalizar_venta(venta_id):
                 venta.metodo_pago = f"Mixto ({m1}: ${val1:,.0f} + {m2}: ${val2:,.0f})"
             else:
                 venta.metodo_pago = metodo
+
+        # Vincular venta al turno de caja activo de la empresa (si existe)
+        caja_activa = CajaTurno.query.filter_by(
+            empresa_id=venta.empresa_id,
+            estado='Abierta'
+        ).order_by(CajaTurno.id.desc()).first()
+        if caja_activa:
+            venta.caja_turno_id = caja_activa.id
 
         venta.estado = 'Finalizada'
         db.session.commit()
@@ -1041,5 +1055,223 @@ def configuracion_integraciones():
         return redirect(url_for('ventas.configuracion_integraciones'))
 
     return render_template('ventas/configuracion_integraciones.html', empresa=empresa)
+
+
+# ==================================================
+# MÓDULO DE CAJA POS: TURNOS, ARQUEO X Y CIERRE Z
+# ==================================================
+
+@ventas_bp.route('/caja')
+@login_required
+def control_caja():
+    """
+    Vista principal de Caja:
+    - Si no hay turno abierto: Pantalla para abrir caja con base inicial en efectivo.
+    - Si hay turno abierto: Panel de control de Arqueo X en tiempo real con ventas por método,
+      movimientos menores y opción de Cierre Z.
+    """
+    empresa_id = current_user.empresa_id if hasattr(current_user, 'empresa_id') and current_user.empresa_id else None
+    
+    query = CajaTurno.query
+    if empresa_id:
+        query = query.filter_by(empresa_id=empresa_id)
+    
+    turno_activo = query.filter_by(estado='Abierta').order_by(CajaTurno.id.desc()).first()
+    
+    if not turno_activo:
+        ultimo_turno = query.filter_by(estado='Cerrada').order_by(CajaTurno.id.desc()).first()
+        return render_template('ventas/caja_apertura.html', ultimo_turno=ultimo_turno)
+    
+    totales = turno_activo.calcular_totales_actuales()
+    movimientos = MovimientoCaja.query.filter_by(caja_turno_id=turno_activo.id).order_by(MovimientoCaja.fecha.desc()).all()
+    ventas_turno = Venta.query.filter_by(caja_turno_id=turno_activo.id, estado='Finalizada').order_by(Venta.fecha.desc()).all()
+    
+    return render_template('ventas/caja_control.html', 
+                           turno=turno_activo, 
+                           totales=totales, 
+                           movimientos=movimientos, 
+                           ventas_turno=ventas_turno)
+
+
+@ventas_bp.route('/caja/abrir', methods=['POST'])
+@login_required
+def abrir_caja():
+    """Abre un nuevo turno de caja con la base inicial de efectivo."""
+    empresa_id = current_user.empresa_id if hasattr(current_user, 'empresa_id') and current_user.empresa_id else None
+    
+    query = CajaTurno.query
+    if empresa_id:
+        query = query.filter_by(empresa_id=empresa_id)
+    existente = query.filter_by(estado='Abierta').first()
+    if existente:
+        flash('Ya tienes un turno de caja abierto actualmente.', 'warning')
+        return redirect(url_for('ventas.control_caja'))
+        
+    try:
+        monto_apertura = safe_float(request.form.get('monto_apertura'), 0.0)
+        observaciones = request.form.get('observaciones_apertura', '').strip()
+        
+        nuevo_turno = CajaTurno(
+            empresa_id=empresa_id,
+            usuario_apertura_id=current_user.id,
+            fecha_apertura=datetime.now(timezone.utc),
+            estado='Abierta',
+            monto_apertura=monto_apertura,
+            observaciones_apertura=observaciones
+        )
+        db.session.add(nuevo_turno)
+        db.session.commit()
+        
+        flash(f'¡Turno de Caja #{nuevo_turno.id} abierto exitosamente con base de ${monto_apertura:,.0f}!', 'success')
+        return redirect(url_for('ventas.control_caja'))
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Error al abrir caja: {e}')
+        flash(f'Error al abrir turno de caja: {e}', 'danger')
+        return redirect(url_for('ventas.control_caja'))
+
+
+@ventas_bp.route('/caja/movimiento', methods=['POST'])
+@login_required
+def registrar_movimiento_caja():
+    """Registra una entrada adicional o gasto/retiro menor de efectivo en la gaveta."""
+    empresa_id = current_user.empresa_id if hasattr(current_user, 'empresa_id') and current_user.empresa_id else None
+    query = CajaTurno.query
+    if empresa_id:
+        query = query.filter_by(empresa_id=empresa_id)
+    turno = query.filter_by(estado='Abierta').order_by(CajaTurno.id.desc()).first()
+    
+    if not turno:
+        flash('No hay un turno de caja abierto para registrar movimientos.', 'warning')
+        return redirect(url_for('ventas.control_caja'))
+        
+    try:
+        tipo = request.form.get('tipo', 'Egreso').strip()
+        concepto = request.form.get('concepto', '').strip()
+        categoria = request.form.get('categoria', 'Varios').strip()
+        monto = safe_float(request.form.get('monto'), 0.0)
+        
+        if monto <= 0:
+            flash('El monto del movimiento debe ser superior a cero.', 'warning')
+            return redirect(url_for('ventas.control_caja'))
+            
+        if not concepto:
+            flash('Debe indicar un concepto o motivo para el movimiento.', 'warning')
+            return redirect(url_for('ventas.control_caja'))
+            
+        mov = MovimientoCaja(
+            empresa_id=empresa_id,
+            caja_turno_id=turno.id,
+            usuario_id=current_user.id,
+            tipo=tipo,
+            concepto=concepto,
+            categoria=categoria,
+            monto=monto,
+            fecha=datetime.now(timezone.utc)
+        )
+        db.session.add(mov)
+        db.session.commit()
+        
+        flash(f'Movimiento de {tipo} por ${monto:,.0f} registrado en caja.', 'success')
+        return redirect(url_for('ventas.control_caja'))
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Error registrando movimiento de caja: {e}')
+        flash(f'Error registrando movimiento: {e}', 'danger')
+        return redirect(url_for('ventas.control_caja'))
+
+
+@ventas_bp.route('/caja/cerrar', methods=['POST'])
+@login_required
+def cerrar_caja():
+    """Cierra el turno de caja definitivamente (Cierre Z), calcula diferencias y genera comprobante."""
+    empresa_id = current_user.empresa_id if hasattr(current_user, 'empresa_id') and current_user.empresa_id else None
+    query = CajaTurno.query
+    if empresa_id:
+        query = query.filter_by(empresa_id=empresa_id)
+    turno = query.filter_by(estado='Abierta').order_by(CajaTurno.id.desc()).first()
+    
+    if not turno:
+        flash('No hay un turno de caja abierto para cerrar.', 'warning')
+        return redirect(url_for('ventas.control_caja'))
+        
+    try:
+        monto_cierre_efectivo = safe_float(request.form.get('monto_cierre_efectivo'), 0.0)
+        observaciones_cierre = request.form.get('observaciones_cierre', '').strip()
+        
+        # Calcular totales finales consolidados
+        totales = turno.calcular_totales_actuales()
+        
+        turno.fecha_cierre = datetime.now(timezone.utc)
+        turno.usuario_cierre_id = current_user.id
+        turno.estado = 'Cerrada'
+        
+        v_tot = totales['ventas']
+        turno.total_ventas_efectivo = v_tot['efectivo']
+        turno.total_ventas_nequi = v_tot['nequi']
+        turno.total_ventas_daviplata = v_tot['daviplata']
+        turno.total_ventas_tarjeta = v_tot['tarjeta']
+        turno.total_ventas_transferencia = v_tot['transferencia']
+        turno.total_ventas_credito = v_tot['credito']
+        turno.total_ventas_otros = v_tot['otros']
+        turno.total_ventas = v_tot['global']
+        
+        turno.total_ingresos_caja = totales['total_ingresos']
+        turno.total_egresos_caja = totales['total_egresos']
+        
+        turno.efectivo_esperado = totales['efectivo_esperado']
+        turno.monto_cierre_efectivo = monto_cierre_efectivo
+        turno.diferencia_efectivo = monto_cierre_efectivo - totales['efectivo_esperado']
+        
+        turno.observaciones_cierre = observaciones_cierre
+        turno.comprobante_numero = f"CIERRE-Z-{datetime.now().strftime('%Y%m%d')}-{turno.id:04d}"
+        
+        db.session.commit()
+        
+        flash(f'¡Turno de Caja #{turno.id} cerrado exitosamente! Comprobante: {turno.comprobante_numero}', 'success')
+        return redirect(url_for('ventas.comprobante_caja', turno_id=turno.id))
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Error al cerrar caja: {e}')
+        flash(f'Error al cerrar turno de caja: {e}', 'danger')
+        return redirect(url_for('ventas.control_caja'))
+
+
+@ventas_bp.route('/caja/turno/<int:turno_id>/comprobante')
+@login_required
+def comprobante_caja(turno_id):
+    """Muestra el comprobante de Cierre Z o Arqueo X en formato térmico 80mm."""
+    turno = get_or_404_empresa(CajaTurno, turno_id)
+    
+    es_parcial_x = (turno.estado == 'Abierta')
+    totales = turno.calcular_totales_actuales()
+    movimientos = MovimientoCaja.query.filter_by(caja_turno_id=turno.id).order_by(MovimientoCaja.fecha.asc()).all()
+    
+    return render_template('ventas/caja_comprobante.html', 
+                           turno=turno, 
+                           totales=totales, 
+                           movimientos=movimientos, 
+                           es_parcial_x=es_parcial_x)
+
+
+@ventas_bp.route('/caja/historial')
+@login_required
+def historial_cajas():
+    """Historial completo de turnos de caja con filtros y métricas consolidadas."""
+    empresa_id = current_user.empresa_id if hasattr(current_user, 'empresa_id') and current_user.empresa_id else None
+    query = CajaTurno.query
+    if empresa_id:
+        query = query.filter_by(empresa_id=empresa_id)
+        
+    turnos = query.order_by(CajaTurno.id.desc()).all()
+    
+    total_recaudado = sum(t.total_ventas or 0.0 for t in turnos if t.estado == 'Cerrada')
+    total_cierres = len([t for t in turnos if t.estado == 'Cerrada'])
+    
+    return render_template('ventas/caja_historial.html', 
+                           turnos=turnos, 
+                           total_recaudado=total_recaudado, 
+                           total_cierres=total_cierres)
+
 
 

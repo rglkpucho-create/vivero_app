@@ -82,6 +82,20 @@ def create_app(config_name='default'):
         while retries > 0:
             try:
                 db.create_all()
+                
+                # Verificación segura de columnas dinámicas en SQLite / Postgres
+                try:
+                    from sqlalchemy import inspect, text
+                    inspector = inspect(db.engine)
+                    if 'venta' in inspector.get_table_names():
+                        cols = [c['name'] for c in inspector.get_columns('venta')]
+                        if 'caja_turno_id' not in cols:
+                            with db.engine.connect() as conn:
+                                conn.execute(text("ALTER TABLE venta ADD COLUMN caja_turno_id INTEGER REFERENCES caja_turno(id)"))
+                                conn.commit()
+                except Exception as ex_col:
+                    app.logger.warning(f"Aviso verificando columnas dinámicas de caja: {ex_col}")
+
                 app.logger.info("Sistema EcoSistem: Base de datos conectada y esquema verificado.")
                 break
             except OperationalError as e:

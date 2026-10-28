@@ -116,7 +116,7 @@
 
                     {% set trans_routes = ['compras.lista_pedidos', 'compras.nuevo_pedido', 'compras.ver_pedido',
                     'ventas.lista_ventas', 'ventas.nueva_venta', 'ventas.ver_venta', 'ventas.lista_clientes',
-                    'ventas.nuevo_cliente'] %}
+                    'ventas.nuevo_cliente', 'ventas.control_caja', 'ventas.historial_cajas', 'ventas.comprobante_caja'] %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle {% if request.endpoint in trans_routes %}active{% endif %}"
                             href="#" role="button" data-bs-toggle="dropdown">
@@ -136,6 +136,15 @@
                                     <span class="badge rounded-pill bg-danger" style="font-size: 0.72rem;">{{ pedidos_web_pendientes_count }}</span>
                                     {% endif %}
                                 </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint in ['ventas.control_caja', 'ventas.comprobante_caja'] %}active{% endif %}"
+                                    href="{{ url_for('ventas.control_caja') }}"><i
+                                        class="bi bi-safe2-fill text-warning me-2"></i>Caja / Turno POS</a></li>
+                            <li><a class="dropdown-item fw-bold {% if request.endpoint == 'ventas.historial_cajas' %}active{% endif %}"
+                                    href="{{ url_for('ventas.historial_cajas') }}"><i
+                                        class="bi bi-journal-bookmark text-info me-2"></i>Historial de Cierres</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>

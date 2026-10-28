@@ -638,6 +638,9 @@ class Venta(db.Model):
     id_transaccion_pasarela = db.Column(db.String(100), nullable=True)
     url_comprobante_pasarela = db.Column(db.String(255), nullable=True)
     
+    caja_turno_id = db.Column(db.Integer, db.ForeignKey('caja_turno.id'), nullable=True, index=True)
+    caja_turno = db.relationship('CajaTurno', back_populates='ventas')
+    
     detalles = db.relationship('DetalleVenta', backref='venta', lazy=True)
 
 class DetalleVenta(db.Model):
@@ -667,6 +670,130 @@ class DetalleVenta(db.Model):
     @property
     def empresa_id(self):
         return self.venta.empresa_id if self.venta else None
+
+
+# ==================================================
+# 6.5. MÓDULO DE CAJA POS: TURNOS, ARQUEO X Y CIERRE Z
+# ==================================================
+
+class CajaTurno(db.Model):
+    """
+    Control de Turnos de Caja (Apertura, Arqueo X y Cierre Z) para el Terminal POS.
+    Permite registrar la base inicial en efectivo, controlar ingresos y retiros menores,
+    cuadrar las ventas por cada método de pago y detectar sobrantes o faltantes.
+    """
+    __tablename__ = 'caja_turno'
+
+    id = db.Column(db.Integer, primary_key=True)
+    empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'), nullable=False, index=True)
+    empresa = db.relationship('Empresa', backref=db.backref('cajas_turno', lazy=True))
+
+    usuario_apertura_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_apertura = db.relationship('Usuario', foreign_keys=[usuario_apertura_id])
+
+    usuario_cierre_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+    usuario_cierre = db.relationship('Usuario', foreign_keys=[usuario_cierre_id])
+
+    fecha_apertura = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    fecha_cierre = db.Column(db.DateTime, nullable=True)
+    estado = db.Column(db.String(20), default='Abierta', index=True)  # 'Abierta', 'Cerrada'
+
+    monto_apertura = db.Column(db.Float, default=0.0)  # Base de sencillo en efectivo
+
+    # Resumen de ventas consolidadas por medio de pago durante el turno
+    total_ventas_efectivo = db.Column(db.Float, default=0.0)
+    total_ventas_nequi = db.Column(db.Float, default=0.0)
+    total_ventas_daviplata = db.Column(db.Float, default=0.0)
+    total_ventas_tarjeta = db.Column(db.Float, default=0.0)
+    total_ventas_transferencia = db.Column(db.Float, default=0.0)
+    total_ventas_credito = db.Column(db.Float, default=0.0)
+    total_ventas_otros = db.Column(db.Float, default=0.0)
+    total_ventas = db.Column(db.Float, default=0.0)
+
+    # Movimientos menores de efectivo en gaveta
+    total_ingresos_caja = db.Column(db.Float, default=0.0)  # Entradas adicionales a caja
+    total_egresos_caja = db.Column(db.Float, default=0.0)   # Gastos menores o retiros de gaveta
+
+    # Cuadre de efectivo (Arqueo)
+    efectivo_esperado = db.Column(db.Float, default=0.0)    # Base + Efectivo + Ingresos - Egresos
+    monto_cierre_efectivo = db.Column(db.Float, default=0.0) # Conteo físico real ingresado por cajero
+    diferencia_efectivo = db.Column(db.Float, default=0.0)  # Conteo real - Esperado (0: Cuadra, >0: Sobrante, <0: Faltante)
+
+    observaciones_apertura = db.Column(db.Text, nullable=True)
+    observaciones_cierre = db.Column(db.Text, nullable=True)
+    comprobante_numero = db.Column(db.String(50), nullable=True, unique=True)  # Ej: 'CIERRE-Z-20261028-001'
+
+    movimientos = db.relationship('MovimientoCaja', backref='caja_turno', cascade='all, delete-orphan', lazy=True)
+    ventas = db.relationship('Venta', back_populates='caja_turno', lazy=True)
+
+    def calcular_totales_actuales(self):
+        """Calcula en tiempo real los totales de ventas y movimientos para Arqueo X o Cierre Z."""
+        totales = {
+            'efectivo': 0.0,
+            'nequi': 0.0,
+            'daviplata': 0.0,
+            'tarjeta': 0.0,
+            'transferencia': 0.0,
+            'credito': 0.0,
+            'otros': 0.0,
+            'global': 0.0,
+            'cantidad_ventas': 0
+        }
+        for v in self.ventas:
+            if v.estado == 'Finalizada':
+                totales['global'] += (v.total or 0.0)
+                totales['cantidad_ventas'] += 1
+                mp = (v.metodo_pago or '').upper()
+                if 'EFECTIVO' in mp and 'MIXTO' not in mp:
+                    totales['efectivo'] += v.total
+                elif 'NEQUI' in mp and 'MIXTO' not in mp:
+                    totales['nequi'] += v.total
+                elif 'DAVIPLATA' in mp and 'MIXTO' not in mp:
+                    totales['daviplata'] += v.total
+                elif any(k in mp for k in ['TARJETA', 'DATAFONO', 'DATÁFONO']) and 'MIXTO' not in mp:
+                    totales['tarjeta'] += v.total
+                elif any(k in mp for k in ['TRANSFERENCIA', 'BANCO', 'PSE']) and 'MIXTO' not in mp:
+                    totales['transferencia'] += v.total
+                elif 'CRÉDITO' in mp or 'CREDITO' in mp:
+                    totales['credito'] += v.total
+                else:
+                    totales['otros'] += v.total
+
+        tot_ingresos = sum((m.monto or 0.0) for m in self.movimientos if m.tipo == 'Ingreso')
+        tot_egresos = sum((m.monto or 0.0) for m in self.movimientos if m.tipo == 'Egreso')
+
+        base = self.monto_apertura or 0.0
+        efectivo_esperado = base + totales['efectivo'] + tot_ingresos - tot_egresos
+
+        return {
+            'ventas': totales,
+            'total_ingresos': tot_ingresos,
+            'total_egresos': tot_egresos,
+            'base': base,
+            'efectivo_esperado': max(0.0, efectivo_esperado)
+        }
+
+
+class MovimientoCaja(db.Model):
+    """
+    Movimientos menores de efectivo dentro de un turno de caja (entradas de sencillo, gastos menores, retiros).
+    """
+    __tablename__ = 'movimiento_caja'
+
+    id = db.Column(db.Integer, primary_key=True)
+    empresa_id = db.Column(db.Integer, db.ForeignKey('empresa.id'), nullable=False, index=True)
+    empresa = db.relationship('Empresa')
+
+    caja_turno_id = db.Column(db.Integer, db.ForeignKey('caja_turno.id'), nullable=False, index=True)
+
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario = db.relationship('Usuario')
+
+    tipo = db.Column(db.String(20), nullable=False)  # 'Ingreso', 'Egreso'
+    concepto = db.Column(db.String(200), nullable=False)
+    categoria = db.Column(db.String(50), default='Varios')  # 'Base adicional', 'Gasto menor', 'Pago proveedor', 'Retiro de seguridad', 'Otro'
+    monto = db.Column(db.Float, default=0.0)
+    fecha = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 # ==================================================
 # 7. MÓDULO PECUARIO (ANIMALES) - NIVEL PRO

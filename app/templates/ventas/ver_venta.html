@@ -350,6 +350,17 @@
                     <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">
                         <i class="bi bi-geo-alt-fill me-1"></i> {{ venta.empresa.nombre if venta.empresa else 'Vivero El Edén Forestal' }}
                     </span>
+
+                    <!-- Estado de Caja POS -->
+                    {% if caja_activa %}
+                    <a href="{{ url_for('ventas.control_caja') }}" class="badge rounded-pill px-3 py-1.5 fw-bold text-decoration-none" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Turno de Caja Activo #{{ caja_activa.id }}">
+                        <i class="bi bi-safe2-fill me-1"></i> Caja #{{ caja_activa.id }} Abierta
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('ventas.control_caja') }}" class="badge rounded-pill px-3 py-1.5 fw-bold text-decoration-none" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" title="No hay turno de caja abierto - Clic para abrir">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Abrir Caja
+                    </a>
+                    {% endif %}
                 </div>
 
                 <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -387,6 +398,10 @@
 
                 {% if venta.estado in ['Borrador', 'Pedido Web'] %}
                 <div class="pos-action-group shadow-sm">
+                    <a href="{{ url_for('ventas.control_caja') }}" class="pos-action-btn text-decoration-none" title="Ir al Control de Caja / Arqueo X">
+                        <i class="bi bi-calculator text-success fs-6"></i>
+                        <span class="d-none d-sm-inline">Caja</span>
+                    </a>
                     <a href="{{ url_for('ventas.lista_ventas') }}" class="pos-action-btn text-decoration-none" title="Ver Historial de Ventas y Facturas">
                         <i class="bi bi-clock-history text-info fs-6"></i>
                         <span class="d-none d-sm-inline">Historial</span>
