@@ -55,6 +55,28 @@ class Empresa(db.Model):
     precio_suscripcion = db.Column(db.Float, default=150000.0)
     ciclo_pago = db.Column(db.String(30), default='Mensual')
     notas_admin = db.Column(db.Text)  # Notas privadas del proveedor del software
+
+    # Configuración de Facturación Electrónica (DIAN / Proveedores Tecnológicos)
+    fe_habilitada = db.Column(db.Boolean, default=False)
+    fe_proveedor = db.Column(db.String(50), default='SANDBOX')  # 'SANDBOX', 'FACTUS', 'ALEGRA', 'SIIGO'
+    fe_ambiente = db.Column(db.String(20), default='HABILITACION')  # 'HABILITACION', 'PRODUCCION'
+    fe_api_token = db.Column(db.String(255), nullable=True)
+    fe_resolucion = db.Column(db.String(100), default='Resolución DIAN No. 18764000001 de 2026')
+    fe_prefijo = db.Column(db.String(10), default='SETP')
+    fe_rango_desde = db.Column(db.Integer, default=1)
+    fe_rango_hasta = db.Column(db.Integer, default=50000)
+    fe_vigencia_hasta = db.Column(db.Date, nullable=True)
+    fe_clave_tecnica = db.Column(db.String(255), nullable=True)
+
+    # Configuración de Pasarelas de Pago Online
+    pagos_online_habilitados = db.Column(db.Boolean, default=False)
+    pasarela_predeterminada = db.Column(db.String(30), default='SANDBOX')  # 'SANDBOX', 'WOMPI', 'MERCADOPAGO'
+    wompi_public_key = db.Column(db.String(200), nullable=True)
+    wompi_private_key = db.Column(db.String(200), nullable=True)
+    wompi_integrity_secret = db.Column(db.String(200), nullable=True)
+    wompi_events_secret = db.Column(db.String(200), nullable=True)
+    mercadopago_public_key = db.Column(db.String(200), nullable=True)
+    mercadopago_access_token = db.Column(db.String(200), nullable=True)
     
     # Relaciones
     usuarios = db.relationship('Usuario', backref='empresa', lazy=True)
@@ -601,6 +623,20 @@ class Venta(db.Model):
     abono = db.Column(db.Float, default=0.0)
     saldo = db.Column(db.Float, default=0.0)
     observaciones = db.Column(db.Text, nullable=True)
+
+    # Facturación Electrónica DIAN
+    cufe = db.Column(db.String(255), nullable=True, index=True)
+    qr_data = db.Column(db.Text, nullable=True)
+    estado_dian = db.Column(db.String(30), default='NO_EMITIDA')  # 'NO_EMITIDA', 'ENVIADA', 'EXITOSA', 'RECHAZADA'
+    fecha_emision_dian = db.Column(db.DateTime, nullable=True)
+    dian_mensaje = db.Column(db.String(255), nullable=True)
+
+    # Pasarela de Pagos Online
+    referencia_pago = db.Column(db.String(100), nullable=True, index=True)
+    estado_pago = db.Column(db.String(30), default='PENDIENTE')  # 'PENDIENTE', 'APROBADO', 'RECHAZADO', 'ANULADO'
+    pasarela_pago = db.Column(db.String(30), nullable=True)  # 'WOMPI', 'MERCADOPAGO', 'SANDBOX'
+    id_transaccion_pasarela = db.Column(db.String(100), nullable=True)
+    url_comprobante_pasarela = db.Column(db.String(255), nullable=True)
     
     detalles = db.relationship('DetalleVenta', backref='venta', lazy=True)
 

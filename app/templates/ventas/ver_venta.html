@@ -410,7 +410,7 @@
                     {% endif %}
                 </div>
                 {% else %}
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     <a href="{{ url_for('ventas.lista_ventas') }}"
                        class="btn btn-outline-light rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
                        style="border-color: rgba(255,255,255,0.3);">
@@ -426,6 +426,34 @@
                        style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none;">
                         <i class="bi bi-file-earmark-pdf-fill"></i> Factura PDF
                     </a>
+
+                    <!-- Facturación Electrónica DIAN -->
+                    {% if not venta.es_electronica %}
+                    <form action="{{ url_for('ventas.emitir_factura_electronica', venta_id=venta.id) }}" method="POST" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-warning rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1.5 shadow-sm text-dark" title="Emitir Factura Electrónica ante la DIAN">
+                            <i class="bi bi-shield-check"></i> Emitir a DIAN
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="badge rounded-pill bg-success text-white px-3 py-2 fw-bold d-flex align-items-center gap-1 shadow-sm" title="Factura Electrónica Validada por DIAN">
+                        <i class="bi bi-patch-check-fill text-white"></i> DIAN: Validada
+                    </span>
+                    {% endif %}
+
+                    <!-- Pasarela de Pagos Digital -->
+                    {% if venta.estado_pago != 'APROBADO' %}
+                    <a href="{{ url_for('ventas.iniciar_pago_online', venta_id=venta.id) }}"
+                       class="btn btn-primary rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1.5 shadow-sm"
+                       style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none;" title="Cobrar con Nequi, Daviplata, PSE o Tarjeta">
+                        <i class="bi bi-credit-card-2-front-fill"></i> Pagar Online
+                    </a>
+                    {% else %}
+                    <span class="badge rounded-pill bg-info text-dark px-3 py-2 fw-bold d-flex align-items-center gap-1 shadow-sm">
+                        <i class="bi bi-credit-card-fill text-dark"></i> Pago Online Aprobado
+                    </span>
+                    {% endif %}
+
                     <a href="{{ url_for('ventas.nueva_venta') }}"
                        class="btn btn-success rounded-pill px-4 py-2 fw-black shadow-lg d-flex align-items-center gap-2 border-0"
                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">

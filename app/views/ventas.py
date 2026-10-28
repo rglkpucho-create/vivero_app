@@ -13,6 +13,8 @@ from ..models import (
 from ..extensions import db
 from .helpers import consumir_stock_fifo, safe_float, safe_int, solo_admin, registrar_auditoria, filtrar_por_empresa, asignar_empresa, get_or_404_empresa
 from ..services.pdf_generator import generar_pdf_factura
+from ..services.facturacion_electronica import FacturacionElectronicaService
+from ..services.pasarela_pagos import PasarelaPagosService
 
 logger = logging.getLogger(__name__)
 ventas_bp = Blueprint('ventas', __name__)
@@ -919,4 +921,125 @@ def pedido_web_detalle_json(venta_id):
         },
         'detalles': detalles
     })
+
+
+# ==================================================
+# INTEGRACIONES: FACTURACIÓN ELECTRÓNICA & PASARELAS
+# ==================================================
+
+@ventas_bp.route('/venta/<int:venta_id>/emitir-fe', methods=['POST'])
+@login_required
+def emitir_factura_electronica(venta_id):
+    """Emite la factura electrónica ante la DIAN o el proveedor configurado."""
+    venta = get_or_404_empresa(Venta, venta_id)
+    exito, mensaje, venta = FacturacionElectronicaService.emitir_factura(venta)
+    if exito:
+        flash(f"¡Factura Electrónica emitida con éxito! {mensaje}", "success")
+    else:
+        flash(f"Aviso de Facturación Electrónica: {mensaje}", "warning")
+    return redirect(url_for('ventas.ver_venta', venta_id=venta.id))
+
+
+@ventas_bp.route('/venta/<int:venta_id>/iniciar-pago-online')
+@login_required
+def iniciar_pago_online(venta_id):
+    """Inicia la pasarela de pagos para la venta (Wompi, Mercado Pago o Sandbox)."""
+    venta = get_or_404_empresa(Venta, venta_id)
+    if venta.estado_pago == 'APROBADO':
+        flash('Esta venta ya se encuentra totalmente pagada.', 'info')
+        return redirect(url_for('ventas.ver_venta', venta_id=venta.id))
+
+    exito, url_pago, referencia = PasarelaPagosService.crear_sesion_pago(venta)
+    if exito and url_pago:
+        return redirect(url_pago)
+    
+    flash("No fue posible generar la sesión de pago online.", "danger")
+    return redirect(url_for('ventas.ver_venta', venta_id=venta.id))
+
+
+@ventas_bp.route('/venta/<int:venta_id>/checkout-simulado', methods=['GET', 'POST'])
+def checkout_simulado(venta_id):
+    """Página de pasarela de pago interactiva (Simulador Sandbox para pruebas sin contrato)."""
+    venta = Venta.query.get_or_404(venta_id)
+    if request.method == 'POST':
+        accion = request.form.get('accion')
+        metodo = request.form.get('metodo', 'Nequi / PSE')
+        if accion == 'aprobar':
+            PasarelaPagosService.aprobar_pago(venta, pasarela='SANDBOX', metodo=metodo)
+            flash(f"¡Pago aprobado con éxito vía {metodo} (Simulación Sandbox)! Comprobante generado.", "success")
+            return redirect(url_for('ventas.ver_venta', venta_id=venta.id))
+        else:
+            venta.estado_pago = 'RECHAZADO'
+            db.session.commit()
+            flash("El pago fue rechazado por la entidad bancaria simulada.", "warning")
+            return redirect(url_for('ventas.ver_venta', venta_id=venta.id))
+
+    return render_template('ventas/checkout_simulado.html', venta=venta)
+
+
+@ventas_bp.route('/api/pagos/webhook/wompi', methods=['POST'])
+def webhook_wompi():
+    """Endpoint webhook para confirmaciones automáticas de Wompi Bancolombia."""
+    data = request.get_json(silent=True) or {}
+    evento = data.get('event')
+    if evento == 'transaction.updated':
+        trans = data.get('data', {}).get('transaction', {})
+        referencia = trans.get('reference')
+        status = trans.get('status')
+        if referencia:
+            venta = Venta.query.filter_by(referencia_pago=referencia).first()
+            if venta and status == 'APPROVED':
+                PasarelaPagosService.aprobar_pago(
+                    venta,
+                    pasarela='WOMPI',
+                    id_transaccion=trans.get('id'),
+                    metodo=trans.get('payment_method_type', 'Wompi')
+                )
+                logger.info(f"Pago Wompi aprobado para venta #{venta.id}")
+    return jsonify({'status': 'received'}), 200
+
+
+@ventas_bp.route('/api/pagos/webhook/mercadopago', methods=['POST'])
+def webhook_mercadopago():
+    """Endpoint webhook para confirmaciones automáticas de Mercado Pago."""
+    data = request.get_json(silent=True) or {}
+    topic = data.get('type') or request.args.get('topic')
+    if topic in ('payment', 'collection'):
+        payment_id = data.get('data', {}).get('id') or request.args.get('id')
+        logger.info(f"Notificación recibida de Mercado Pago: payment_id={payment_id}")
+    return jsonify({'status': 'received'}), 200
+
+
+@ventas_bp.route('/empresa/configuracion-integraciones', methods=['GET', 'POST'])
+@login_required
+@solo_admin
+def configuracion_integraciones():
+    """Configuración de Facturación Electrónica DIAN y Pasarelas de Pago."""
+    empresa = current_user.empresa
+    if request.method == 'POST':
+        # Facturación Electrónica
+        empresa.fe_habilitada = (request.form.get('fe_habilitada') == 'on')
+        empresa.fe_proveedor = request.form.get('fe_proveedor', 'SANDBOX')
+        empresa.fe_ambiente = request.form.get('fe_ambiente', 'HABILITACION')
+        empresa.fe_api_token = request.form.get('fe_api_token', '').strip() or None
+        empresa.fe_resolucion = request.form.get('fe_resolucion', '').strip()
+        empresa.fe_prefijo = request.form.get('fe_prefijo', 'SETP').strip()
+        empresa.fe_clave_tecnica = request.form.get('fe_clave_tecnica', '').strip() or None
+
+        # Pasarela de Pagos
+        empresa.pagos_online_habilitados = (request.form.get('pagos_online_habilitados') == 'on')
+        empresa.pasarela_predeterminada = request.form.get('pasarela_predeterminada', 'SANDBOX')
+        empresa.wompi_public_key = request.form.get('wompi_public_key', '').strip() or None
+        empresa.wompi_private_key = request.form.get('wompi_private_key', '').strip() or None
+        empresa.wompi_integrity_secret = request.form.get('wompi_integrity_secret', '').strip() or None
+        empresa.mercadopago_public_key = request.form.get('mercadopago_public_key', '').strip() or None
+        empresa.mercadopago_access_token = request.form.get('mercadopago_access_token', '').strip() or None
+
+        db.session.commit()
+        registrar_auditoria('CONFIGURACION', 'Modificación de integraciones DIAN y Pagos Online')
+        flash('Configuración de Facturación Electrónica y Pasarelas guardada con éxito.', 'success')
+        return redirect(url_for('ventas.configuracion_integraciones'))
+
+    return render_template('ventas/configuracion_integraciones.html', empresa=empresa)
+
 

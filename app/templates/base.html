@@ -200,13 +200,15 @@
 
                     {% if current_user.es_admin %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.endpoint and request.endpoint.startswith('admin.') %}active{% endif %}"
+                        <a class="nav-link dropdown-toggle {% if (request.endpoint and request.endpoint.startswith('admin.')) or request.endpoint == 'ventas.configuracion_integraciones' %}active{% endif %}"
                             href="#" role="button" data-bs-toggle="dropdown">
                             <i class="bi bi-shield-lock-fill text-warning"></i> Admin
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_usuarios') }}"><i class="bi bi-people-fill text-primary"></i> Usuarios</a></li>
                             <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_roles') }}"><i class="bi bi-person-lines-fill text-success"></i> Roles</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold" href="{{ url_for('ventas.configuracion_integraciones') }}"><i class="bi bi-shield-check text-success"></i> DIAN & Pagos Online</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item fw-bold" href="{{ url_for('admin.lista_auditoria') }}"><i class="bi bi-journal-text text-danger"></i> Auditoría</a></li>
                         </ul>

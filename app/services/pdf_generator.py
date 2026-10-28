@@ -254,6 +254,23 @@ class FacturaComercialPDF(FPDF):
         self.cell(45, 9, "TOTAL A PAGAR:", align='R')
         self.cell(36, 9, f"${total_val:,.0f} COP", align='R', new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
+        # Bloque CUFE DIAN si es factura electrónica
+        if self.venta.es_electronica and self.venta.cufe:
+            self.ln(3)
+            self.set_x(15)
+            self.set_draw_color(16, 185, 129)
+            self.set_fill_color(240, 253, 244)
+            self.rect(15, self.get_y(), 186, 14, 'FD')
+            self.set_font('Helvetica', 'B', 7)
+            self.set_text_color(6, 95, 70)
+            self.cell(186, 4, clean_text("FACTURA ELECTRONICA DE VENTA - DIAN COLOMBIA (DOCUMENTO OFICIAL VALIDADO)"), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+            self.set_font('Helvetica', '', 6)
+            self.set_text_color(55, 65, 81)
+            self.multi_cell(186, 3, clean_text(f"CUFE: {self.venta.cufe}"))
+            fecha_dian_str = self.venta.fecha_emision_dian.strftime('%Y-%m-%d %H:%M:%S') if self.venta.fecha_emision_dian else 'En linea'
+            self.cell(186, 3, clean_text(f"Fecha Validacion DIAN: {fecha_dian_str} | Estado: {self.venta.estado_dian} | {self.venta.dian_mensaje or 'Aceptado por DIAN'}"))
+
+
 
 def generar_pdf_factura(venta):
     """Genera y retorna los bytes del PDF de la factura comercial."""
