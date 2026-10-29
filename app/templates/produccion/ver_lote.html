@@ -832,13 +832,13 @@
             <div class="modal-body p-4 text-center">
                 
                 <!-- Rótulo Imprimible -->
-                <div id="rotuloPrintableArea" class="p-4 bg-white text-dark rounded-4 border-2 border-dashed text-start mx-auto shadow-sm" style="max-width: 380px; border-color: #059669 !important;">
-                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                <div id="rotuloPrintableArea" data-bs-theme="light" class="p-4 bg-white text-dark rounded-4 border-2 border-dashed text-start mx-auto shadow-sm rotulo-printable-card" style="max-width: 380px; border-color: #059669 !important; background-color: #ffffff !important; color: #0f172a !important;">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3" style="border-color: #e2e8f0 !important;">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-tree-fill text-success fs-3"></i>
                             <div>
-                                <h6 class="fw-black mb-0 text-uppercase text-dark" style="letter-spacing: 0.5px;">{{ current_user.empresa.nombre if current_user.empresa else 'EcoSistem Vivero' }}</h6>
-                                <small class="text-secondary fw-bold" style="font-size: 0.65rem;">GESTIÓN AGROPECUARIA CERTIFICADA</small>
+                                <h6 class="fw-black mb-0 text-uppercase" style="letter-spacing: 0.5px; color: #0f172a !important; font-weight: 800;">{{ current_user.empresa.nombre if current_user.empresa else 'EcoSistem Vivero' }}</h6>
+                                <small class="fw-bold" style="font-size: 0.65rem; color: #475569 !important;">GESTIÓN AGROPECUARIA CERTIFICADA</small>
                             </div>
                         </div>
                         <span class="badge bg-dark text-white font-monospace px-2 py-1">{{ lote.codigo_lote }}</span>
@@ -846,31 +846,31 @@
 
                     <div class="text-center my-3">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ url_for('produccion.trazabilidad_lote', id=lote.id, _external=True) }}" 
-                             alt="QR Trazabilidad" class="img-fluid rounded border p-1" style="width: 145px; height: 145px;">
+                             alt="QR Trazabilidad" class="img-fluid rounded border p-1" style="width: 145px; height: 145px; background-color: #ffffff;">
                     </div>
 
-                    <h5 class="fw-black text-center mb-1 text-dark">{{ lote.especie.nombre_comun if lote.especie else 'Lote' }}</h5>
+                    <h5 class="fw-black text-center mb-1" style="color: #0f172a !important; font-weight: 800;">{{ lote.especie.nombre_comun if lote.especie else 'Lote' }}</h5>
                     {% if lote.especie and lote.especie.nombre_cientifico %}
-                    <p class="text-center text-muted small fst-italic mb-2">{{ lote.especie.nombre_cientifico }}</p>
+                    <p class="text-center small fst-italic mb-2" style="color: #059669 !important; font-weight: 600;">{{ lote.especie.nombre_cientifico }}</p>
                     {% endif %}
 
-                    <table class="table table-sm table-borderless small mb-0 mt-3 pt-2 border-top">
+                    <table class="table table-sm table-borderless small mb-0 mt-3 pt-2 border-top" style="color: #0f172a !important; border-color: #e2e8f0 !important; background-color: transparent !important;">
                         <tbody>
                             <tr>
-                                <td class="text-muted fw-bold">Fecha Siembra:</td>
-                                <td class="fw-bold text-end text-dark">{{ lote.fecha_siembra.strftime('%d/%m/%Y') if lote.fecha_siembra else 'N/A' }}</td>
+                                <td style="color: #475569 !important; font-weight: 600;">Fecha Siembra:</td>
+                                <td class="text-end" style="color: #0f172a !important; font-weight: 700;">{{ lote.fecha_siembra.strftime('%d/%m/%Y') if lote.fecha_siembra else 'N/A' }}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted fw-bold">Ubicación / Nave:</td>
-                                <td class="fw-bold text-end text-dark">{{ lote.ubicacion or 'General' }}</td>
+                                <td style="color: #475569 !important; font-weight: 600;">Ubicación / Nave:</td>
+                                <td class="text-end" style="color: #0f172a !important; font-weight: 700;">{{ lote.ubicacion or 'General' }}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted fw-bold">Propósito Lote:</td>
-                                <td class="fw-bold text-end text-dark">{{ lote.proposito }}</td>
+                                <td style="color: #475569 !important; font-weight: 600;">Propósito Lote:</td>
+                                <td class="text-end" style="color: #0f172a !important; font-weight: 700;">{{ lote.proposito }}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted fw-bold">Sede Operativa:</td>
-                                <td class="fw-bold text-end text-dark">{{ lote.sede.nombre if lote.sede else 'Principal' }}</td>
+                                <td style="color: #475569 !important; font-weight: 600;">Sede Operativa:</td>
+                                <td class="text-end" style="color: #0f172a !important; font-weight: 700;">{{ lote.sede.nombre if lote.sede else 'Principal' }}</td>
                             </tr>
                         </tbody>
                     </table>

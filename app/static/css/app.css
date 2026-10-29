@@ -402,3 +402,55 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
 }
 
+/* RÓTULOS, ETIQUETAS Y FICHAS IMPRIMIBLES (SIEMPRE ALTO CONTRASTE NEGRO SOBRE BLANCO) */
+.rotulo-printable-card,
+#rotuloPrintableArea,
+#rotuloAnimalPrintableArea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    --bs-body-color: #0f172a !important;
+    --bs-heading-color: #0f172a !important;
+    --bs-secondary-color: #475569 !important;
+    --bs-tertiary-color: #64748b !important;
+    --bs-table-color: #0f172a !important;
+    --bs-table-bg: #ffffff !important;
+    --bs-table-border-color: #e2e8f0 !important;
+}
+
+[data-bs-theme="dark"] .rotulo-printable-card,
+[data-bs-theme="dark"] #rotuloPrintableArea,
+[data-bs-theme="dark"] #rotuloAnimalPrintableArea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+[data-bs-theme="dark"] .rotulo-printable-card .text-dark,
+[data-bs-theme="dark"] #rotuloPrintableArea .text-dark,
+[data-bs-theme="dark"] #rotuloAnimalPrintableArea .text-dark {
+    color: #0f172a !important;
+}
+
+[data-bs-theme="dark"] .rotulo-printable-card .text-muted,
+[data-bs-theme="dark"] .rotulo-printable-card .text-secondary,
+[data-bs-theme="dark"] #rotuloPrintableArea .text-muted,
+[data-bs-theme="dark"] #rotuloPrintableArea .text-secondary,
+[data-bs-theme="dark"] #rotuloAnimalPrintableArea .text-muted,
+[data-bs-theme="dark"] #rotuloAnimalPrintableArea .text-secondary {
+    color: #475569 !important;
+}
+
+[data-bs-theme="dark"] .rotulo-printable-card table,
+[data-bs-theme="dark"] #rotuloPrintableArea table,
+[data-bs-theme="dark"] #rotuloAnimalPrintableArea table {
+    color: #0f172a !important;
+    --bs-table-color: #0f172a !important;
+}
+
+[data-bs-theme="dark"] .rotulo-printable-card table td,
+[data-bs-theme="dark"] #rotuloPrintableArea table td,
+[data-bs-theme="dark"] #rotuloAnimalPrintableArea table td {
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+}
+
+

@@ -1069,50 +1069,50 @@
                 </p>
 
                 <!-- CONTENEDOR FÍSICO QUE SE IMPRIME -->
-                <div id="rotuloAnimalPrintableArea" class="p-4 rounded-4 bg-white text-dark border border-2 border-dark shadow-sm mx-auto" style="max-width: 380px;">
-                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                <div id="rotuloAnimalPrintableArea" data-bs-theme="light" class="p-4 rounded-4 bg-white text-dark border border-2 border-dark shadow-sm mx-auto rotulo-printable-card" style="max-width: 380px; background-color: #ffffff !important; color: #0f172a !important;">
+                    <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3" style="border-color: #e2e8f0 !important;">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-shield-check text-primary fs-4"></i>
-                            <span class="fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem;">EcoSistem Ganadería</span>
+                            <span class="fw-bold text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem; color: #0f172a !important;">EcoSistem Ganadería</span>
                         </div>
                         <span class="badge bg-dark text-white font-monospace px-2 py-1" style="font-size: 0.7rem;">
                             {{ animal.especie }}
                         </span>
                     </div>
 
-                    <h4 class="fw-black mb-1 text-dark" style="font-family: 'Outfit', sans-serif;">
+                    <h4 class="fw-black mb-1" style="font-family: 'Outfit', sans-serif; color: #0f172a !important; font-weight: 800;">
                         {{ animal.nombre or animal.codigo }}
                     </h4>
-                    <p class="text-secondary small mb-3">
-                        Raza: <strong>{{ animal.raza or (animal.raza_rel.nombre if animal.raza_rel else 'Estándar') }}</strong>
+                    <p class="small mb-3" style="color: #475569 !important;">
+                        Raza: <strong style="color: #0f172a !important;">{{ animal.raza or (animal.raza_rel.nombre if animal.raza_rel else 'Estándar') }}</strong>
                         {% if animal.genero %} &bull; {{ animal.genero }}{% endif %}
                     </p>
 
-                    <div class="my-3 p-2 d-inline-block border border-2 border-dark rounded-3 bg-white">
+                    <div class="my-3 p-2 d-inline-block border border-2 border-dark rounded-3 bg-white" style="background-color: #ffffff !important;">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ url_for('pecuario.trazabilidad_animal', id=animal.id, _external=True) }}" 
                              alt="QR Arete Animal" style="width: 160px; height: 160px;">
                     </div>
 
-                    <div class="border rounded-3 p-2 bg-light mb-3 text-start small">
+                    <div class="border rounded-3 p-2 mb-3 text-start small" style="background-color: #f8fafc !important; border-color: #e2e8f0 !important;">
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Arete/Código:</span>
-                            <strong class="font-monospace text-dark">{{ animal.codigo }}</strong>
+                            <span style="color: #475569 !important; font-weight: 600;">Arete/Código:</span>
+                            <strong class="font-monospace" style="color: #0f172a !important;">{{ animal.codigo }}</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Propósito:</span>
-                            <span class="fw-bold text-dark">{{ animal.proposito }}</span>
+                            <span style="color: #475569 !important; font-weight: 600;">Propósito:</span>
+                            <span class="fw-bold" style="color: #0f172a !important;">{{ animal.proposito }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Ubicación / Sede:</span>
-                            <span class="fw-bold text-dark">{{ animal.ubicacion or 'Corral' }} • {{ animal.sede.nombre if animal.sede else 'Finca Central' }}</span>
+                            <span style="color: #475569 !important; font-weight: 600;">Ubicación / Sede:</span>
+                            <span class="fw-bold" style="color: #0f172a !important;">{{ animal.ubicacion or 'Corral' }} • {{ animal.sede.nombre if animal.sede else 'Finca Central' }}</span>
                         </div>
                         <div class="d-flex justify-content-between">
-                            <span class="text-muted">F. Ingreso:</span>
-                            <span class="font-monospace text-dark">{{ animal.fecha_ingreso.strftime('%d/%m/%Y') if animal.fecha_ingreso else 'N/A' }}</span>
+                            <span style="color: #475569 !important; font-weight: 600;">F. Ingreso:</span>
+                            <span class="font-monospace" style="color: #0f172a !important;">{{ animal.fecha_ingreso.strftime('%d/%m/%Y') if animal.fecha_ingreso else 'N/A' }}</span>
                         </div>
                     </div>
 
-                    <small class="text-muted d-block text-center" style="font-size: 0.65rem;">
+                    <small class="d-block text-center" style="font-size: 0.65rem; color: #64748b !important;">
                         Certificado oficial emitido por EcoSistem Agropecuaria. Escanee para auditar eventos veterinarios.
                     </small>
                 </div>
