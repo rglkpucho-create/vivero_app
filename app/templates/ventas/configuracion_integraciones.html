@@ -1,166 +1,204 @@
 {% extends 'base.html' %}
-
-{% block title %}Integraciones DIAN y Pagos Online | EcoSistem{% endblock %}
+{% block title %}Facturación Electrónica DIAN & Pagos Online | EcoSistem{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div class="container-fluid py-4 px-md-4" style="max-width: 1100px;">
+    <!-- Encabezado -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <div class="flex items-center gap-2 mb-1 text-sm font-semibold text-emerald-600">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                <span>MÓDULO DE INTEGRACIONES EMPRESARIALES</span>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2.5 py-1 rounded-pill fw-bold">
+                    <i class="bi bi-lightning-charge-fill me-1"></i> Módulo de Integraciones
+                </span>
+                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25 rounded-pill">
+                    Fiscal & Pasarelas
+                </span>
             </div>
-            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Facturación Electrónica & Pagos Online</h1>
-            <p class="text-slate-500 text-sm mt-1">Configura tus credenciales DIAN y pasarelas de cobro digital (Wompi, Mercado Pago o Modo Sandbox Autónomo).</p>
+            <h2 class="h3 fw-bold text-body mb-0">Facturación Electrónica DIAN & Pagos Online</h2>
+            <p class="text-secondary small mb-0">Configura tus credenciales fiscales de emisión (CUFE / QR) y pasarelas de cobro digital (Wompi, Mercado Pago o Sandbox Autónomo).</p>
         </div>
-        <div>
-            <a href="{{ url_for('ventas.lista_ventas') }}" class="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-xl text-slate-700 bg-white hover:bg-slate-50 text-sm font-medium transition shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                Volver a Ventas
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('ventas.lista_ventas') }}" class="btn btn-outline-secondary rounded-pill px-3.5 fw-bold d-inline-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver a Ventas</span>
+            </a>
+            <a href="{{ url_for('admin.configuracion_empresa') }}" class="btn btn-outline-primary rounded-pill px-3.5 fw-bold d-inline-flex align-items-center gap-2">
+                <i class="bi bi-building"></i>
+                <span>Mi Empresa</span>
             </a>
         </div>
     </div>
 
-    <form method="POST" class="space-y-8">
+    <form method="POST" class="needs-validation">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
 
-        <!-- SECCIÓN 1: FACTURACIÓN ELECTRÓNICA DIAN -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-6 bg-gradient-to-r from-emerald-50 via-teal-50 to-white border-b border-slate-200 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-slate-900">1. Facturación Electrónica DIAN (Colombia)</h2>
-                        <p class="text-xs text-slate-600">Generación de CUFE (SHA-384), código QR y validación previa con o sin proveedor contratado.</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="fe_habilitada" class="sr-only peer" {% if empresa.fe_habilitada %}checked{% endif %}>
-                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                        <span class="ml-2 text-xs font-semibold text-slate-700">Habilitar FE</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="p-6 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Proveedor / Modo de Emisión</label>
-                        <select name="fe_proveedor" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-                            <option value="SANDBOX" {% if empresa.fe_proveedor == 'SANDBOX' %}selected{% endif %}>🟢 Modo Sandbox (Autónomo para Pruebas - Sin Costo)</option>
-                            <option value="FACTUS" {% if empresa.fe_proveedor == 'FACTUS' %}selected{% endif %}>Factus API (Proveedor Tecnológico)</option>
-                            <option value="ALEGRA" {% if empresa.fe_proveedor == 'ALEGRA' %}selected{% endif %}>Alegra API (Facturación DIAN)</option>
-                            <option value="SIIGO" {% if empresa.fe_proveedor == 'SIIGO' %}selected{% endif %}>Siigo API (Facturación Electrónica)</option>
-                        </select>
-                        <p class="text-[11px] text-slate-500 mt-1">El Modo Sandbox genera CUFE y QR válidos según Anexo 1.9 sin requerir ningún contrato.</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Ambiente DIAN</label>
-                        <select name="fe_ambiente" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
-                            <option value="HABILITACION" {% if empresa.fe_ambiente == 'HABILITACION' %}selected{% endif %}>Habilitación / Pruebas (TestSetId)</option>
-                            <option value="PRODUCCION" {% if empresa.fe_ambiente == 'PRODUCCION' %}selected{% endif %}>Producción Oficial DIAN</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Prefijo Autorizado</label>
-                        <input type="text" name="fe_prefijo" value="{{ empresa.fe_prefijo or 'SETP' }}" placeholder="Ej. SETP o FAC" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Número de Resolución DIAN</label>
-                        <input type="text" name="fe_resolucion" value="{{ empresa.fe_resolucion or 'Resolución DIAN No. 18764000001 de 2026' }}" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Clave Técnica DIAN (Para cálculo de CUFE)</label>
-                        <input type="password" name="fe_clave_tecnica" value="{{ empresa.fe_clave_tecnica or '' }}" placeholder="Clave técnica asignada en el portal DIAN (ej. fc8eac422eba...)" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Token / API Key del Proveedor Tecnológico (Factus / Alegra / Siigo)</label>
-                        <input type="password" name="fe_api_token" value="{{ empresa.fe_api_token or '' }}" placeholder="Pega aquí tu API Key cuando contrates tu proveedor (opcional para Sandbox)" class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <p class="text-[11px] text-slate-500 mt-1">Si lo dejas en blanco, el sistema operará automáticamente con el motor local Sandbox sin generar errores.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN 2: PASARELAS DE PAGO ONLINE -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-6 bg-gradient-to-r from-blue-50 via-indigo-50 to-white border-b border-slate-200 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-slate-900">2. Pasarelas de Pago Digital (Wompi, Mercado Pago & PSE)</h2>
-                        <p class="text-xs text-slate-600">Cobros en línea con tarjetas, transferencias Bancolombia, Nequi, Daviplata y PSE.</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="pagos_online_habilitados" class="sr-only peer" {% if empresa.pagos_online_habilitados %}checked{% endif %}>
-                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        <span class="ml-2 text-xs font-semibold text-slate-700">Habilitar Pagos</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="p-6 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Pasarela Predeterminada</label>
-                        <select name="pasarela_predeterminada" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition">
-                            <option value="SANDBOX" {% if empresa.pasarela_predeterminada == 'SANDBOX' %}selected{% endif %}>🟢 Modo Sandbox (Simulador Nequi/Daviplata/PSE - Sin Costo)</option>
-                            <option value="WOMPI" {% if empresa.pasarela_predeterminada == 'WOMPI' %}selected{% endif %}>Wompi (Bancolombia, Nequi, PSE, Tarjetas)</option>
-                            <option value="MERCADOPAGO" {% if empresa.pasarela_predeterminada == 'MERCADOPAGO' %}selected{% endif %}>Mercado Pago (PSE, Tarjetas, Efecty)</option>
-                        </select>
-                    </div>
-
-                    <!-- Campos Wompi -->
-                    <div class="md:col-span-2 pt-2 border-t border-slate-100">
-                        <h3 class="text-xs font-extrabold text-blue-900 tracking-wider uppercase mb-4">Credenciales Wompi (Bancolombia)</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Llave Pública (Public Key)</label>
-                                <input type="text" name="wompi_public_key" value="{{ empresa.wompi_public_key or '' }}" placeholder="pub_prod_... o pub_test_..." class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        <div class="row g-4">
+            <!-- SECCIÓN 1: FACTURACIÓN ELECTRÓNICA DIAN -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bs-card-bg);">
+                    <div class="card-header border-0 py-3 px-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3"
+                         style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.04) 100%); border-bottom: 1px solid var(--border-color) !important;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 bg-success text-white d-flex align-items-center justify-center p-2.5 shadow-sm" style="width: 44px; height: 44px;">
+                                <i class="bi bi-receipt-cutoff fs-4"></i>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Secreto de Integridad (Integrity Secret)</label>
-                                <input type="password" name="wompi_integrity_secret" value="{{ empresa.wompi_integrity_secret or '' }}" placeholder="prod_integrity_... o test_integrity_..." class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <h5 class="fw-bold mb-0 text-body">1. Facturación Electrónica DIAN (Colombia)</h5>
+                                <p class="text-secondary small mb-0">Generación de CUFE (SHA-384), código QR y validación previa con o sin proveedor contratado.</p>
                             </div>
+                        </div>
+                        <div class="form-check form-switch fs-5 mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="fe_habilitada" name="fe_habilitada" {% if empresa.fe_habilitada %}checked{% endif %}>
+                            <label class="form-check-label fs-6 fw-bold ms-2 text-body" for="fe_habilitada">Habilitar FE</label>
                         </div>
                     </div>
 
-                    <!-- Campos Mercado Pago -->
-                    <div class="md:col-span-2 pt-2 border-t border-slate-100">
-                        <h3 class="text-xs font-extrabold text-blue-900 tracking-wider uppercase mb-4">Credenciales Mercado Pago</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Public Key</label>
-                                <input type="text" name="mercadopago_public_key" value="{{ empresa.mercadopago_public_key or '' }}" placeholder="APP_USR-..." class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Proveedor / Modo de Emisión</label>
+                                <select name="fe_proveedor" class="form-select bg-body-tertiary border-secondary border-opacity-25 text-body py-2.5">
+                                    <option value="SANDBOX" {% if empresa.fe_proveedor == 'SANDBOX' %}selected{% endif %}>🟢 Modo Sandbox (Autónomo para Pruebas - Sin Costo)</option>
+                                    <option value="FACTUS" {% if empresa.fe_proveedor == 'FACTUS' %}selected{% endif %}>Factus API (Proveedor Tecnológico)</option>
+                                    <option value="ALEGRA" {% if empresa.fe_proveedor == 'ALEGRA' %}selected{% endif %}>Alegra API (Facturación DIAN)</option>
+                                    <option value="SIIGO" {% if empresa.fe_proveedor == 'SIIGO' %}selected{% endif %}>Siigo API (Facturación Electrónica)</option>
+                                </select>
+                                <div class="form-text text-secondary small mt-1">El Modo Sandbox genera CUFE y QR oficiales según Anexo 1.9 sin requerir ningún contrato.</div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Access Token</label>
-                                <input type="password" name="mercadopago_access_token" value="{{ empresa.mercadopago_access_token or '' }}" placeholder="APP_USR-..." class="w-full border border-slate-300 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Ambiente DIAN</label>
+                                <select name="fe_ambiente" class="form-select bg-body-tertiary border-secondary border-opacity-25 text-body py-2.5">
+                                    <option value="HABILITACION" {% if empresa.fe_ambiente == 'HABILITACION' %}selected{% endif %}>Habilitación / Pruebas (TestSetId)</option>
+                                    <option value="PRODUCCION" {% if empresa.fe_ambiente == 'PRODUCCION' %}selected{% endif %}>Producción Oficial DIAN</option>
+                                </select>
+                                <div class="form-text text-secondary small mt-1">Usa Habilitación para pruebas iniciales o Sandbox sin afectar tu RUT fiscal.</div>
                             </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Prefijo Autorizado</label>
+                                <input type="text" name="fe_prefijo" value="{{ empresa.fe_prefijo or 'SETP' }}" placeholder="Ej. SETP o FAC" class="form-control bg-body-tertiary border-secondary border-opacity-25 text-body py-2 font-monospace">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Número de Resolución DIAN</label>
+                                <input type="text" name="fe_resolucion" value="{{ empresa.fe_resolucion or 'Resolución DIAN No. 18764000001 de 2026' }}" class="form-control bg-body-tertiary border-secondary border-opacity-25 text-body py-2">
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Clave Técnica DIAN (Para cálculo de CUFE)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-secondary"><i class="bi bi-key-fill"></i></span>
+                                    <input type="password" name="fe_clave_tecnica" value="{{ empresa.fe_clave_tecnica or '' }}" placeholder="Clave técnica asignada en el portal DIAN (ej. fc8eac422eba...)" class="form-control bg-body-tertiary border-secondary border-opacity-25 text-body font-monospace">
+                                </div>
+                                <div class="form-text text-secondary small mt-1">Requerida para firmar el algoritmo SHA-384 de cada factura legal en Colombia.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Token / API Key del Proveedor Tecnológico (Factus / Alegra / Siigo)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-body-tertiary border-secondary border-opacity-25 text-secondary"><i class="bi bi-shield-lock-fill"></i></span>
+                                    <input type="password" name="fe_api_token" value="{{ empresa.fe_api_token or '' }}" placeholder="Pega aquí tu API Key cuando contrates tu proveedor (opcional para Sandbox)" class="form-control bg-body-tertiary border-secondary border-opacity-25 text-body font-monospace">
+                                </div>
+                                <div class="form-text text-secondary small mt-1">Si lo dejas en blanco, el sistema operará automáticamente con el motor local Sandbox sin generar errores.</div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 mt-3 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 text-success small d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill fs-5 flex-shrink-0"></i>
+                            <div><strong>Todo Listo:</strong> Cada factura emitida en POS o Crédito generará su representación gráfica PDF con CUFE, código QR escaneable y formato DIAN.</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="flex justify-end gap-4">
-            <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 text-sm transition transform active:scale-95">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                Guardar Configuración
-            </button>
+            <!-- SECCIÓN 2: PASARELAS DE PAGO ONLINE -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: var(--bs-card-bg);">
+                    <div class="card-header border-0 py-3 px-4 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3"
+                         style="background: linear-gradient(90deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.04) 100%); border-bottom: 1px solid var(--border-color) !important;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-center p-2.5 shadow-sm" style="width: 44px; height: 44px;">
+                                <i class="bi bi-credit-card-2-front-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0 text-body">2. Pasarelas de Pago Digital (Wompi, Mercado Pago & PSE)</h5>
+                                <p class="text-secondary small mb-0">Cobros en línea con tarjetas, transferencias Bancolombia, Nequi, Daviplata y PSE.</p>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch fs-5 mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="pagos_online_habilitados" name="pagos_online_habilitados" {% if empresa.pagos_online_habilitados %}checked{% endif %}>
+                            <label class="form-check-label fs-6 fw-bold ms-2 text-body" for="pagos_online_habilitados">Habilitar Pagos</label>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label text-secondary small fw-bold text-uppercase">Pasarela Predeterminada</label>
+                                <select name="pasarela_predeterminada" class="form-select bg-body-tertiary border-secondary border-opacity-25 text-body py-2.5">
+                                    <option value="SANDBOX" {% if empresa.pasarela_predeterminada == 'SANDBOX' %}selected{% endif %}>🟢 Modo Sandbox (Simulador Nequi / Daviplata / PSE - Sin Costo)</option>
+                                    <option value="WOMPI" {% if empresa.pasarela_predeterminada == 'WOMPI' %}selected{% endif %}>Wompi (Bancolombia, Nequi, PSE, Tarjetas de Crédito)</option>
+                                    <option value="MERCADOPAGO" {% if empresa.pasarela_predeterminada == 'MERCADOPAGO' %}selected{% endif %}>Mercado Pago (PSE, Tarjetas, Efecty)</option>
+                                </select>
+                                <div class="form-text text-secondary small mt-1">En Modo Sandbox puedes simular cobros exitosos y rechazos sin mover dinero real.</div>
+                            </div>
+
+                            <!-- Campos Wompi -->
+                            <div class="col-12">
+                                <div class="p-3.5 rounded-4 bg-body-tertiary border border-secondary border-opacity-25">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="badge bg-primary text-white px-2.5 py-1 rounded-pill fw-bold">Wompi</span>
+                                        <span class="fw-bold text-body small">Credenciales Wompi (Grupo Bancolombia)</span>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-secondary small fw-bold text-uppercase">Llave Pública (Public Key)</label>
+                                            <input type="text" name="wompi_public_key" value="{{ empresa.wompi_public_key or '' }}" placeholder="pub_prod_... o pub_test_..." class="form-control bg-dark text-white border-secondary border-opacity-25 font-monospace">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-secondary small fw-bold text-uppercase">Secreto de Integridad (Integrity Secret)</label>
+                                            <input type="password" name="wompi_integrity_secret" value="{{ empresa.wompi_integrity_secret or '' }}" placeholder="prod_integrity_... o test_integrity_..." class="form-control bg-dark text-white border-secondary border-opacity-25 font-monospace">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label text-secondary small fw-bold text-uppercase">Llave Privada / Eventos (Private Key)</label>
+                                            <input type="password" name="wompi_private_key" value="{{ empresa.wompi_private_key or '' }}" placeholder="prv_prod_... o prv_test_..." class="form-control bg-dark text-white border-secondary border-opacity-25 font-monospace">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campos Mercado Pago -->
+                            <div class="col-12">
+                                <div class="p-3.5 rounded-4 bg-body-tertiary border border-secondary border-opacity-25">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <span class="badge bg-info text-dark px-2.5 py-1 rounded-pill fw-bold">Mercado Pago</span>
+                                        <span class="fw-bold text-body small">Credenciales Mercado Pago</span>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-secondary small fw-bold text-uppercase">Public Key</label>
+                                            <input type="text" name="mercadopago_public_key" value="{{ empresa.mercadopago_public_key or '' }}" placeholder="APP_USR-..." class="form-control bg-dark text-white border-secondary border-opacity-25 font-monospace">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-secondary small fw-bold text-uppercase">Access Token</label>
+                                            <input type="password" name="mercadopago_access_token" value="{{ empresa.mercadopago_access_token or '' }}" placeholder="APP_USR-..." class="form-control bg-dark text-white border-secondary border-opacity-25 font-monospace">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Guardar -->
+            <div class="col-12 text-end">
+                <button type="submit" class="btn btn-success btn-lg px-4 py-2.5 rounded-pill shadow-sm fw-bold d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Guardar Configuración de Integraciones</span>
+                </button>
+            </div>
         </div>
     </form>
 </div>
